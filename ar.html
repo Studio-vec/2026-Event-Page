@@ -341,10 +341,24 @@ function startAR(hallId, mindFile) {
   scene.setAttribute('vr-mode-ui', 'enabled: false');
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
   scene.setAttribute('renderer', 'colorManagement: true; alpha: true');
-  scene.setAttribute('background', 'color: transparent; transparent: true');
+  scene.setAttribute('background', 'transparent: true');
   // MindAR이 clientWidth/Height를 읽을 때 0이 되지 않도록 픽셀값 직접 지정
   const vpW = window.innerWidth, vpH = window.innerHeight;
   scene.style.cssText = `position:fixed!important;top:0!important;left:0!important;width:${vpW}px!important;height:${vpH}px!important;z-index:10!important;`;
+  // A-Frame background 컴포넌트가 renderer에 setClearColor(color,1)을 덮어쓸 수 있으므로
+  // scene loaded 이후 강제로 투명 설정
+  scene.addEventListener('loaded', () => {
+    if (scene.renderer) {
+      scene.renderer.setClearColor(0x000000, 0);
+      scene.renderer.setClearAlpha(0);
+    }
+    // MindAR 시스템 renderer도 직접 접근
+    const sys = scene.systems && scene.systems['mindar-image-system'];
+    if (sys && sys.mindarThree && sys.mindarThree.renderer) {
+      sys.mindarThree.renderer.setClearColor(0x000000, 0);
+      sys.mindarThree.renderer.setClearAlpha(0);
+    }
+  });
 
   // 카메라
   const cam = document.createElement('a-camera');
