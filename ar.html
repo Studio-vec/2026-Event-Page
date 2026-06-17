@@ -67,30 +67,24 @@
       background:var(--surface);color:var(--text-2);font-size:13px;font-weight:700;text-decoration:none;
     }
 
-    /* A-Frame scene: body 첫 번째 자식, fixed fullscreen */
-    #arScene{
-      position:fixed !important;
-      top:0 !important; left:0 !important; right:0 !important; bottom:0 !important;
-      width:100vw !important;
-      height:100vh !important;
-      z-index:10 !important;
-      display:block !important;
-      background:transparent !important;
+    /* MindAR video: body에 직접, 카메라 배경 */
+    #arVideo{
+      display:none;
+      position:fixed;top:0;left:0;
+      width:100vw;height:100vh;
+      object-fit:cover;
+      z-index:10;
     }
-    /* A-Frame 캔버스 투명 배경 */
-    #arScene canvas{
-      position:absolute !important;
-      top:0 !important; left:0 !important;
-      width:100% !important; height:100% !important;
-      background:transparent !important;
+    #arVideo.active{display:block;}
+
+    /* 불꽃 2D canvas 오버레이 */
+    #flameOverlay{
+      display:none;
+      position:fixed;inset:0;
+      z-index:12;
+      pointer-events:none;
     }
-    /* MindAR이 생성하는 카메라 video */
-    #arScene video{
-      position:absolute !important;
-      top:0 !important; left:0 !important;
-      width:100% !important; height:100% !important;
-      object-fit:cover !important;
-    }
+    #flameOverlay.active{display:block;}
 
     /* 카메라 UI 오버레이 */
     #camOverlay{
@@ -118,7 +112,15 @@
       border:1px solid rgba(255,255,255,.2);
       font-size:13px;font-weight:700;color:#fff;
     }
-    .cam-middle{flex:1;}
+    .cam-middle{flex:1;display:flex;align-items:center;justify-content:center;}
+    .scan-hint{
+      padding:10px 20px;border-radius:20px;
+      background:rgba(0,0,0,.45);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.15);
+      font-size:12px;color:rgba(255,255,255,.75);
+      opacity:1;transition:opacity .3s;
+    }
+    .scan-hint.hidden{opacity:0;}
     .cam-bottom{
       padding:14px 20px;padding-bottom:max(env(safe-area-inset-bottom,0px),14px);
       display:flex;align-items:center;gap:12px;
@@ -141,6 +143,16 @@
     .marker-hint-img{width:36px;height:36px;object-fit:contain;filter:brightness(0) invert(1);opacity:.55;}
     .marker-hint-txt{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4;}
     .marker-hint-txt strong{display:block;color:rgba(255,255,255,.75);font-size:12px;}
+
+    /* A-Frame scene: 숨겨서 감지 전용으로만 사용 */
+    #arScene{
+      position:fixed !important;
+      top:0 !important;left:0 !important;
+      width:1px !important;height:1px !important;
+      opacity:0 !important;
+      pointer-events:none !important;
+      z-index:1 !important;
+    }
 
     /* 인앱 경고 */
     #inappWarn{
@@ -179,18 +191,26 @@
   <div class="home-bar"><a href="index.html" class="home-btn">← 메인 메뉴</a></div>
 </div>
 
-<!-- 카메라 UI 오버레이 (A-Frame 위에 표시) -->
+<!-- 카메라 영상 (MindAR video를 받아 표시) -->
+<video id="arVideo" autoplay playsinline webkit-playsinline muted></video>
+
+<!-- 불꽃 2D 오버레이 -->
+<canvas id="flameOverlay"></canvas>
+
+<!-- 카메라 UI 오버레이 -->
 <div id="camOverlay">
   <div class="cam-top">
     <div class="cam-back" onclick="goHall()">‹</div>
     <div class="hall-pill"><span id="pillName"></span></div>
     <div style="width:40px"></div>
   </div>
-  <div class="cam-middle"></div>
+  <div class="cam-middle">
+    <div class="scan-hint" id="scanHint">📍 횃불 마커를 화면 중앙에 비춰주세요</div>
+  </div>
   <div class="cam-bottom">
     <div class="status-pill" id="statusPill">
       <div class="status-dot"></div>
-      <span id="statusTxt">횃불 마커를 비춰주세요</span>
+      <span id="statusTxt">마커를 찾는 중...</span>
     </div>
     <div class="marker-hint">
       <img class="marker-hint-img" id="markerHintImg" src="" alt="">
@@ -198,6 +218,9 @@
     </div>
   </div>
 </div>
+
+<!-- A-Frame scene (화면에 보이지 않음, 감지 전용) -->
+<a-scene id="arScene" embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false"></a-scene>
 
 <!-- 인앱 경고 -->
 <div id="inappWarn">
@@ -229,10 +252,10 @@ const BAR_PARAMS = [
 ];
 const FLAME_COLS = {
   fire:   ['#7f1d1d','#dc2626','#f97316','#fef08a'],
-  gold:   ['#92400e','#fbbf24','#fef9c3'],
-  purple: ['#3b0764','#a855f7','#e9d5ff'],
-  blue:   ['#0c4a6e','#38bdf8','#e0f2fe'],
-  green:  ['#14532d','#16a34a','#dcfce7'],
+  gold:   ['#92400e','#d97706','#fbbf24','#fef9c3'],
+  purple: ['#3b0764','#7c3aed','#a855f7','#e9d5ff'],
+  blue:   ['#0c4a6e','#0284c7','#38bdf8','#e0f2fe'],
+  green:  ['#14532d','#15803d','#16a34a','#dcfce7'],
 };
 
 function drawFlameFrame(ctx, W, H, stops, t) {
@@ -257,29 +280,11 @@ function drawFlameFrame(ctx, W, H, stops, t) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
-/* ── A-Frame 컴포넌트 등록 ── */
+/* ── A-Frame 컴포넌트 (감지용, 렌더링은 별도) ── */
 AFRAME.registerComponent('flame-canvas', {
   schema: { hallId: {type:'string', default:''} },
-  init() {
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = 512; this.canvas.height = 512;
-    this.ctx = this.canvas.getContext('2d');
-    this.texture = new THREE.CanvasTexture(this.canvas);
-  },
-  tick(time) {
-    const mesh = this.el.getObject3D('mesh');
-    if (!mesh) return;
-    if (!mesh.material.map) {
-      mesh.material.map = this.texture;
-      mesh.material.transparent = true;
-      mesh.material.alphaTest = 0.01;
-      mesh.material.needsUpdate = true;
-    }
-    const h = HALLS[this.data.hallId];
-    if (!h) return;
-    drawFlameFrame(this.ctx, 512, 512, FLAME_COLS[h.flameKey] || FLAME_COLS.fire, time);
-    this.texture.needsUpdate = true;
-  }
+  init() {},
+  tick() {}
 });
 
 /* ── 세션장 카드 렌더 ── */
@@ -297,6 +302,8 @@ Object.entries(HALLS).forEach(([id, h], idx) => {
 
 /* ── 상태 ── */
 let curHall = null;
+let flameRafId = null;
+let arSceneEl = null;
 
 function isInApp() {
   return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line|FBAV/i.test(navigator.userAgent);
@@ -306,11 +313,63 @@ function copyUrl() {
     .then(() => alert('주소가 복사되었습니다!\nChrome 또는 기본 브라우저에 붙여넣기 해주세요.'))
     .catch(() => prompt('아래 주소를 복사하세요', location.href));
 }
+
 function setStatus(found) {
   document.getElementById('statusPill').classList.toggle('found', found);
-  document.getElementById('statusTxt').textContent = found ? '🔥 불꽃 인식됨!' : '횃불 마커를 비춰주세요';
+  document.getElementById('statusTxt').textContent = found ? '🔥 불꽃 인식됨!' : '마커를 찾는 중...';
+  document.getElementById('scanHint').classList.toggle('hidden', found);
+  if (found) showFlame2D(); else hideFlame2D();
 }
 
+/* ── 2D 불꽃 오버레이 ── */
+function showFlame2D() {
+  const fc = document.getElementById('flameOverlay');
+  fc.width = window.innerWidth;
+  fc.height = window.innerHeight;
+  fc.classList.add('active');
+
+  const ctx = fc.getContext('2d');
+  const h = HALLS[curHall];
+  const stops = FLAME_COLS[h ? h.flameKey : 'fire'] || FLAME_COLS.fire;
+
+  // 화면 하단 중앙에 불꽃 표시
+  const FW = Math.min(fc.width * 0.55, 280);
+  const FH = FW * 1.2;
+  const fx = (fc.width - FW) / 2;
+  const fy = fc.height - FH - 80;
+
+  cancelAnimationFrame(flameRafId);
+  function animate() {
+    ctx.clearRect(0, 0, fc.width, fc.height);
+
+    // 핸들 힌트 배경
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.roundRect(fx - 16, fy - 16, FW + 32, FH + 32, 20);
+    ctx.fill();
+    ctx.restore();
+
+    // 불꽃 그리기 (서브 캔버스)
+    const tmp = document.createElement('canvas');
+    tmp.width = FW; tmp.height = FH;
+    drawFlameFrame(tmp.getContext('2d'), FW, FH, stops, performance.now());
+    ctx.drawImage(tmp, fx, fy, FW, FH);
+
+    flameRafId = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+function hideFlame2D() {
+  cancelAnimationFrame(flameRafId);
+  flameRafId = null;
+  const fc = document.getElementById('flameOverlay');
+  fc.classList.remove('active');
+}
+
+/* ── AR 시작 ── */
 function selectHall(id) {
   curHall = id;
   if (isInApp()) {
@@ -326,102 +385,91 @@ function selectHall(id) {
 }
 
 function startAR(hallId, mindFile) {
-  // 기존 scene 제거
+  stopAR();
+  document.getElementById('hallScreen').classList.add('hidden');
+  document.getElementById('camOverlay').classList.add('active');
+
+  // 기존 a-scene 제거 후 재생성 (다른 마인드 파일로 전환)
   const old = document.getElementById('arScene');
   if (old) old.remove();
 
-  // 세션장 선택 화면 숨기기
-  document.getElementById('hallScreen').classList.add('hidden');
-
-  // A-Frame scene 생성 — body 최상위 자식 (flex 컨테이너 밖)
   const scene = document.createElement('a-scene');
   scene.id = 'arScene';
   scene.setAttribute('mindar-image', `imageTargetSrc: ${mindFile}; uiScanning: no; uiLoading: no`);
   scene.setAttribute('embedded', '');
   scene.setAttribute('vr-mode-ui', 'enabled: false');
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-  scene.setAttribute('renderer', 'colorManagement: true; alpha: true');
-  scene.setAttribute('background', 'transparent: true');
-  // MindAR이 clientWidth/Height를 읽을 때 0이 되지 않도록 픽셀값 직접 지정
-  const vpW = window.innerWidth, vpH = window.innerHeight;
-  scene.style.cssText = `position:fixed!important;top:0!important;left:0!important;width:${vpW}px!important;height:${vpH}px!important;z-index:10!important;`;
-  // A-Frame background 컴포넌트가 renderer에 setClearColor(color,1)을 덮어쓸 수 있으므로
-  // scene loaded 이후 강제로 투명 설정
-  scene.addEventListener('loaded', () => {
-    if (scene.renderer) {
-      scene.renderer.setClearColor(0x000000, 0);
-      scene.renderer.setClearAlpha(0);
-    }
-    // MindAR 시스템 renderer도 직접 접근
-    const sys = scene.systems && scene.systems['mindar-image-system'];
-    if (sys && sys.mindarThree && sys.mindarThree.renderer) {
-      sys.mindarThree.renderer.setClearColor(0x000000, 0);
-      sys.mindarThree.renderer.setClearAlpha(0);
-    }
-  });
+  // 화면에 보이지 않게 (감지 전용)
+  scene.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:1;';
 
-  // 카메라
   const cam = document.createElement('a-camera');
   cam.setAttribute('position', '0 0 0');
   cam.setAttribute('look-controls', 'enabled: false');
   scene.appendChild(cam);
 
-  // 마커 타겟
   const target = document.createElement('a-entity');
   target.setAttribute('mindar-image-target', 'targetIndex: 0');
   target.addEventListener('targetFound', () => setStatus(true));
   target.addEventListener('targetLost',  () => setStatus(false));
-
-  // 불꽃 plane
+  // 감지용 더미 plane (렌더링 불필요)
   const plane = document.createElement('a-plane');
-  plane.setAttribute('position', '0 0.6 0');
-  plane.setAttribute('width', '0.9');
-  plane.setAttribute('height', '1.0');
-  plane.setAttribute('material', 'transparent: true; alphaTest: 0.01; side: double; color: #ffffff');
-  plane.setAttribute('flame-canvas', `hallId: ${hallId}`);
+  plane.setAttribute('width', '0.1');
+  plane.setAttribute('height', '0.1');
+  plane.setAttribute('visible', 'false');
   target.appendChild(plane);
   scene.appendChild(target);
 
-  // body 첫 번째 자식으로 삽입
-  document.body.insertBefore(scene, document.body.firstChild);
+  document.body.appendChild(scene);
+  arSceneEl = scene;
 
-  // 카메라 UI 오버레이 표시
-  document.getElementById('camOverlay').classList.add('active');
+  // scene loaded 후 MindAR video를 꺼내 직접 표시
+  scene.addEventListener('loaded', () => {
+    // MindAR이 생성한 video 요소 찾기
+    const mindVideo = scene.querySelector('video') || document.querySelector('#arScene video');
+    const displayVideo = document.getElementById('arVideo');
+    if (mindVideo && mindVideo.srcObject) {
+      displayVideo.srcObject = mindVideo.srcObject;
+    } else if (mindVideo) {
+      // srcObject가 아직 없으면 스트림 대기
+      mindVideo.addEventListener('loadedmetadata', () => {
+        if (mindVideo.srcObject) displayVideo.srcObject = mindVideo.srcObject;
+      }, { once: true });
+    }
+    displayVideo.classList.add('active');
+  });
+
+  // video srcObject를 polling으로 확인 (loaded 이전에 스트림이 올 수 있음)
+  const pollVideo = setInterval(() => {
+    const mindVideo = document.querySelector('#arScene video');
+    const displayVideo = document.getElementById('arVideo');
+    if (mindVideo && mindVideo.srcObject && !displayVideo.srcObject) {
+      displayVideo.srcObject = mindVideo.srcObject;
+      displayVideo.classList.add('active');
+    }
+    if (displayVideo.srcObject) clearInterval(pollVideo);
+  }, 200);
+
+  setTimeout(() => clearInterval(pollVideo), 15000);
 }
 
 function stopAR() {
+  hideFlame2D();
   const scene = document.getElementById('arScene');
   if (scene) {
     const sys = scene.systems && scene.systems['mindar-image-system'];
-    if (sys) { try { sys.stop(); } catch(e) {} }
+    if (sys) try { sys.stop(); } catch(e) {}
     scene.remove();
   }
+  const v = document.getElementById('arVideo');
+  v.srcObject = null;
+  v.classList.remove('active');
   document.getElementById('camOverlay').classList.remove('active');
-  setStatus(false);
 }
 
 function goHall() {
   stopAR();
   document.getElementById('hallScreen').classList.remove('hidden');
 }
-
-/* ── 임시 디버그 패널 ── */
-const dbg = document.createElement('div');
-dbg.id = 'dbgPanel';
-dbg.style.cssText = 'position:fixed;top:70px;left:8px;right:8px;background:rgba(0,0,0,.88);color:#0f0;font-size:9px;padding:6px 8px;z-index:9999;border-radius:8px;font-family:monospace;white-space:pre-wrap;max-height:180px;overflow-y:auto;pointer-events:none;';
-document.body.appendChild(dbg);
-setInterval(() => {
-  const scene = document.getElementById('arScene');
-  const vids = [...document.querySelectorAll('video')];
-  const cvs  = [...document.querySelectorAll('canvas')];
-  dbg.textContent = [
-    `UA: ${navigator.userAgent.slice(0,60)}`,
-    `Scene: ${scene ? scene.clientWidth+'x'+scene.clientHeight+' style='+scene.style.width : 'null'}`,
-    `Videos(${vids.length}): `+vids.map(v=>`${v.videoWidth}x${v.videoHeight} ready=${v.readyState} zi=${v.style.zIndex}`).join(' | '),
-    `Canvas(${cvs.length}): `+cvs.map(c=>`${c.width}x${c.height} op=${c.style.opacity}`).join(' | '),
-    `MINDAR: ${typeof window.MINDAR}`,
-  ].join('\n');
-}, 600);
 </script>
 </body>
 </html>
