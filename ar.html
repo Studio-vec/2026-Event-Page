@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#ffffff">
   <title>AR 불꽃 | WKF 2026</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js"></script>
   <style>
     :root {
       --bg:#ffffff; --surface:#f4f4f4; --border:#e8e8e8;
@@ -73,7 +72,8 @@
 
     /* 카메라 화면 */
     #cameraScreen{background:#000;position:relative;}
-    #mindContainer{position:absolute;inset:0;width:100%;height:100%;}
+    #mindContainer{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;}
+    #mindContainer canvas, #mindContainer video{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover;}
     #flameCanvas{position:absolute;inset:0;z-index:10;pointer-events:none;}
 
     .cam-ui{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;pointer-events:none;}
