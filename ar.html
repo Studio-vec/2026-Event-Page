@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#ffffff">
   <title>AR 불꽃 | WKF 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
   <style>
     :root {
       --bg:#ffffff; --surface:#f4f4f4; --border:#e8e8e8;
@@ -40,7 +41,7 @@
     .section-sub{font-size:13px;color:var(--text-2);margin-top:6px;line-height:1.6;margin-bottom:20px;}
 
     /* 2×3 그리드 */
-    .hall-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .hall-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
     .hall-card{
       display:flex;flex-direction:column;justify-content:flex-end;
       padding:18px 16px;border-radius:var(--r);aspect-ratio:1/1;
@@ -53,7 +54,10 @@
       position:absolute;top:14px;right:14px;
       font-size:11px;font-weight:800;color:var(--text-3);letter-spacing:.05em;
     }
-    .hall-torch-icon{font-size:26px;margin-bottom:8px;}
+    .hall-marker-thumb{
+      position:absolute;top:12px;left:12px;
+      width:36px;height:36px;object-fit:contain;opacity:.5;
+    }
     .hall-name{font-size:14px;font-weight:800;line-height:1.2;margin-bottom:2px;}
     .hall-en{font-size:10px;color:var(--text-3);font-weight:500;}
 
@@ -67,9 +71,11 @@
     .gnum{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 
     /* 카메라 화면 */
-    #cameraScreen{background:#000;}
-    #videoEl{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-    .cam-ui{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;pointer-events:none;}
+    #cameraScreen{background:#000;position:relative;}
+    #mindContainer{position:absolute;inset:0;width:100%;height:100%;}
+    #flameCanvas{position:absolute;inset:0;z-index:10;pointer-events:none;}
+
+    .cam-ui{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;pointer-events:none;}
     .cam-top{
       display:flex;align-items:center;justify-content:space-between;
       padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
@@ -91,7 +97,7 @@
       font-size:13px;font-weight:700;color:#fff;
     }
     .vf-area{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
-    .vf-frame{width:220px;height:220px;position:relative;}
+    .vf-frame{width:180px;height:300px;position:relative;}
     .vf-corner{position:absolute;width:28px;height:28px;border-style:solid;border-color:rgba(255,255,255,.85);}
     .tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:6px 0 0 0;}
     .tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 6px 0 0;}
@@ -99,11 +105,15 @@
     .br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 6px 0;}
     .scan{position:absolute;left:6px;right:6px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);animation:scan 2s ease-in-out infinite;}
     @keyframes scan{0%,100%{top:8px;opacity:.4;}50%{top:calc(100% - 10px);opacity:1;}}
-    .detect-ring{position:absolute;inset:-22px;border-radius:50%;border:3px solid transparent;display:none;}
-    .detect-ring.on{display:block;animation:ring 1s ease-in-out infinite alternate;}
-    @keyframes ring{from{box-shadow:0 0 20px var(--rc,#dc2626);transform:scale(.97);}to{box-shadow:0 0 40px var(--rc,#dc2626);transform:scale(1.03);}}
     .vf-label{font-size:13px;color:rgba(255,255,255,.75);font-weight:600;letter-spacing:.03em;text-align:center;}
-    #arCanvas{position:absolute;inset:0;z-index:5;pointer-events:none;}
+    .marker-hint{
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      padding:10px 20px;border-radius:16px;
+      background:rgba(0,0,0,.45);backdrop-filter:blur(8px);
+    }
+    .marker-hint-label{font-size:10px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+    .marker-hint-img{width:56px;height:56px;object-fit:contain;filter:brightness(0) invert(1);opacity:.7;}
+
     .cam-bottom{
       padding:20px;padding-bottom:max(env(safe-area-inset-bottom,0px),20px);
       background:linear-gradient(to top,rgba(0,0,0,.65),transparent);
@@ -111,13 +121,22 @@
       pointer-events:all;
     }
     .sim-btn{
-      padding:14px 36px;border-radius:50px;border:none;cursor:pointer;
+      padding:14px 36px;border-radius:50px;
       background:rgba(255,255,255,.15);backdrop-filter:blur(8px);
       border:1px solid rgba(255,255,255,.25);
-      color:#fff;font-size:14px;font-weight:700;transition:all .18s;
+      color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;
     }
     .sim-btn:active{background:rgba(220,38,38,.4);}
     .cam-hint{font-size:11px;color:rgba(255,255,255,.4);text-align:center;}
+
+    /* 인식 성공 오버레이 */
+    .detect-flash{
+      position:absolute;inset:0;z-index:15;
+      background:rgba(255,255,255,.3);
+      pointer-events:none;opacity:0;
+      transition:opacity .3s;
+    }
+    .detect-flash.on{opacity:1;}
 
     /* 인앱 경고 */
     #inappWarn{
@@ -131,8 +150,7 @@
     .warn-desc{font-size:13px;color:var(--text-2);line-height:1.7;}
     .warn-btn{
       width:100%;max-width:320px;padding:18px;border-radius:var(--r);border:none;
-      background:var(--primary);color:#fff;
-      font-size:15px;font-weight:700;cursor:pointer;
+      background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;
     }
 
     /* 결과 화면 */
@@ -141,11 +159,29 @@
     .hall-badge{
       display:inline-flex;align-items:center;gap:8px;
       padding:7px 14px;border-radius:20px;
-      background:var(--surface);
-      font-size:13px;font-weight:700;align-self:flex-start;
+      background:var(--surface);font-size:13px;font-weight:700;align-self:flex-start;
     }
     .result-msg{font-size:26px;font-weight:800;letter-spacing:-.02em;}
     .result-sub{font-size:13px;color:var(--text-2);line-height:1.65;white-space:pre-line;}
+
+    /* 횃불 카드 (quiz.html 동일 스타일) */
+    .torch-card{
+      border-radius:20px;background:var(--surface);
+      padding:32px 20px 24px;display:flex;flex-direction:column;align-items:center;
+      position:relative;overflow:hidden;
+    }
+    .torch-glow{
+      position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+      width:200px;height:200px;border-radius:50%;
+      background:radial-gradient(circle,var(--glow-color,rgba(220,38,38,.2)) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    #particleCanvas{position:absolute;inset:0;pointer-events:none;border-radius:20px;}
+    .torch-compose{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:140px;}
+    .result-flame-wrap{width:130px;display:block;filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+    .result-flame-wrap svg{width:100%;height:auto;overflow:visible;}
+    .result-handle{width:72px;margin-top:-10px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.12));}
+
     .capture-card{border-radius:var(--r);background:var(--surface);overflow:hidden;}
     #captureCanvas{width:100%;display:block;}
     .reward-card{padding:16px;border-radius:var(--r);background:var(--surface);}
@@ -155,14 +191,12 @@
     .rnum{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .save-btn{
       width:100%;padding:17px;border-radius:var(--r);border:none;cursor:pointer;
-      background:var(--primary);color:#fff;
-      font-size:15px;font-weight:700;transition:opacity .15s;
+      background:var(--primary);color:#fff;font-size:15px;font-weight:700;transition:opacity .15s;
     }
     .save-btn:active{opacity:.8;}
     .retry-btn{
       width:100%;padding:14px;border-radius:var(--r);border:none;cursor:pointer;
-      background:var(--surface);color:var(--text-3);
-      font-size:13px;font-weight:600;transition:opacity .15s;
+      background:var(--surface);color:var(--text-3);font-size:13px;font-weight:600;transition:opacity .15s;
     }
     .retry-btn:active{opacity:.7;}
 
@@ -178,8 +212,7 @@
       display:flex;align-items:center;gap:8px;
       padding:11px 28px;border-radius:50px;
       background:var(--surface);color:var(--text-2);
-      font-size:13px;font-weight:700;text-decoration:none;
-      transition:opacity .12s;
+      font-size:13px;font-weight:700;text-decoration:none;transition:opacity .12s;
     }
     .home-btn:active{opacity:.6;}
   </style>
@@ -206,20 +239,21 @@
     <div class="guide-card">
       <div class="guide-title">이용 방법</div>
       <div class="guide-step"><div class="gnum">1</div><span>현재 세션장을 아래에서 선택하세요</span></div>
-      <div class="guide-step"><div class="gnum">2</div><span>카메라 권한 허용 후 <strong>횃불 손잡이 마커</strong>에 카메라를 맞추세요</span></div>
-      <div class="guide-step"><div class="gnum">3</div><span>불꽃을 확인하고 웰컴키트에 알맞는 스티커를 붙이세요</span></div>
+      <div class="guide-step"><div class="gnum">2</div><span>카메라를 허용하고 <strong>횃불 마커</strong>에 비추세요</span></div>
+      <div class="guide-step"><div class="gnum">3</div><span>불꽃이 자동으로 나타납니다 🔥</span></div>
     </div>
-    <div class="hall-grid" id="hallGrid" style="margin-top:16px"></div>
+    <div class="hall-grid" id="hallGrid"></div>
   </div>
   <div class="home-bar">
     <a href="index.html" class="home-btn">← 메인 메뉴</a>
   </div>
 </div>
 
-<!-- 카메라 -->
+<!-- 카메라 + AR -->
 <div class="screen" id="cameraScreen">
-  <video id="videoEl" autoplay playsinline muted></video>
-  <canvas id="arCanvas"></canvas>
+  <div id="mindContainer"></div>
+  <canvas id="flameCanvas"></canvas>
+  <div class="detect-flash" id="detectFlash"></div>
   <div class="cam-ui">
     <div class="cam-top">
       <div class="cam-back" onclick="goHall()">‹</div>
@@ -231,13 +265,16 @@
         <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
         <div class="vf-corner bl"></div><div class="vf-corner br"></div>
         <div class="scan"></div>
-        <div class="detect-ring" id="detectRing"></div>
       </div>
-      <div class="vf-label" id="vfLabel">횃불 마커를 화면 중앙에 맞춰주세요</div>
+      <div class="vf-label" id="vfLabel">횃불 마커를 화면에 비춰주세요</div>
+      <div class="marker-hint">
+        <div class="marker-hint-label">이 마커를 찾으세요</div>
+        <img class="marker-hint-img" id="markerHintImg" src="" alt="marker">
+      </div>
     </div>
     <div class="cam-bottom">
       <button class="sim-btn" onclick="simulate()">🔥 불꽃 시뮬레이션</button>
-      <div class="cam-hint">실제 마커 인식 시 자동으로 불꽃이 나타납니다</div>
+      <div class="cam-hint">마커 인식 시 자동으로 불꽃이 나타납니다</div>
     </div>
   </div>
 </div>
@@ -250,17 +287,22 @@
     <div style="width:38px"></div>
   </div>
   <div class="result-wrap">
-    <div class="hall-badge">
-      <span id="resHallName"></span>
+    <div class="hall-badge"><span id="resHallName"></span></div>
+    <div class="torch-card" id="torchCard">
+      <div class="torch-glow" id="torchGlow"></div>
+      <canvas id="particleCanvas"></canvas>
+      <div class="torch-compose">
+        <div class="result-flame-wrap" id="rFlame"></div>
+        <img class="result-handle" id="rHandle" src="" alt="">
+      </div>
     </div>
-    <div class="capture-card"><canvas id="captureCanvas" height="400"></canvas></div>
     <div class="result-msg" id="resMsg"></div>
     <div class="result-sub" id="resSub"></div>
     <div class="reward-card">
       <div class="reward-title">경품 응모 방법</div>
-      <div class="reward-step"><div class="rnum">1</div><span>아래 저장 버튼으로 이미지를 저장하세요</span></div>
-      <div class="reward-step"><div class="rnum">2</div><span>유형 테스트도 완료하세요 → <a href="quiz.html" style="color:var(--primary);font-weight:700">테스트 바로가기</a></span></div>
-      <div class="reward-step"><div class="rnum">3</div><span>두 인증 화면을 <strong>안내 데스크</strong>에 제시하면 완료!</span></div>
+      <div class="reward-step"><div class="rnum">1</div><span>웰컴키트 엽서에 해당 세션 스티커를 붙이세요</span></div>
+      <div class="reward-step"><div class="rnum">2</div><span><strong>안내 데스크</strong>에 엽서를 제출하고 참가상을 받으세요</span></div>
+      <div class="reward-step"><div class="rnum">3</div><span>제출과 동시에 경품 추첨 자동 응모!</span></div>
     </div>
     <button class="save-btn" onclick="saveCapture()">📥 이미지 저장</button>
     <button class="retry-btn" onclick="goHall()">↺ 다른 세션장 확인</button>
@@ -271,88 +313,169 @@
 </div>
 
 <script>
-const HALLS={
-  'dynasty-a':{name:'다이너스티 A',en:'Dynasty Hall A',color:'#FFD700',gc1:'#92400e',gc2:'#fbbf24',gc3:'#fef9c3',msg:'황금빛 지식의 불꽃',sub:'다이너스티 A홀의 황금 불꽃을 발견했습니다!\n지식과 리더십의 빛이 당신을 비춥니다.'},
-  'dynasty-b':{name:'다이너스티 B',en:'Dynasty Hall B',color:'#a855f7',gc1:'#3b0764',gc2:'#a855f7',gc3:'#e9d5ff',msg:'신비로운 지혜의 불꽃',sub:'다이너스티 B홀의 보라 불꽃을 발견했습니다!\n창의와 혁신의 에너지가 넘칩니다.'},
-  'ruby':{name:'루비',en:'Ruby Hall',color:'#dc2626',gc1:'#7f1d1d',gc2:'#dc2626',gc3:'#fecaca',msg:'열정의 붉은 불꽃',sub:'루비홀의 붉은 불꽃을 발견했습니다!\n열정과 도전의 정신이 타오릅니다.'},
-  'topaz':{name:'토파즈',en:'Topaz Hall',color:'#38bdf8',gc1:'#0c4a6e',gc2:'#38bdf8',gc3:'#e0f2fe',msg:'이성의 푸른 불꽃',sub:'토파즈홀의 파란 불꽃을 발견했습니다!\n분석과 통찰의 차가운 불꽃입니다.'},
-  'emerald':{name:'에메랄드',en:'Emerald Hall',color:'#16a34a',gc1:'#14532d',gc2:'#16a34a',gc3:'#dcfce7',msg:'공존의 초록 불꽃',sub:'에메랄드홀의 초록 불꽃을 발견했습니다!\nAI와 인간의 공존이 싹트고 있습니다.'},
+/* ── 세션장 데이터 ── */
+const HALLS = {
+  'dynasty-a': { name:'다이너스티 A', en:'Dynasty Hall A', markerIdx:0, markerImg:'image/marker-1.png', handleImg:'image/marker-1.png',
+    color:'#FFD700', gc1:'#92400e', gc2:'#fbbf24', gc3:'#fef9c3',
+    msg:'황금빛 지식의 불꽃', sub:'다이너스티 A홀의 황금 불꽃을 발견했습니다!\n지식과 리더십의 빛이 당신을 비춥니다.' },
+  'dynasty-b': { name:'다이너스티 B', en:'Dynasty Hall B', markerIdx:1, markerImg:'image/marker-2.png', handleImg:'image/marker-2.png',
+    color:'#a855f7', gc1:'#3b0764', gc2:'#a855f7', gc3:'#e9d5ff',
+    msg:'신비로운 지혜의 불꽃', sub:'다이너스티 B홀의 보라 불꽃을 발견했습니다!\n창의와 혁신의 에너지가 넘칩니다.' },
+  'ruby':      { name:'루비',     en:'Ruby Hall',      markerIdx:2, markerImg:'image/marker-3.png', handleImg:'image/marker-3.png',
+    color:'#dc2626', gc1:'#7f1d1d', gc2:'#dc2626', gc3:'#fecaca',
+    msg:'열정의 붉은 불꽃', sub:'루비홀의 붉은 불꽃을 발견했습니다!\n열정과 도전의 정신이 타오릅니다.' },
+  'topaz':     { name:'토파즈',   en:'Topaz Hall',     markerIdx:3, markerImg:'image/marker-4.png', handleImg:'image/marker-4.png',
+    color:'#38bdf8', gc1:'#0c4a6e', gc2:'#38bdf8', gc3:'#e0f2fe',
+    msg:'이성의 푸른 불꽃', sub:'토파즈홀의 파란 불꽃을 발견했습니다!\n분석과 통찰의 차가운 불꽃입니다.' },
+  'emerald':   { name:'에메랄드', en:'Emerald Hall',   markerIdx:4, markerImg:'image/marker-5.png', handleImg:'image/marker-5.png',
+    color:'#16a34a', gc1:'#14532d', gc2:'#16a34a', gc3:'#dcfce7',
+    msg:'공존의 초록 불꽃', sub:'에메랄드홀의 초록 불꽃을 발견했습니다!\nAI와 인간의 공존이 싹트고 있습니다.' },
 };
 
-let curHall=null,vs=null,anim=null,detected=false,_resizeH=null;
+/* ── 불꽃 SVG (quiz.html 동일 로직) ── */
+const BAR_PARAMS=[
+  {h:30,dur:1.1, del:0,    sy1:0.68,sy2:1.06},
+  {h:50,dur:0.92,del:0.2,  sy1:0.75,sy2:1.00},
+  {h:57,dur:1.28,del:0.08, sy1:0.62,sy2:0.96},
+  {h:65,dur:0.98,del:0.04, sy1:0.70,sy2:1.05},
+  {h:55,dur:1.18,del:0.25, sy1:0.65,sy2:0.97},
+  {h:47,dur:0.85,del:0.14, sy1:0.80,sy2:1.10},
+  {h:37,dur:1.05,del:0.31, sy1:0.72,sy2:1.02},
+];
+const FLAME_COLS={
+  fire:  { stops:['#7f1d1d','#dc2626','#f97316','#fef08a'] },
+  gold:  { stops:['#92400e','#fbbf24','#fef9c3'] },
+  purple:{ stops:['#3b0764','#a855f7','#e9d5ff'] },
+  blue:  { stops:['#0c4a6e','#38bdf8','#e0f2fe'] },
+  green: { stops:['#14532d','#16a34a','#dcfce7'] },
+};
+const HALL_FLAME_KEY={ 'dynasty-a':'gold','dynasty-b':'purple','ruby':'fire','topaz':'blue','emerald':'green' };
 
+function buildFlame(hallId){
+  const c=FLAME_COLS[HALL_FLAME_KEY[hallId]]||FLAME_COLS.fire;
+  const gid='fg'+Date.now();
+  const stepLen=c.stops.length-1;
+  const stopTags=c.stops.map((col,i)=>`<stop offset="${(i/stepLen*100).toFixed(0)}%" stop-color="${col}"/>`).join('');
+  const cssArr=[];
+  const rectArr=BAR_PARAMS.map((p,i)=>{
+    const kn=`${gid}b${i}`;
+    cssArr.push(`@keyframes ${kn}{from{transform:scaleY(${p.sy1});}to{transform:scaleY(${p.sy2});}}`);
+    return `<rect x="${i*7}" y="${65-p.h}" width="7" height="${p.h}" fill="url(#${gid})" style="transform-box:fill-box;transform-origin:bottom center;animation:${kn} ${p.dur}s ease-in-out infinite alternate;animation-delay:-${p.del}s"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 49 65" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><style>${cssArr.join('')}</style><defs><linearGradient id="${gid}" x1="0" y1="1" x2="0" y2="0">${stopTags}</linearGradient></defs>${rectArr}</svg>`;
+}
+
+/* ── 파티클 ── */
+let pAnim=null;
+function burstParticles(canvas,col){
+  if(pAnim){cancelAnimationFrame(pAnim);pAnim=null;}
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,ps=[],cx=W/2,cy=H*.38;
+  function sp(){ps.push({x:cx+(Math.random()-.5)*30,y:cy,vx:(Math.random()-.5)*1.5,vy:-(1+Math.random()*2),life:1,decay:.013+Math.random()*.008,size:2+Math.random()*4});}
+  function loop(){ctx.clearRect(0,0,W,H);if(Math.random()<.7)sp();
+    ps.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.life-=p.decay;if(p.life<=0){ps.splice(i,1);return;}
+    ctx.globalAlpha=p.life*.7;ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();});
+    ctx.globalAlpha=1;pAnim=requestAnimationFrame(loop);}
+  loop();
+}
+
+/* ── 세션장 카드 렌더 ── */
 const grid=document.getElementById('hallGrid');
-const hallEntries=Object.entries(HALLS);
-hallEntries.forEach(([id,h],idx)=>{
+Object.entries(HALLS).forEach(([id,h],idx)=>{
   const card=document.createElement('div');
   card.className='hall-card';
   card.onclick=()=>selectHall(id);
-  const isLast=idx===hallEntries.length-1&&hallEntries.length%2===1;
   card.innerHTML=`
     <div class="hall-card-num">${String(idx+1).padStart(2,'0')}</div>
-    <div class="hall-torch-icon">🕯️</div>
-    <div class="hall-info">
+    <img class="hall-marker-thumb" src="${h.markerImg}" alt="">
+    <div>
       <div class="hall-name">${h.name}</div>
       <div class="hall-en">${h.en}</div>
     </div>`;
   grid.appendChild(card);
 });
 
-function isInApp(){return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line/i.test(navigator.userAgent);}
+/* ── MindAR 상태 ── */
+let curHall=null, mindAR=null, detected=false, flameAnim=null;
 
+function isInApp(){return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line/i.test(navigator.userAgent);}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
-function selectHall(id){
+async function selectHall(id){
   curHall=id;
   if(isInApp()){document.getElementById('inappWarn').classList.add('on');return;}
-  document.getElementById('pillName').textContent=HALLS[id].name;
+  const h=HALLS[id];
+  document.getElementById('pillName').textContent=h.name;
+  document.getElementById('markerHintImg').src=h.markerImg;
   show('cameraScreen');
-  startCamera();
-}
-
-function goHall(){
-  stopCamera();
   detected=false;
-  show('hallScreen');
+  document.getElementById('vfLabel').textContent='횃불 마커를 화면에 비춰주세요';
+  await startMindAR();
 }
 
-function goCamera(){
-  detected=false;
-  document.getElementById('vfLabel').textContent='횃불 마커를 화면 중앙에 맞춰주세요';
-  document.getElementById('vfLabel').style.color='';
-  document.getElementById('detectRing').classList.remove('on');
-  show('cameraScreen');
-  if(!vs) startCamera();
-}
+async function startMindAR(){
+  stopMindAR();
+  // .mind 파일이 없으면 시뮬레이션 모드로 폴백
+  try {
+    const res = await fetch('markers.mind', {method:'HEAD'});
+    if(!res.ok) throw new Error('no mind file');
+  } catch(e) {
+    document.getElementById('cam-hint') && (document.getElementById('cam-hint').textContent='마커 파일 준비 중 — 시뮬레이션 버튼을 사용하세요');
+    return;
+  }
 
-async function startCamera(){
-  try{
-    if(!navigator.mediaDevices){alert('카메라를 사용하려면 HTTPS 환경(Safari/Chrome)에서 열어주세요.');return;}
-    vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-    document.getElementById('videoEl').srcObject=vs;
-    startARCanvas();
-  }catch(e){
-    if(e.name==='NotAllowedError') alert('카메라 권한을 허용해주세요. 설정 → Safari → 카메라 → 허용');
-    else alert('카메라를 시작할 수 없습니다: '+e.message);
+  try {
+    mindAR = new MINDAR.IMAGE.MindARThree({
+      container: document.getElementById('mindContainer'),
+      imageTargetSrc: 'markers.mind',
+      uiScanning: false,
+      uiLoading: false,
+    });
+
+    const {renderer, scene, camera} = mindAR;
+
+    // 각 마커 앵커에 감지 이벤트
+    Object.values(HALLS).forEach(h => {
+      const anchor = mindAR.addAnchor(h.markerIdx);
+      anchor.onTargetFound = () => {
+        if(detected) return;
+        // 현재 선택된 세션장의 마커만 반응
+        if(HALLS[curHall].markerIdx === h.markerIdx){
+          detected=true;
+          onDetected();
+        }
+      };
+    });
+
+    await mindAR.start();
+    renderer.setAnimationLoop(()=>{ renderer.render(scene, camera); });
+
+    // 불꽃 캔버스 오버레이
+    startFlameOverlay();
+  } catch(e){
+    console.warn('MindAR 오류:', e);
   }
 }
 
-function stopCamera(){if(vs){vs.getTracks().forEach(t=>t.stop());vs=null;}if(anim){cancelAnimationFrame(anim);anim=null;}}
+function stopMindAR(){
+  if(mindAR){try{mindAR.stop();}catch(e){}mindAR=null;}
+  if(flameAnim){cancelAnimationFrame(flameAnim);flameAnim=null;}
+  const fc=document.getElementById('flameCanvas');
+  const ctx=fc.getContext('2d');
+  ctx.clearRect(0,0,fc.width,fc.height);
+}
 
-function startARCanvas(){
-  const canvas=document.getElementById('arCanvas');
+function startFlameOverlay(){
+  const canvas=document.getElementById('flameCanvas');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
   const ctx=canvas.getContext('2d');
   const h=HALLS[curHall];
   const ps=[];
-  if(_resizeH){window.removeEventListener('resize',_resizeH);_resizeH=null;}
-  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
-  _resizeH=resize;
-  resize();
-  window.addEventListener('resize',resize);
   function sp(){
     if(!detected)return;
-    const cx=canvas.width/2,cy=canvas.height*.38;
-    ps.push({x:cx+(Math.random()-.5)*40,y:cy,vx:(Math.random()-.5)*1.2,vy:-(1.5+Math.random()*2),life:1,decay:.012+Math.random()*.008,size:3+Math.random()*5});
+    const cx=canvas.width/2,cy=canvas.height*.35;
+    ps.push({x:cx+(Math.random()-.5)*50,y:cy,vx:(Math.random()-.5)*1.5,vy:-(1.5+Math.random()*2.5),life:1,decay:.01+Math.random()*.008,size:3+Math.random()*6});
   }
   function loop(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -365,54 +488,120 @@ function startARCanvas(){
       ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();
     });
     ctx.globalAlpha=1;
-    anim=requestAnimationFrame(loop);
+    flameAnim=requestAnimationFrame(loop);
   }
   loop();
 }
 
-function simulate(){
-  if(detected) return;
-  detected=true;
-  const ring=document.getElementById('detectRing');
-  ring.style.setProperty('--rc',HALLS[curHall].color);
-  ring.classList.add('on');
+function onDetected(){
+  const flash=document.getElementById('detectFlash');
+  flash.classList.add('on');
   document.getElementById('vfLabel').textContent='🔥 불꽃 감지됨!';
-  document.getElementById('vfLabel').style.color='#86efac';
-  setTimeout(()=>showResult(),1800);
+  setTimeout(()=>{flash.classList.remove('on');},400);
+  setTimeout(()=>showResult(),1400);
 }
 
-async function showResult(){
-  stopCamera();
+function simulate(){
+  if(detected)return;
+  detected=true;
+  onDetected();
+}
+
+function goHall(){
+  stopMindAR();
+  detected=false;
+  show('hallScreen');
+}
+
+function goCamera(){
+  detected=false;
+  document.getElementById('vfLabel').textContent='횃불 마커를 화면에 비춰주세요';
+  show('cameraScreen');
+  startMindAR();
+}
+
+function showResult(){
+  stopMindAR();
   const h=HALLS[curHall];
   document.getElementById('resHallName').textContent=h.name;
   document.getElementById('resMsg').textContent=h.msg;
   document.getElementById('resSub').textContent=h.sub;
-  show('resultScreen');
-  await drawCapture(h);
-}
 
-async function drawCapture(h){
-  const canvas=document.getElementById('captureCanvas');
-  const ctx=canvas.getContext('2d');
-  const W=canvas.offsetWidth*2||640,H=400;
-  canvas.width=W;canvas.height=H;
-  const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,h.gc1);bg.addColorStop(.5,h.gc2);bg.addColorStop(1,h.gc3);
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(0,0,0,.25)';
-  for(let i=0;i<7;i++){
-    const bw=W/9,bh=100+Math.random()*80,bx=i*(W/7)+(W/14-bw/2),by=H-bh-40;
-    ctx.fillRect(bx,by,bw,bh);
-  }
-  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=`bold ${W*.06}px -apple-system,sans-serif`;ctx.textAlign='center';
-  ctx.fillText(h.msg,W/2,H*.6);
-  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font=`${W*.028}px -apple-system,sans-serif`;
-  ctx.fillText(h.name+' · WKF 2026',W/2,H*.75);
+  // 불꽃 SVG
+  const rFlameEl=document.getElementById('rFlame');
+  rFlameEl.innerHTML=buildFlame(curHall);
+  rFlameEl.style.setProperty('--glow-color',h.color+'99');
+
+  // 손잡이 — 세션장별 마커 이미지 사용
+  document.getElementById('rHandle').src=h.handleImg;
+
+  // 글로우
+  document.getElementById('torchGlow').style.background=
+    `radial-gradient(circle,${h.color}33 0%,transparent 70%)`;
+
+  show('resultScreen');
+
+  // 파티클
+  const canvas=document.getElementById('particleCanvas');
+  const card=canvas.parentElement;
+  canvas.width=card.offsetWidth;canvas.height=card.offsetHeight;
+  burstParticles(canvas, h.gc2);
 }
 
 async function saveCapture(){
-  const canvas=document.getElementById('captureCanvas');
-  canvas.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`WKF2026_${HALLS[curHall].name}.png`;a.click();URL.revokeObjectURL(u);},'image/png');
+  const card=document.getElementById('torchCard');
+  // html2canvas 없이 간단 캔버스 캡처
+  const canvas=document.createElement('canvas');
+  const W=720,H=960;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const h=HALLS[curHall];
+
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#111');bg.addColorStop(1,'#222');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  // 불꽃 바
+  const fc=FLAME_COLS[HALL_FLAME_KEY[curHall]]||FLAME_COLS.fire;
+  const fW=240,fH=260,fX=W/2-fW/2,fY=80;
+  const fGrad=ctx.createLinearGradient(0,fY+fH,0,fY);
+  fc.stops.forEach((c,i)=>fGrad.addColorStop(i/(fc.stops.length-1),c));
+  BAR_PARAMS.forEach((p,i)=>{
+    const bw=fW/7,bh=p.h*(fH/65),bx=fX+i*bw,by=fY+fH-bh;
+    ctx.fillStyle=fGrad;ctx.fillRect(bx,by,bw-2,bh);
+  });
+
+  // 글로우
+  const gl=ctx.createRadialGradient(W/2,fY+fH*.5,0,W/2,fY+fH*.5,160);
+  gl.addColorStop(0,h.color+'55');gl.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=gl;ctx.fillRect(0,fY-20,W,fH+40);
+
+  // 손잡이 이미지 로드
+  await new Promise(r=>{
+    const img=new Image();img.crossOrigin='anonymous';
+    img.onload=()=>{
+      const hW=160,hH=Math.round(hW*img.naturalHeight/img.naturalWidth);
+      ctx.drawImage(img,W/2-hW/2,fY+fH-20,hW,hH);r();
+    };
+    img.onerror=r;
+    img.src=h.handleImg;
+  });
+
+  ctx.textAlign='center';
+  ctx.fillStyle=h.color;ctx.font='bold 13px -apple-system,sans-serif';ctx.fillText('세션장 불꽃 발견!',W/2,fY+fH+180);
+  ctx.fillStyle='#ffffff';ctx.font='bold 42px -apple-system,sans-serif';ctx.fillText(h.msg,W/2,fY+fH+234);
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='18px -apple-system,sans-serif';ctx.fillText(h.name+' · WKF 2026',W/2,fY+fH+272);
+
+  ctx.fillStyle=h.color;ctx.fillRect(0,H-60,W,60);
+  ctx.fillStyle='#fff';ctx.font='bold 15px -apple-system,sans-serif';
+  ctx.fillText('2026. 09. 08–10  ·  서울 신라호텔  ·  World Knowledge Forum',W/2,H-20);
+
+  canvas.toBlob(b=>{
+    const u=URL.createObjectURL(b);
+    const a=document.createElement('a');
+    a.href=u;a.download=`WKF2026_${h.name}.png`;a.click();
+    URL.revokeObjectURL(u);
+  },'image/png');
 }
 </script>
 </body>
