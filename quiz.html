@@ -125,8 +125,7 @@
     }
     #loadingScreen.active{display:flex;}
     .gen-torch{display:flex;flex-direction:column;align-items:center;width:120px;}
-    .gen-flame{width:110px;animation:genF .7s ease-in-out infinite alternate;}
-    @keyframes genF{from{transform:scaleX(.9) scaleY(.95);}to{transform:scaleX(1.08) scaleY(1.04);}}
+    .gen-flame{width:110px;}
     .gen-handle{width:58px;margin-top:-8px;}
     .loading-label{font-size:14px;font-weight:600;color:var(--text-2);text-align:center;line-height:1.6;}
     .dots-row{display:flex;gap:8px;}
@@ -162,14 +161,11 @@
     }
     #particleCanvas{position:absolute;inset:0;pointer-events:none;border-radius:28px;}
     .torch-compose{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:140px;}
-    .result-flame{
-      width:130px;animation:rFlicker .9s ease-in-out infinite alternate;
-      filter:drop-shadow(0 0 12px var(--glow-color,rgba(249,115,22,.5)));
+    .result-flame-wrap{
+      width:130px;height:auto;display:block;
+      filter:drop-shadow(0 0 14px var(--glow-color,rgba(249,115,22,.6)));
     }
-    @keyframes rFlicker{
-      from{transform:scaleX(.93) scaleY(.97);filter:drop-shadow(0 0 8px var(--glow-color,rgba(249,115,22,.4)));}
-      to{transform:scaleX(1.07) scaleY(1.03);filter:drop-shadow(0 0 20px var(--glow-color,rgba(249,115,22,.7)));}
-    }
+    .result-flame-wrap svg{width:100%;height:auto;overflow:visible;}
     .result-handle{width:72px;margin-top:-10px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.15));}
     .type-badge{
       position:relative;z-index:1;margin-top:18px;
@@ -311,7 +307,7 @@
     <div class="slide enter-right" id="loadingScreen">
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;">
         <div class="gen-torch">
-          <img class="gen-flame" id="genFlame" src="" alt="">
+          <div class="gen-flame" id="genFlame"></div>
           <img class="gen-handle" id="genHandle" src="" alt="">
         </div>
         <div class="dots-row"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
@@ -339,7 +335,7 @@
         <div class="torch-glow" id="torchGlow"></div>
         <canvas id="particleCanvas"></canvas>
         <div class="torch-compose">
-          <img class="result-flame" id="rFlame" src="" alt="">
+          <div class="result-flame-wrap" id="rFlame"></div>
           <img class="result-handle" id="rHandle" src="" alt="">
         </div>
         <div class="type-badge" id="rBadge"></div>
@@ -366,9 +362,55 @@
 const A={q1:null,q2:null,q3:null};
 let pAnim=null,curQ=1;
 
-const FLAME={A:'image/fire (2).svg',B:'image/fire (1).svg',C:'image/fire (3).svg'};
 const HANDLE={A:'image/손잡이 (1).png',B:'image/손잡이 (2).png',C:'image/손잡이 (3).png'};
-const GLOW={A:'rgba(239,68,68,.5)',B:'rgba(56,189,248,.5)',C:'rgba(251,191,36,.5)'};
+const GLOW={A:'rgba(239,68,68,.5)',B:'rgba(99,102,241,.5)',C:'rgba(251,146,60,.5)'};
+
+// 불꽃 색상 정의 (A=red fire(2), B=rainbow fire(1), C=orange fire(3))
+const FLAME_COLS={
+  A:{stops:['#7f1d1d','#dc2626','#fca5a5']},
+  B:{stops:['#1e3a8a','#38bdf8','#4ade80','#facc15']},
+  C:{stops:['#9a3412','#ea580c','#fb923c','#fef08a']},
+};
+
+// 바별 고정 애니메이션 파라미터 (7개 바)
+const BAR_PARAMS=[
+  {h:30,dur:1.1, del:0,    s1:[0.88,0.68],t1:-1.5, s2:[0.96,1.06],t2:0.8},
+  {h:50,dur:0.92,del:0.2,  s1:[0.92,0.75],t1:1.2,  s2:[1.02,1.00],t2:-0.6},
+  {h:57,dur:1.28,del:0.08, s1:[0.85,0.62],t1:-0.9, s2:[0.98,0.96],t2:1.1},
+  {h:65,dur:0.98,del:0.04, s1:[0.90,0.70],t1:0.5,  s2:[1.04,1.05],t2:-1.2},
+  {h:55,dur:1.18,del:0.25, s1:[0.87,0.65],t1:-1.1, s2:[0.99,0.97],t2:0.9},
+  {h:47,dur:0.85,del:0.14, s1:[0.93,0.80],t1:0.9,  s2:[1.05,1.10],t2:-0.5},
+  {h:37,dur:1.05,del:0.31, s1:[0.89,0.72],t1:-0.7, s2:[1.00,1.02],t2:1.0},
+];
+
+function buildFlame(q1){
+  const c=FLAME_COLS[q1]||FLAME_COLS.C;
+  const gid='fg'+Date.now();
+  // 그라디언트 stops 생성
+  const stepLen=c.stops.length-1;
+  const stopTags=c.stops.map((col,i)=>`<stop offset="${(i/stepLen*100).toFixed(0)}%" stop-color="${col}"/>`).join('');
+  // 바 rect + 개별 keyframe 애니메이션
+  const cssArr=[];
+  const rectArr=BAR_PARAMS.map((p,i)=>{
+    const kn=`${gid}b${i}`;
+    cssArr.push(`@keyframes ${kn}{
+      from{transform:scaleX(${p.s1[0]}) scaleY(${p.s1[1]}) translateX(${p.t1}px);}
+      to  {transform:scaleX(${p.s2[0]}) scaleY(${p.s2[1]}) translateX(${p.t2}px);}
+    }`);
+    return `<rect x="${i*7}" y="${65-p.h}" width="7" height="${p.h}"
+      fill="url(#${gid})"
+      style="transform-box:fill-box;transform-origin:bottom center;
+             animation:${kn} ${p.dur}s ease-in-out infinite alternate;
+             animation-delay:-${p.del}s"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 49 65" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+    <style>${cssArr.join('')}</style>
+    <defs>
+      <linearGradient id="${gid}" x1="0" y1="1" x2="0" y2="0">${stopTags}</linearGradient>
+    </defs>
+    ${rectArr}
+  </svg>`;
+}
 
 const TYPES={
   AAA:{name:'열정의 선구자',en:'Passionate Pioneer',badge:'🔥 선구자형',traits:['즉각적 행동','카리스마','변화 주도'],desc:'새로운 기술을 두려움 없이 받아들이고, 강력한 리더십으로 팀을 이끄는 타입. 역동적인 에너지로 AI 시대를 가장 먼저 만들어갑니다.'},
@@ -435,7 +477,7 @@ function startGenerate(){
   document.getElementById('progressDots').style.display='none';
   document.getElementById('stepPill').textContent='완성!';
 
-  document.getElementById('genFlame').src=FLAME[A.q1];
+  document.getElementById('genFlame').innerHTML=buildFlame(A.q1);
   document.getElementById('genHandle').src=HANDLE[A.q2];
 
   setTimeout(showResult, 2200);
@@ -457,9 +499,10 @@ function showResult(){
   document.getElementById('rEn').textContent=T.en;
   document.getElementById('rBadge').textContent=T.badge;
   document.getElementById('rDesc').textContent=T.desc;
-  document.getElementById('rFlame').src=FLAME[A.q1];
+  const rFlameEl=document.getElementById('rFlame');
+  rFlameEl.innerHTML=buildFlame(A.q1);
+  rFlameEl.style.setProperty('--glow-color',gc);
   document.getElementById('rHandle').src=HANDLE[A.q2];
-  document.getElementById('rFlame').style.setProperty('--glow-color',gc);
   document.getElementById('torchGlow').style.background=`radial-gradient(circle,${gc.replace('.5','.25')} 0%,transparent 70%)`;
 
   document.getElementById('rTraits').innerHTML=T.traits.map(t=>`<div class="trait">${t}</div>`).join('');

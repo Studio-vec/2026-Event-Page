@@ -9,11 +9,11 @@
     
 
     :root {
-      --bg: #f0ebe3;
-      --s-dark: #d0c9c0;
+      --bg: #f7f7f5;
+      --s-dark: #e0ddd9;
       --s-light: #ffffff;
-      --elev: 8px 8px 18px var(--s-dark), -8px -8px 18px var(--s-light);
-      --elev-sm: 4px 4px 10px var(--s-dark), -4px -4px 10px var(--s-light);
+      --elev: 6px 6px 16px var(--s-dark), -6px -6px 16px var(--s-light);
+      --elev-sm: 3px 3px 8px var(--s-dark), -3px -3px 8px var(--s-light);
       --press: inset 4px 4px 10px var(--s-dark), inset -4px -4px 10px var(--s-light);
       --primary: #e85d04;
       --primary-light: #fb923c;
@@ -25,22 +25,7 @@
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     html,body { min-height:100%; background:var(--bg); font-family:-apple-system,sans-serif; color:var(--text); }
 
-    /* ── 불꽃 배경 (매우 은은) ── */
-    .flame-bg {
-      position:fixed; inset:0; display:flex; align-items:flex-end;
-      justify-content:center; gap:5px; padding:0 20px; z-index:0; pointer-events:none;
-    }
-    .flame-bar {
-      flex:1; border-radius:100px 100px 0 0;
-      background:linear-gradient(to top, #c2410c22, #f9731622, #fbbf2411, transparent);
-      animation:fbar var(--d,2s) ease-in-out infinite alternate;
-    }
-    @keyframes fbar {
-      from { height:var(--h1); opacity:.6; }
-      to   { height:var(--h2); opacity:1; }
-    }
-
-    .page { position:relative; z-index:1; max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; padding:0 24px; }
+    .page { position:relative; max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; padding:0 24px; }
 
     /* ── 헤더 ── */
     header {
@@ -124,8 +109,6 @@
   </style>
 </head>
 <body>
-<div class="flame-bg" id="fb"></div>
-
 <div class="page">
   <header>
     <div class="logo">
@@ -187,16 +170,6 @@
 </div>
 
 <script>
-// 불꽃 배경
-const fb = document.getElementById('fb');
-for (let i=0;i<9;i++){
-  const b=document.createElement('div'); b.className='flame-bar';
-  const c=Math.abs(i-4)/4;
-  const h1=20+(1-c)*35, h2=h1+12+Math.random()*12;
-  b.style.cssText=`--h1:${h1}vh;--h2:${h2}vh;--d:${(1.8+Math.random()*1.2).toFixed(1)}s;animation-delay:${(Math.random()*-2).toFixed(1)}s`;
-  fb.appendChild(b);
-}
-
 // Ripple
 function rippleEffect(e){
   const el=e.currentTarget, wrap=el.querySelector('.ripple-wrap');
