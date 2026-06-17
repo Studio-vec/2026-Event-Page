@@ -219,9 +219,6 @@
   </div>
 </div>
 
-<!-- A-Frame scene (화면에 보이지 않음, 감지 전용) -->
-<a-scene id="arScene" embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false"></a-scene>
-
 <!-- 인앱 경고 -->
 <div id="inappWarn">
   <div class="warn-icon">📵</div>
@@ -304,6 +301,9 @@ Object.entries(HALLS).forEach(([id, h], idx) => {
 let curHall = null;
 let flameRafId = null;
 let arSceneEl = null;
+let arPollId = null;      // polling interval ref
+let arPollTimeoutId = null; // polling timeout ref
+let arStarting = false;   // 중복 startAR 방지
 
 function isInApp() {
   return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line|FBAV/i.test(navigator.userAgent);
@@ -332,17 +332,20 @@ function showFlame2D() {
   const h = HALLS[curHall];
   const stops = FLAME_COLS[h ? h.flameKey : 'fire'] || FLAME_COLS.fire;
 
-  // 화면 하단 중앙에 불꽃 표시
   const FW = Math.min(fc.width * 0.55, 280);
   const FH = FW * 1.2;
   const fx = (fc.width - FW) / 2;
   const fy = fc.height - FH - 80;
 
+  // 서브 캔버스 한 번만 생성 (매 프레임 생성 방지)
+  const tmp = document.createElement('canvas');
+  tmp.width = FW; tmp.height = FH;
+  const tmpCtx = tmp.getContext('2d');
+
   cancelAnimationFrame(flameRafId);
   function animate() {
     ctx.clearRect(0, 0, fc.width, fc.height);
 
-    // 핸들 힌트 배경
     ctx.save();
     ctx.globalAlpha = 0.18;
     ctx.fillStyle = '#fff';
@@ -351,10 +354,7 @@ function showFlame2D() {
     ctx.fill();
     ctx.restore();
 
-    // 불꽃 그리기 (서브 캔버스)
-    const tmp = document.createElement('canvas');
-    tmp.width = FW; tmp.height = FH;
-    drawFlameFrame(tmp.getContext('2d'), FW, FH, stops, performance.now());
+    drawFlameFrame(tmpCtx, FW, FH, stops, performance.now());
     ctx.drawImage(tmp, fx, fy, FW, FH);
 
     flameRafId = requestAnimationFrame(animate);
@@ -385,6 +385,8 @@ function selectHall(id) {
 }
 
 async function startAR(hallId, mindFile) {
+  if (arStarting) return;
+  arStarting = true;
   stopAR();
   document.getElementById('hallScreen').classList.add('hidden');
   document.getElementById('camOverlay').classList.add('active');
@@ -423,37 +425,42 @@ async function startAR(hallId, mindFile) {
   document.body.appendChild(scene);
   arSceneEl = scene;
 
-  // MindAR이 생성한 video를 body로 꺼내 직접 표시 (canvas는 opacity:0 유지)
   const moveVideo = () => {
     const mindVideo = scene.querySelector('video');
     if (!mindVideo) return false;
-    // video를 scene 밖으로 이동해 직접 표시
     mindVideo.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:10!important;';
     document.body.insertBefore(mindVideo, document.getElementById('flameOverlay'));
-    // 남은 canvas는 투명하게
     const cvs = scene.querySelector('canvas');
     if (cvs) cvs.style.cssText = 'opacity:0!important;pointer-events:none!important;';
+    arStarting = false;
     return true;
   };
 
-  // loaded 이후 + polling으로 video 이동
   scene.addEventListener('loaded', () => { setTimeout(moveVideo, 200); });
-  const poll = setInterval(() => { if (moveVideo()) clearInterval(poll); }, 300);
-  setTimeout(() => clearInterval(poll), 10000);
+  arPollId = setInterval(() => { if (moveVideo()) { clearInterval(arPollId); clearTimeout(arPollTimeoutId); } }, 300);
+  arPollTimeoutId = setTimeout(() => { clearInterval(arPollId); arStarting = false; }, 10000);
 }
 
 function stopAR() {
+  // 진행 중인 polling 정리
+  clearInterval(arPollId);
+  clearTimeout(arPollTimeoutId);
+  arStarting = false;
+
   hideFlame2D();
-  // body로 꺼낸 MindAR video 제거
+
+  // body로 이동된 MindAR video 정리
   document.querySelectorAll('body > video').forEach(v => {
-    if (v.id !== 'arVideo') { v.srcObject = null; v.remove(); }
+    if (v.id !== 'arVideo') { try { v.srcObject = null; } catch(e) {} v.remove(); }
   });
+
   const scene = document.getElementById('arScene');
   if (scene) {
     const sys = scene.systems && scene.systems['mindar-image-system'];
     if (sys) try { sys.stop(); } catch(e) {}
     scene.remove();
   }
+
   const v = document.getElementById('arVideo');
   v.srcObject = null;
   v.classList.remove('active');
