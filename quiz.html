@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f0ebe3">
+  <title>유형 테스트 | WKF 2026</title>
+  <style>
+    
+    :root {
+      --bg:#f0ebe3; --s-dark:#d0c9c0; --s-light:#ffffff;
+      --elev:8px 8px 18px var(--s-dark),-8px -8px 18px var(--s-light);
+      --elev-sm:4px 4px 10px var(--s-dark),-4px -4px 10px var(--s-light);
+      --press:inset 5px 5px 12px var(--s-dark),inset -5px -5px 12px var(--s-light);
+      --primary:#e85d04; --primary-light:#fb923c;
+      --text:#1c1917; --text-2:#78716c; --text-3:#a8a29e; --r:22px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;background:var(--bg);font-family:-apple-system,sans-serif;color:var(--text);overflow-x:hidden;}
+
+    .page{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;}
+
+    /* ── 상단바 ── */
+    .top-bar{
+      display:flex;align-items:center;gap:12px;
+      padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
+      flex-shrink:0;
+    }
+    .back{
+      width:40px;height:40px;border-radius:14px;flex-shrink:0;
+      background:var(--bg);box-shadow:var(--elev-sm);
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;color:var(--text-2);text-decoration:none;
+      transition:box-shadow .15s;
+    }
+    .back:active{box-shadow:var(--press);}
+    .bar-title{flex:1;font-size:14px;font-weight:700;color:var(--text-2);}
+    .step-pill{
+      font-size:12px;font-weight:700;color:var(--primary);
+      background:rgba(232,93,4,.1);padding:5px 12px;border-radius:20px;
+    }
+
+    /* ── 진행 도트 ── */
+    .progress-dots{display:flex;justify-content:center;gap:8px;padding:4px 0 20px;}
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--bg);box-shadow:var(--elev-sm);
+      transition:all .35s ease;
+    }
+    .dot.active{width:24px;border-radius:4px;background:var(--primary);box-shadow:3px 3px 6px rgba(232,93,4,.3),-2px -2px 4px rgba(255,255,255,.5);}
+    .dot.done{background:var(--primary-light);box-shadow:2px 2px 5px rgba(232,93,4,.25),-1px -1px 3px rgba(255,255,255,.5);}
+
+    /* ── 슬라이드 컨테이너 ── */
+    .slides{position:relative;flex:1;overflow:hidden;}
+    .slide{
+      position:absolute;inset:0;padding:0 24px 24px;
+      display:flex;flex-direction:column;gap:24px;
+      transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s;
+      overflow-y:auto;
+    }
+    .slide.enter-right{transform:translateX(100%);opacity:0;}
+    .slide.enter-left{transform:translateX(-100%);opacity:0;}
+    .slide.active{transform:translateX(0);opacity:1;}
+    .slide.exit-left{transform:translateX(-30%);opacity:0;pointer-events:none;}
+
+    /* ── 질문 헤더 ── */
+    .q-head{}
+    .q-num{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
+    .q-text{font-size:24px;font-weight:800;line-height:1.25;letter-spacing:-.02em;}
+
+    /* ── 선택지 ── */
+    .choices{display:flex;flex-direction:column;gap:12px;}
+    .choice{
+      display:flex;align-items:center;gap:16px;
+      padding:20px 22px;border-radius:var(--r);
+      background:var(--bg);box-shadow:var(--elev);
+      cursor:pointer;transition:box-shadow .18s,transform .18s;
+      border:2px solid transparent;
+      position:relative;overflow:hidden;
+    }
+    .choice:active{transform:scale(.98);}
+    .choice.selected{
+      box-shadow:var(--press);
+      border-color:var(--primary);
+    }
+    .choice-letter{
+      width:44px;height:44px;border-radius:14px;flex-shrink:0;
+      background:var(--bg);box-shadow:var(--elev-sm);
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px;font-weight:800;color:var(--text-3);
+      transition:all .2s;
+    }
+    .choice.selected .choice-letter{
+      background:var(--primary);color:#fff;
+      box-shadow:3px 3px 8px rgba(232,93,4,.4),-2px -2px 5px rgba(255,255,255,.3);
+    }
+    .choice-text{flex:1;font-size:14px;font-weight:600;line-height:1.4;}
+    .choice-check{
+      width:22px;height:22px;border-radius:50%;
+      border:2px solid var(--s-dark);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;color:transparent;flex-shrink:0;
+      transition:all .2s;
+    }
+    .choice.selected .choice-check{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+    /* ── 다음 버튼 ── */
+    .next-wrap{padding:0 24px;flex-shrink:0;padding-bottom:max(env(safe-area-inset-bottom,0px),20px);}
+    .next-btn{
+      width:100%;padding:18px;border:none;border-radius:var(--r);cursor:pointer;
+      font-size:16px;font-weight:700;letter-spacing:.02em;
+      transition:all .2s;
+      opacity:0;pointer-events:none;
+      background:linear-gradient(135deg,#c2410c,#f97316);
+      color:#fff;
+      box-shadow:6px 6px 14px rgba(194,65,12,.4),-3px -3px 8px rgba(255,255,255,.3);
+    }
+    .next-btn.visible{opacity:1;pointer-events:all;}
+    .next-btn:active{box-shadow:inset 4px 4px 10px rgba(0,0,0,.2),inset -2px -2px 6px rgba(255,255,255,.1);transform:scale(.98);}
+
+    /* ── 로딩 ── */
+    #loadingScreen{
+      display:none;flex-direction:column;align-items:center;justify-content:center;
+      min-height:60dvh;gap:28px;padding:40px 24px;
+    }
+    #loadingScreen.active{display:flex;}
+    .gen-torch{display:flex;flex-direction:column;align-items:center;width:120px;}
+    .gen-flame{width:110px;animation:genF .7s ease-in-out infinite alternate;}
+    @keyframes genF{from{transform:scaleX(.9) scaleY(.95);}to{transform:scaleX(1.08) scaleY(1.04);}}
+    .gen-handle{width:58px;margin-top:-8px;}
+    .loading-label{font-size:14px;font-weight:600;color:var(--text-2);text-align:center;line-height:1.6;}
+    .dots-row{display:flex;gap:8px;}
+    .ld{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:ld .9s ease-in-out infinite;}
+    .ld:nth-child(2){animation-delay:.15s;}.ld:nth-child(3){animation-delay:.3s;}
+    @keyframes ld{0%,100%{opacity:.25;transform:translateY(0);}50%{opacity:1;transform:translateY(-6px);}}
+
+    /* ── 결과 ── */
+    #resultScreen{display:none;flex-direction:column;animation:fadeIn .5s ease;}
+    #resultScreen.active{display:flex;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+    .result-scroll{overflow-y:auto;padding:24px 24px max(env(safe-area-inset-bottom,0px),32px);display:flex;flex-direction:column;gap:16px;}
+
+    .result-head{
+      display:flex;flex-direction:column;gap:4px;
+    }
+    .result-eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);}
+    .result-name{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.15;}
+    .result-en{font-size:13px;color:var(--text-2);font-weight:500;}
+
+    /* 횃불 카드 */
+    .torch-card{
+      border-radius:28px;background:var(--bg);box-shadow:var(--elev);
+      padding:32px 20px 24px;display:flex;flex-direction:column;align-items:center;gap:0;
+      position:relative;overflow:hidden;
+    }
+    .torch-glow{
+      position:absolute;top:-40px;left:50%;transform:translateX(-50%);
+      width:180px;height:180px;border-radius:50%;
+      background:radial-gradient(circle,var(--glow-color,rgba(249,115,22,.2)) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    #particleCanvas{position:absolute;inset:0;pointer-events:none;border-radius:28px;}
+    .torch-compose{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:140px;}
+    .result-flame{
+      width:130px;animation:rFlicker .9s ease-in-out infinite alternate;
+      filter:drop-shadow(0 0 12px var(--glow-color,rgba(249,115,22,.5)));
+    }
+    @keyframes rFlicker{
+      from{transform:scaleX(.93) scaleY(.97);filter:drop-shadow(0 0 8px var(--glow-color,rgba(249,115,22,.4)));}
+      to{transform:scaleX(1.07) scaleY(1.03);filter:drop-shadow(0 0 20px var(--glow-color,rgba(249,115,22,.7)));}
+    }
+    .result-handle{width:72px;margin-top:-10px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.15));}
+    .type-badge{
+      position:relative;z-index:1;margin-top:18px;
+      padding:7px 18px;border-radius:20px;font-size:12px;font-weight:700;
+      background:rgba(232,93,4,.1);color:var(--primary);
+      box-shadow:var(--elev-sm);
+    }
+
+    /* 설명 카드 */
+    .desc-card{
+      border-radius:20px;background:var(--bg);box-shadow:var(--elev-sm);
+      padding:20px;
+    }
+    .desc-text{font-size:13px;color:var(--text-2);line-height:1.75;}
+
+    /* 특성 태그 */
+    .traits{display:flex;flex-wrap:wrap;gap:8px;}
+    .trait{
+      font-size:11px;font-weight:600;padding:7px 14px;border-radius:20px;
+      background:var(--bg);box-shadow:var(--elev-sm);color:var(--text-2);
+    }
+
+    /* 액션 버튼 */
+    .action-row{display:flex;gap:12px;}
+    .act-btn{
+      flex:1;padding:16px;border-radius:18px;border:none;
+      font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;
+    }
+    .act-btn:active{transform:scale(.97);}
+    .save-btn{
+      background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;
+      box-shadow:5px 5px 12px rgba(194,65,12,.35),-3px -3px 8px rgba(255,255,255,.3);
+    }
+    .share-btn{
+      background:var(--bg);color:var(--text);box-shadow:var(--elev-sm);
+    }
+    .retry-btn{
+      width:100%;padding:14px;border-radius:18px;border:none;
+      background:var(--bg);box-shadow:var(--elev-sm);
+      font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;
+      transition:all .18s;
+    }
+    .retry-btn:active{box-shadow:var(--press);}
+
+    #exportCanvas{display:none;}
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 상단바 -->
+  <div class="top-bar" id="topBar">
+    <a href="index.html" class="back">‹</a>
+    <div class="bar-title">프로메테온 유형 테스트</div>
+    <div class="step-pill" id="stepPill">1 / 3</div>
+  </div>
+
+  <!-- 진행 도트 -->
+  <div class="progress-dots" id="progressDots">
+    <div class="dot active" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="d3"></div>
+  </div>
+
+  <!-- 슬라이드 영역 -->
+  <div class="slides" id="slides">
+
+    <!-- Q1 -->
+    <div class="slide active" id="q1">
+      <div class="q-head">
+        <div class="q-num">Q1 · 성향</div>
+        <div class="q-text">AI 툴을 처음 접했을 때<br>당신의 행동은?</div>
+      </div>
+      <div class="choices">
+        <div class="choice" onclick="pick(1,'A',this)">
+          <div class="choice-letter">A</div>
+          <div class="choice-text">바로 사용해본다</div>
+          <div class="choice-check">✓</div>
+        </div>
+        <div class="choice" onclick="pick(1,'B',this)">
+          <div class="choice-letter">B</div>
+          <div class="choice-text">원리부터 파악한다</div>
+          <div class="choice-check">✓</div>
+        </div>
+        <div class="choice" onclick="pick(1,'C',this)">
+          <div class="choice-letter">C</div>
+          <div class="choice-text">트렌드를 지켜본다</div>
+          <div class="choice-check">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="slide enter-right" id="q2">
+      <div class="q-head">
+        <div class="q-num">Q2 · 가치관</div>
+        <div class="q-text">협업할 때 가장 중요하게<br>생각하는 것은?</div>
+      </div>
+      <div class="choices">
+        <div class="choice" onclick="pick(2,'A',this)">
+          <div class="choice-letter">A</div>
+          <div class="choice-text">강력한 리더십</div>
+          <div class="choice-check">✓</div>
+        </div>
+        <div class="choice" onclick="pick(2,'B',this)">
+          <div class="choice-letter">B</div>
+          <div class="choice-text">유연한 소통</div>
+          <div class="choice-check">✓</div>
+        </div>
+        <div class="choice" onclick="pick(2,'C',this)">
+          <div class="choice-letter">C</div>
+          <div class="choice-text">창의적 혁신</div>
+          <div class="choice-check">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="slide enter-right" id="q3">
+      <div class="q-head">
+        <div class="q-num">Q3 · 미래관</div>
+        <div class="q-text">당신이 꿈꾸는<br>공존지능의 미래는?</div>
+      </div>
+      <div class="choices">
+        <div class="choice" onclick="pick(3,'A',this)">
+          <div class="choice-letter">A</div>
+          <div class="choice-text">화려하고 역동적인 변화</div>
+          <div class="choice-check">✓</div>
+        </div>
+        <div class="choice" onclick="pick(3,'B',this)">
+          <div class="choice-letter">B</div>
+          <div class="choice-text">은은하고 안정적인 발전</div>
+          <div class="choice-check">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 로딩 -->
+    <div class="slide enter-right" id="loadingScreen">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;">
+        <div class="gen-torch">
+          <img class="gen-flame" id="genFlame" src="" alt="">
+          <img class="gen-handle" id="genHandle" src="" alt="">
+        </div>
+        <div class="dots-row"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
+        <div class="loading-label">당신만의 프로메테온 불꽃을<br>완성하고 있습니다…</div>
+      </div>
+    </div>
+
+  </div><!-- /slides -->
+
+  <!-- 다음 버튼 -->
+  <div class="next-wrap" id="nextWrap">
+    <button class="next-btn" id="nextBtn">다음</button>
+  </div>
+
+  <!-- 결과 화면 (슬라이드 밖) -->
+  <div id="resultScreen">
+    <div class="result-scroll">
+      <div class="result-head">
+        <div class="result-eyebrow">나의 프로메테온 유형</div>
+        <div class="result-name" id="rName"></div>
+        <div class="result-en" id="rEn"></div>
+      </div>
+
+      <div class="torch-card">
+        <div class="torch-glow" id="torchGlow"></div>
+        <canvas id="particleCanvas"></canvas>
+        <div class="torch-compose">
+          <img class="result-flame" id="rFlame" src="" alt="">
+          <img class="result-handle" id="rHandle" src="" alt="">
+        </div>
+        <div class="type-badge" id="rBadge"></div>
+      </div>
+
+      <div class="desc-card">
+        <div class="desc-text" id="rDesc"></div>
+      </div>
+
+      <div class="traits" id="rTraits"></div>
+
+      <div class="action-row">
+        <button class="act-btn save-btn" onclick="saveImg()">📥 저장</button>
+        <button class="act-btn share-btn" onclick="shareRes()">🔗 공유</button>
+      </div>
+      <button class="retry-btn" onclick="retry()">↺ 다시 테스트하기</button>
+    </div>
+  </div>
+
+</div><!-- /page -->
+<canvas id="exportCanvas" width="720" height="1080"></canvas>
+
+<script>
+const A={q1:null,q2:null,q3:null};
+let pAnim=null,curQ=1;
+
+const FLAME={A:'image/fire (2).svg',B:'image/fire (1).svg',C:'image/fire (3).svg'};
+const HANDLE={A:'image/손잡이 (1).png',B:'image/손잡이 (2).png',C:'image/손잡이 (3).png'};
+const GLOW={A:'rgba(239,68,68,.5)',B:'rgba(56,189,248,.5)',C:'rgba(251,191,36,.5)'};
+
+const TYPES={
+  AAA:{name:'열정의 선구자',en:'Passionate Pioneer',badge:'🔥 선구자형',traits:['즉각적 행동','카리스마','변화 주도'],desc:'새로운 기술을 두려움 없이 받아들이고, 강력한 리더십으로 팀을 이끄는 타입. 역동적인 에너지로 AI 시대를 가장 먼저 만들어갑니다.'},
+  AAB:{name:'열정의 수호자',en:'Passionate Guardian',badge:'🔥 수호자형',traits:['실행력','안정 추구','집중력'],desc:'강한 실행력과 흔들리지 않는 중심을 동시에 가진 타입. 빠른 적응력으로 팀의 든든한 버팀목이 됩니다.'},
+  ABA:{name:'열정의 건축가',en:'Passionate Architect',badge:'🔥 건축가형',traits:['협력','실행력','구조 설계'],desc:'팀워크를 기반으로 빠른 실행력을 발휘하는 타입. 소통으로 최적의 AI 활용 전략을 구현합니다.'},
+  ABB:{name:'열정의 조율자',en:'Passionate Harmonizer',badge:'🔥 조율자형',traits:['공감력','유연성','균형'],desc:'빠른 실행과 세심한 소통을 동시에 갖춘 타입. 팀 내 갈등을 해소하며 창의적 합의를 이끌어냅니다.'},
+  ACA:{name:'열정의 혁신가',en:'Passionate Innovator',badge:'🔥 혁신가형',traits:['창의력','도전정신','돌파력'],desc:'전통의 틀을 깨고 새로운 방식을 만드는 타입. 열정과 창의의 조합으로 AI 시대의 판도를 바꿉니다.'},
+  ACB:{name:'열정의 몽상가',en:'Passionate Dreamer',badge:'🔥 몽상가형',traits:['상상력','열정','고요한 집중'],desc:'화려한 비전을 꿈꾸지만 차분하게 실현해나가는 타입. 혁신과 실용이 공존합니다.'},
+  BAA:{name:'이성의 분석가',en:'Rational Analyst',badge:'🧠 분석가형',traits:['논리력','체계성','리더십'],desc:'원리를 먼저 이해하고 명확한 근거로 팀을 이끄는 타입. 데이터 기반으로 AI 도구를 최적화합니다.'},
+  BAB:{name:'이성의 전략가',en:'Rational Strategist',badge:'🧠 전략가형',traits:['통찰력','냉철함','지속성'],desc:'치밀한 분석으로 장기 전략을 수립하는 타입. AI 시대의 흐름을 정확히 읽어냅니다.'},
+  BBA:{name:'이성의 설계자',en:'Rational Designer',badge:'🧠 설계자형',traits:['시스템 사고','소통','정밀함'],desc:'논리와 협력을 결합한 정밀한 설계자. 복잡한 AI 시스템을 체계적으로 구축합니다.'},
+  BBB:{name:'이성의 균형자',en:'Rational Balancer',badge:'🧠 균형자형',traits:['안정성','분석력','공감'],desc:'논리와 공감을 모두 갖춘 이상적 협업자. 데이터로 말하면서도 사람의 마음을 놓치지 않습니다.'},
+  BCA:{name:'이성의 발명가',en:'Rational Inventor',badge:'🧠 발명가형',traits:['독창성','논리','탐구심'],desc:'깊은 분석에서 전혀 새로운 아이디어를 이끌어내는 타입. AI 기술의 새로운 응용을 창조합니다.'},
+  BCB:{name:'이성의 탐구자',en:'Rational Explorer',badge:'🧠 탐구자형',traits:['호기심','인내','정확성'],desc:'끊임없이 배우고 이해의 깊이를 더해가는 타입. 고요한 지식의 빛으로 주변을 밝힙니다.'},
+  CAA:{name:'조화의 개척자',en:'Harmony Pioneer',badge:'🌿 개척자형',traits:['공존','추진력','포용력'],desc:'모두를 아우르며 앞장서는 타입. AI와 인간의 공존을 가장 중요한 가치로 여깁니다.'},
+  CAB:{name:'조화의 안내자',en:'Harmony Guide',badge:'🌿 안내자형',traits:['배려','신중함','통합력'],desc:'모든 구성원이 함께 성장하도록 이끄는 타입. 따뜻한 리더십으로 공존지능 시대를 안내합니다.'},
+  CBA:{name:'조화의 연결자',en:'Harmony Connector',badge:'🌿 연결자형',traits:['네트워킹','균형','소통'],desc:'사람과 기술, 아이디어를 연결하는 허브. 다양한 관점을 통합해 AI 시대의 시너지를 만듭니다.'},
+  CBB:{name:'조화의 수호자',en:'Harmony Protector',badge:'🌿 수호자형',traits:['안정','신뢰','지속가능성'],desc:'느리지만 확실하게 지속 가능한 미래를 만드는 타입. AI와 인간이 공존하는 세상의 수호자입니다.'},
+  CCA:{name:'조화의 혁신가',en:'Harmony Innovator',badge:'🌿 혁신가형',traits:['창의','포용','실험정신'],desc:'기존의 틀을 바꾸되 모든 구성원을 함께 데려가는 타입. 포용적 혁신으로 공존지능 세계를 설계합니다.'},
+  CCB:{name:'조화의 명상가',en:'Harmony Meditator',badge:'🌿 명상가형',traits:['깊은 사색','공감','성숙함'],desc:'고요한 지혜로 공존의 길을 비추는 타입. 빠른 변화 속에서도 본질을 놓치지 않는 균형감을 지닙니다.'},
+};
+
+function pick(q,ans,el){
+  const screen=document.getElementById('q'+q);
+  screen.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  A['q'+q]=ans;
+  document.getElementById('nextBtn').classList.add('visible');
+}
+
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  if(curQ<3){
+    const from=document.getElementById('q'+curQ);
+    const to=document.getElementById('q'+(curQ+1));
+    from.classList.add('exit-left');
+    to.classList.remove('enter-right');
+    to.classList.add('active');
+    curQ++;
+    updateDots();
+    document.getElementById('stepPill').textContent=curQ+' / 3';
+    document.getElementById('nextBtn').classList.remove('visible');
+    // 선택 초기화 방지 - 이미 선택했으면 버튼 다시 활성화
+    if(A['q'+curQ]) document.getElementById('nextBtn').classList.add('visible');
+  } else {
+    startGenerate();
+  }
+});
+
+function updateDots(){
+  for(let i=1;i<=3;i++){
+    const d=document.getElementById('d'+i);
+    d.className='dot'+(i<curQ?' done':i===curQ?' active':'');
+  }
+}
+
+function startGenerate(){
+  // 로딩 화면
+  const q3=document.getElementById('q3');
+  const ls=document.getElementById('loadingScreen');
+  q3.classList.add('exit-left');
+  ls.classList.remove('enter-right');
+  ls.classList.add('active');
+  document.getElementById('nextWrap').style.display='none';
+  document.getElementById('progressDots').style.display='none';
+  document.getElementById('stepPill').textContent='완성!';
+
+  document.getElementById('genFlame').src=FLAME[A.q1];
+  document.getElementById('genHandle').src=HANDLE[A.q2];
+
+  setTimeout(showResult, 2200);
+}
+
+function showResult(){
+  document.getElementById('topBar').style.display='none';
+  document.getElementById('slides').style.display='none';
+  document.getElementById('progressDots').style.display='none';
+
+  const rs=document.getElementById('resultScreen');
+  rs.classList.add('active');
+
+  const key=A.q1+A.q2+A.q3;
+  const T=TYPES[key]||TYPES['CAB'];
+  const gc=GLOW[A.q1];
+
+  document.getElementById('rName').textContent=T.name;
+  document.getElementById('rEn').textContent=T.en;
+  document.getElementById('rBadge').textContent=T.badge;
+  document.getElementById('rDesc').textContent=T.desc;
+  document.getElementById('rFlame').src=FLAME[A.q1];
+  document.getElementById('rHandle').src=HANDLE[A.q2];
+  document.getElementById('rFlame').style.setProperty('--glow-color',gc);
+  document.getElementById('torchGlow').style.background=`radial-gradient(circle,${gc.replace('.5','.25')} 0%,transparent 70%)`;
+
+  document.getElementById('rTraits').innerHTML=T.traits.map(t=>`<div class="trait">${t}</div>`).join('');
+
+  // 파티클
+  const canvas=document.getElementById('particleCanvas');
+  const card=canvas.parentElement;
+  canvas.width=card.offsetWidth; canvas.height=card.offsetHeight;
+  A.q3==='A'?burstParticles(canvas,gc):glowParticles(canvas,gc);
+}
+
+function burstParticles(canvas,col){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,ps=[],cx=W/2,cy=H*.4;
+  function sp(){ps.push({x:cx+(Math.random()-.5)*30,y:cy,vx:(Math.random()-.5)*1.5,vy:-(1+Math.random()*2),life:1,decay:.013+Math.random()*.008,size:2+Math.random()*4,col});}
+  function loop(){ctx.clearRect(0,0,W,H);if(Math.random()<.7)sp();
+    ps.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.life-=p.decay;if(p.life<=0){ps.splice(i,1);return;}
+    ctx.globalAlpha=p.life*.7;ctx.fillStyle=p.col.replace('.5','1');ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();});
+    ctx.globalAlpha=1;pAnim=requestAnimationFrame(loop);}
+  loop();
+}
+function glowParticles(canvas,col){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,ps=[],cx=W/2,cy=H*.42;
+  function sp(){ps.push({x:cx+(Math.random()-.5)*50,y:cy+Math.random()*20,vy:-(0.2+Math.random()*.5),life:1,decay:.006+Math.random()*.005,size:3+Math.random()*5,col});}
+  function loop(){ctx.clearRect(0,0,W,H);if(Math.random()<.4)sp();
+    ps.forEach((p,i)=>{p.x+=(Math.random()-.5)*.4;p.y+=p.vy;p.life-=p.decay;if(p.life<=0){ps.splice(i,1);return;}
+    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*3);
+    g.addColorStop(0,p.col.replace('.5','cc'));g.addColorStop(1,p.col.replace('.5','00').replace('rgba','rgba'));
+    ctx.globalAlpha=p.life*.5;ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);ctx.fill();});
+    ctx.globalAlpha=1;pAnim=requestAnimationFrame(loop);}
+  loop();
+}
+
+async function saveImg(){
+  const canvas=document.getElementById('exportCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=720,H=1080,key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#f5f0e8');bg.addColorStop(1,'#ede5d8');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(232,93,4,.06)';ctx.fillRect(0,0,W,H);
+  const li=(s,color)=>new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s;});
+  const [fI,hI]=await Promise.all([li(FLAME[A.q1]),li(HANDLE[A.q2])]);
+  const fW=240,fH=Math.round(fW*(65.46/49.04)),cx=W/2;
+  const fY=120;
+  if(fI)ctx.drawImage(fI,cx-fW/2,fY,fW,fH);
+  const hW=150,hR=hI?hI.naturalHeight/hI.naturalWidth:2.5,hH=Math.round(hW*hR);
+  if(hI)ctx.drawImage(hI,cx-hW/2,fY+fH-18,hW,hH);
+  const bY=fY+fH+hH-10;
+  ctx.fillStyle='rgba(0,0,0,.08)';ctx.fillRect(60,bY+20,W-120,1);
+  ctx.textAlign='center';
+  ctx.fillStyle='#e85d04';ctx.font='bold 14px Inter,sans-serif';ctx.fillText('나의 프로메테온 유형',cx,bY+48);
+  ctx.fillStyle='#1c1917';ctx.font='bold 44px Inter,sans-serif';ctx.fillText(T.name,cx,bY+100);
+  ctx.fillStyle='#78716c';ctx.font='20px Inter,sans-serif';ctx.fillText(T.en,cx,bY+132);
+  ctx.fillStyle='#a8a29e';ctx.font='14px Inter,sans-serif';
+  const words=T.desc;let line='',ly=bY+178;
+  for(const ch of words){const t=line+ch;if(ctx.measureText(t).width>W-120){ctx.fillText(line,cx,ly);line=ch;ly+=24;}else line=t;}
+  ctx.fillText(line,cx,ly);
+  ctx.fillStyle='#e85d04';ctx.fillRect(0,H-56,W,56);
+  ctx.fillStyle='#fff';ctx.font='bold 18px Inter,sans-serif';ctx.fillText('2026. 09. 08–10  ·  서울 신라호텔  ·  World Knowledge Forum',cx,H-20);
+  canvas.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`WKF2026_${T.name}.png`;a.click();URL.revokeObjectURL(u);},'image/png');
+}
+
+async function shareRes(){
+  const key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
+  const txt=`WKF 2026 프로메테온 유형: "${T.name}"\n${T.en}\n\n${T.desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼`;
+  if(navigator.share){try{await navigator.share({title:`WKF 2026 | ${T.name}`,text:txt});}catch(e){}}
+  else{await navigator.clipboard.writeText(txt);alert('클립보드에 복사되었습니다!');}
+}
+
+function retry(){
+  if(pAnim)cancelAnimationFrame(pAnim);
+  A.q1=A.q2=A.q3=null;curQ=1;
+  document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('resultScreen').style.display='';
+  document.getElementById('topBar').style.display='';
+  document.getElementById('slides').style.display='';
+  document.getElementById('progressDots').style.display='';
+  document.getElementById('nextWrap').style.display='';
+  document.getElementById('stepPill').textContent='1 / 3';
+  document.querySelectorAll('.slide').forEach((s,i)=>{s.className='slide'+(i===0?' active':' enter-right');});
+  document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('nextBtn').classList.remove('visible');
+  updateDots();
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>

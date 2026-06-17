@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f0ebe3">
+  <title>이벤트 안내 | WKF 2026</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    :root{
+      --bg:#f0ebe3;--s-dark:#d0c9c0;--s-light:#ffffff;
+      --elev:8px 8px 18px var(--s-dark),-8px -8px 18px var(--s-light);
+      --elev-sm:4px 4px 10px var(--s-dark),-4px -4px 10px var(--s-light);
+      --press:inset 5px 5px 12px var(--s-dark),inset -5px -5px 12px var(--s-light);
+      --primary:#e85d04;--text:#1c1917;--text-2:#78716c;--text-3:#a8a29e;--r:22px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{min-height:100%;background:var(--bg);font-family:-apple-system,sans-serif;color:var(--text);}
+    .page{max-width:480px;margin:0 auto;}
+
+    /* 상단바 */
+    .top-bar{
+      position:sticky;top:0;z-index:50;background:rgba(240,235,227,.94);backdrop-filter:blur(12px);
+      display:flex;align-items:center;gap:12px;
+      padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
+      border-bottom:1px solid rgba(0,0,0,.06);
+    }
+    .back{
+      width:40px;height:40px;border-radius:14px;background:var(--bg);
+      box-shadow:var(--elev-sm);display:flex;align-items:center;justify-content:center;
+      font-size:20px;color:var(--text-2);text-decoration:none;transition:box-shadow .15s;flex-shrink:0;
+    }
+    .back:active{box-shadow:var(--press);}
+    .bar-title{flex:1;font-size:14px;font-weight:700;}
+
+    /* 탭 */
+    .tab-row{
+      display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
+      padding:0 16px;border-bottom:1px solid rgba(0,0,0,.06);
+      background:rgba(240,235,227,.94);
+    }
+    .tab-row::-webkit-scrollbar{display:none;}
+    .tab-btn{
+      padding:12px 14px;white-space:nowrap;flex-shrink:0;
+      font-size:13px;font-weight:600;color:var(--text-3);
+      border:none;background:none;cursor:pointer;
+      border-bottom:2px solid transparent;transition:all .18s;
+    }
+    .tab-btn.on{color:var(--primary);border-bottom-color:var(--primary);}
+
+    /* 탭 콘텐츠 */
+    .tab-pane{display:none;padding:24px 20px 100px;}
+    .tab-pane.on{display:block;}
+
+    /* 공통 헤더 */
+    .sec-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:6px;}
+    .sec-title{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;}
+    .sec-sub{font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:20px;}
+
+    /* 카드 */
+    .card{background:var(--bg);box-shadow:var(--elev);border-radius:var(--r);padding:20px;margin-bottom:14px;}
+    .card-sm{background:var(--bg);box-shadow:var(--elev-sm);border-radius:18px;padding:16px;margin-bottom:10px;}
+
+    /* 키트 아이템 */
+    .kit-row{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid rgba(0,0,0,.06);}
+    .kit-row:last-child{border-bottom:none;padding-bottom:0;}
+    .kit-em{font-size:26px;flex-shrink:0;}
+    .kit-info{flex:1;}
+    .kit-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+    .kit-desc{font-size:11px;color:var(--text-3);line-height:1.4;}
+    .kit-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(232,93,4,.1);color:var(--primary);flex-shrink:0;}
+
+    /* 경품 */
+    .prize-row{display:flex;align-items:center;gap:14px;padding:15px 18px;border-radius:18px;background:var(--bg);box-shadow:var(--elev-sm);margin-bottom:10px;}
+    .prize-icon{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .prize-info{flex:1;}
+    .prize-name{font-size:14px;font-weight:700;margin-bottom:2px;}
+    .prize-detail{font-size:11px;color:var(--text-3);}
+    .prize-cnt{font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px;background:rgba(0,0,0,.05);color:var(--text-3);flex-shrink:0;}
+
+    /* 스텝 */
+    .steps{display:flex;flex-direction:column;}
+    .step-row{display:flex;gap:14px;padding:14px 0;position:relative;}
+    .step-row:not(:last-child)::before{content:'';position:absolute;left:17px;top:50px;bottom:0;width:2px;background:rgba(0,0,0,.07);}
+    .step-circ{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;box-shadow:3px 3px 8px rgba(194,65,12,.35);}
+    .step-body{flex:1;padding-top:6px;}
+    .step-title{font-size:14px;font-weight:700;margin-bottom:3px;}
+    .step-desc{font-size:12px;color:var(--text-2);line-height:1.5;}
+    .step-tag{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:10px;background:rgba(232,93,4,.1);color:var(--primary);font-size:11px;font-weight:700;}
+
+    /* 지도 */
+    .map-wrap{border-radius:var(--r);background:var(--bg);box-shadow:var(--elev);padding:16px;margin-bottom:14px;}
+    .map-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:12px;}
+    .map-legend{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;}
+    .map-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2);}
+    .map-dot{width:8px;height:8px;border-radius:50%;}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:13px;}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:var(--text-3);}
+    .info-val{font-weight:700;}
+
+    /* 타임테이블 */
+    .day-head{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);padding:14px 0 8px;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:4px;}
+    .t-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.05);}
+    .t-tag{font-size:11px;font-weight:700;color:#fff;background:var(--primary);padding:3px 9px;border-radius:7px;flex-shrink:0;margin-top:2px;min-width:52px;text-align:center;}
+    .t-title{font-size:13px;font-weight:600;margin-bottom:2px;}
+    .t-sub{font-size:11px;color:var(--text-3);}
+    .t-hall{display:inline-block;margin-top:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;}
+
+    /* 아코디언 */
+    .acc-item{border-radius:18px;background:var(--bg);box-shadow:var(--elev-sm);margin-bottom:10px;overflow:hidden;}
+    .acc-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;cursor:pointer;font-size:13px;font-weight:700;}
+    .acc-arrow{transition:transform .25s;color:var(--text-3);font-size:16px;}
+    .acc-item.open .acc-arrow{transform:rotate(90deg);}
+    .acc-body{display:none;padding:0 18px 16px;font-size:12px;color:var(--text-2);line-height:1.75;}
+    .acc-item.open .acc-body{display:block;}
+
+    /* CTA */
+    .cta-btn{
+      display:block;width:100%;padding:18px;border-radius:var(--r);border:none;cursor:pointer;
+      background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;
+      font-size:15px;font-weight:700;text-align:center;text-decoration:none;
+      box-shadow:5px 5px 14px rgba(194,65,12,.4),-3px -3px 8px rgba(255,255,255,.3);
+      transition:all .18s;margin-bottom:10px;
+    }
+    .cta-btn:active{transform:scale(.97);}
+    .cta-out{
+      display:block;width:100%;padding:15px;border-radius:var(--r);border:none;cursor:pointer;
+      background:var(--bg);box-shadow:var(--elev-sm);color:var(--text-2);
+      font-size:14px;font-weight:600;text-align:center;text-decoration:none;
+      transition:all .18s;
+    }
+    .cta-out:active{box-shadow:var(--press);}
+
+    /* 하단 탭바 */
+    .bottom-nav{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:480px;background:rgba(240,235,227,.95);
+      backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.07);
+      display:flex;padding:12px 20px;gap:10px;
+      padding-bottom:max(env(safe-area-inset-bottom,0px),12px);
+    }
+    .nav-lnk{
+      flex:1;padding:12px;border-radius:14px;border:none;
+      background:var(--bg);box-shadow:var(--elev-sm);
+      color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      text-decoration:none;transition:all .15s;
+    }
+    .nav-lnk:active{box-shadow:var(--press);}
+    .nav-icon{font-size:20px;}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="top-bar">
+    <a href="index.html" class="back">‹</a>
+    <div class="bar-title">현장 이벤트 안내</div>
+  </div>
+  <div class="tab-row">
+    <button class="tab-btn on" onclick="tab('kit',this)">🎁 웰컴 키트</button>
+    <button class="tab-btn" onclick="tab('prize',this)">🏆 경품</button>
+    <button class="tab-btn" onclick="tab('how',this)">📋 응모 방법</button>
+    <button class="tab-btn" onclick="tab('map',this)">📍 데스크</button>
+    <button class="tab-btn" onclick="tab('sched',this)">⏱ 일정</button>
+    <button class="tab-btn" onclick="tab('faq',this)">❓ FAQ</button>
+  </div>
+
+  <!-- 웰컴 키트 -->
+  <div class="tab-pane on" id="tab-kit">
+    <div class="sec-label">Welcome Kit</div>
+    <div class="sec-title">참가자 웰컴 키트</div>
+    <div class="sec-sub">등록 데스크에서 수령. 키트 안 QR 카드로 이벤트 참여 가능합니다.</div>
+    <div class="card">
+      <div class="kit-row"><div class="kit-em">📒</div><div class="kit-info"><div class="kit-name">WKF 2026 공식 노트북</div><div class="kit-desc">로고 각인 · A5 · 160p</div></div></div>
+      <div class="kit-row"><div class="kit-em">🖊️</div><div class="kit-info"><div class="kit-name">프로메테온 볼펜 세트</div><div class="kit-desc">불꽃 모티프 디자인 · 2종</div></div></div>
+      <div class="kit-row"><div class="kit-em">📱</div><div class="kit-info"><div class="kit-name">이벤트 QR 카드</div><div class="kit-desc">이 페이지 접속용 + 행사 안내 맵</div></div><div class="kit-tag">이 페이지</div></div>
+      <div class="kit-row"><div class="kit-em">🔖</div><div class="kit-info"><div class="kit-name">세션 프로그램 북</div><div class="kit-desc">3일 전체 세션 + 연사 소개</div></div></div>
+      <div class="kit-row"><div class="kit-em">🎴</div><div class="kit-info"><div class="kit-name">횃불 마커 카드</div><div class="kit-desc">AR 체험용 · 세션장 마커 동일 패턴</div></div><div class="kit-tag">AR 체험</div></div>
+      <div class="kit-row"><div class="kit-em">🍫</div><div class="kit-info"><div class="kit-name">프로메테안 초콜릿</div><div class="kit-desc">불꽃 모양 다크초콜릿 · 신라호텔</div></div></div>
+    </div>
+    <div class="card-sm" style="background:rgba(232,93,4,.06);box-shadow:none;">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px;">💡 숨겨진 팁</div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.65">키트 내 QR 카드 <strong style="color:var(--text)">뒷면</strong>에 안내가 있습니다. AR 체험 + 유형 테스트 완료 인증 화면을 안내 데스크에 제시하면 <strong style="color:var(--primary)">경품 응모</strong> 가능!</div>
+    </div>
+  </div>
+
+  <!-- 경품 -->
+  <div class="tab-pane" id="tab-prize">
+    <div class="sec-label">Prizes</div>
+    <div class="sec-title">경품 라인업</div>
+    <div class="sec-sub">9월 10일(목) 추첨. 3일간 이벤트 참여자 대상.</div>
+    <div class="prize-row"><div class="prize-icon" style="background:rgba(251,191,36,.15)">🥇</div><div class="prize-info"><div class="prize-name">대상 (1명)</div><div class="prize-detail">AI 기기 패키지 (최신 AI 노트북 + 스마트워치)</div></div><div class="prize-cnt">×1</div></div>
+    <div class="prize-row"><div class="prize-icon" style="background:rgba(148,163,184,.15)">🥈</div><div class="prize-info"><div class="prize-name">최우수상 (3명)</div><div class="prize-detail">프리미엄 무선 이어폰 + WKF 기념 패키지</div></div><div class="prize-cnt">×3</div></div>
+    <div class="prize-row"><div class="prize-icon" style="background:rgba(180,120,60,.15)">🥉</div><div class="prize-info"><div class="prize-name">우수상 (10명)</div><div class="prize-detail">신라호텔 레스토랑 식사권 (2인)</div></div><div class="prize-cnt">×10</div></div>
+    <div class="prize-row"><div class="prize-icon" style="background:rgba(232,93,4,.1)">🎁</div><div class="prize-info"><div class="prize-name">참여상 (50명)</div><div class="prize-detail">WKF 기념 굿즈 (에코백+텀블러)</div></div><div class="prize-cnt">×50</div></div>
+    <div class="prize-row"><div class="prize-icon" style="background:rgba(232,93,4,.1)">🔥</div><div class="prize-info"><div class="prize-name">프로메테온 특별상</div><div class="prize-detail">SNS 공유 인증 시 추가 응모권 1매 (매일)</div></div><div class="prize-cnt">매일</div></div>
+    <div class="card-sm" style="margin-top:6px">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">📅 추첨 일정</div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.7">• 참여상: 매일 오후 5시 (9/8, 9/9, 9/10)<br>• 대상·최우수·우수상: 9/10(목) 오후 4시 시상식<br>• 장소: 다이너스티 A홀 로비</div>
+    </div>
+    <a href="quiz.html" class="cta-btn" style="margin-top:16px">🔥 유형 테스트 시작</a>
+    <a href="ar.html" class="cta-out">📷 AR 불꽃 확인</a>
+  </div>
+
+  <!-- 응모 방법 -->
+  <div class="tab-pane" id="tab-how">
+    <div class="sec-label">How to Enter</div>
+    <div class="sec-title">경품 응모 방법</div>
+    <div class="sec-sub">두 이벤트를 모두 완료하고 안내 데스크에서 인증하세요.</div>
+    <div class="card" style="padding:4px 20px 4px">
+      <div class="steps">
+        <div class="step-row"><div class="step-circ">1</div><div class="step-body"><div class="step-title">AR 불꽃 체험</div><div class="step-desc">세션장 선택 → 카메라로 횃불 마커 인식 → 인증 이미지 저장</div><span class="step-tag">→ AR 카메라 메뉴</span></div></div>
+        <div class="step-row"><div class="step-circ">2</div><div class="step-body"><div class="step-title">유형 테스트 완료</div><div class="step-desc">3문항 답변 → 프로메테온 횃불 생성 → 결과 이미지 저장</div><span class="step-tag">→ 유형 테스트 메뉴</span></div></div>
+        <div class="step-row"><div class="step-circ">3</div><div class="step-body"><div class="step-title">안내 데스크 방문</div><div class="step-desc">두 인증 이미지를 데스크 직원에게 제시</div><span class="step-tag">→ 1층 로비 중앙</span></div></div>
+        <div class="step-row"><div class="step-circ">4</div><div class="step-body"><div class="step-title">응모권 수령 & 추첨</div><div class="step-desc">응모권을 추첨함에 넣으면 완료! SNS 공유 시 추가 1매</div><span class="step-tag">🎁 당첨 기원!</span></div></div>
+      </div>
+    </div>
+    <div class="card-sm" style="background:rgba(232,93,4,.06);box-shadow:none;">
+      <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">⚠ 유의사항</div>
+      <div style="font-size:12px;color:var(--text-2);line-height:1.7">• 1인 1일 1회, 총 3회 응모 가능<br>• 인증 이미지는 당일 유효<br>• 안내 데스크 운영: 09:00–17:30<br>• 등록 참가자만 응모 가능</div>
+    </div>
+    <a href="ar.html" class="cta-btn" style="margin-top:16px">📷 AR 체험 시작</a>
+    <a href="quiz.html" class="cta-out">🔥 유형 테스트</a>
+  </div>
+
+  <!-- 데스크 위치 -->
+  <div class="tab-pane" id="tab-map">
+    <div class="sec-label">Location</div>
+    <div class="sec-title">안내 데스크 위치</div>
+    <div class="sec-sub">신라호텔 1층 로비 중앙에 WKF 2026 이벤트 부스가 있습니다.</div>
+    <div class="map-wrap">
+      <div class="map-title">신라호텔 행사장 플로어맵</div>
+      <svg viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:10px">
+        <rect width="340" height="220" fill="#ede8de" rx="10"/>
+        <rect x="60" y="100" width="220" height="20" fill="#d4cec6" rx="4"/>
+        <rect x="160" y="20" width="20" height="80" fill="#d4cec6" rx="4"/>
+        <rect x="160" y="120" width="20" height="80" fill="#d4cec6" rx="4"/>
+        <!-- 다이너스티A -->
+        <rect x="10" y="20" width="80" height="70" fill="rgba(255,215,0,.12)" stroke="#FFD700" stroke-width="1.5" rx="6"/>
+        <text x="50" y="52" text-anchor="middle" fill="#b45309" font-size="8" font-weight="700" font-family="Inter,sans-serif">다이너스티A</text>
+        <circle cx="50" cy="74" r="5" fill="#FFD700"/>
+        <!-- 다이너스티B -->
+        <rect x="100" y="20" width="50" height="70" fill="rgba(168,85,247,.1)" stroke="#a855f7" stroke-width="1.5" rx="6"/>
+        <text x="125" y="52" text-anchor="middle" fill="#7c3aed" font-size="7.5" font-weight="700" font-family="Inter,sans-serif">다이너스티B</text>
+        <circle cx="125" cy="74" r="5" fill="#a855f7"/>
+        <!-- 루비 -->
+        <rect x="250" y="20" width="80" height="70" fill="rgba(239,68,68,.1)" stroke="#ef4444" stroke-width="1.5" rx="6"/>
+        <text x="290" y="58" text-anchor="middle" fill="#b91c1c" font-size="9" font-weight="700" font-family="Inter,sans-serif">루비</text>
+        <circle cx="290" cy="74" r="5" fill="#ef4444"/>
+        <!-- 토파즈 -->
+        <rect x="10" y="130" width="80" height="70" fill="rgba(56,189,248,.1)" stroke="#38bdf8" stroke-width="1.5" rx="6"/>
+        <text x="50" y="167" text-anchor="middle" fill="#0369a1" font-size="9" font-weight="700" font-family="Inter,sans-serif">토파즈</text>
+        <circle cx="50" cy="142" r="5" fill="#38bdf8"/>
+        <!-- 에메랄드 -->
+        <rect x="250" y="130" width="80" height="70" fill="rgba(74,222,128,.1)" stroke="#4ade80" stroke-width="1.5" rx="6"/>
+        <text x="290" y="167" text-anchor="middle" fill="#15803d" font-size="9" font-weight="700" font-family="Inter,sans-serif">에메랄드</text>
+        <circle cx="290" cy="142" r="5" fill="#4ade80"/>
+        <!-- 이벤트 데스크 -->
+        <rect x="144" y="96" width="52" height="28" fill="rgba(232,93,4,.15)" stroke="#e85d04" stroke-width="2" rx="7"/>
+        <text x="170" y="107" text-anchor="middle" fill="#e85d04" font-size="7" font-weight="700" font-family="Inter,sans-serif">이벤트</text>
+        <text x="170" y="118" text-anchor="middle" fill="#e85d04" font-size="7" font-weight="700" font-family="Inter,sans-serif">데스크</text>
+        <!-- 입구 -->
+        <rect x="148" y="200" width="44" height="16" fill="#d4cec6" rx="4"/>
+        <text x="170" y="211" text-anchor="middle" fill="#78716c" font-size="7" font-family="Inter,sans-serif">메인 입구</text>
+      </svg>
+      <div class="map-legend">
+        <div class="map-item"><div class="map-dot" style="background:#FFD700"></div>다이너스티 A</div>
+        <div class="map-item"><div class="map-dot" style="background:#a855f7"></div>다이너스티 B</div>
+        <div class="map-item"><div class="map-dot" style="background:#ef4444"></div>루비</div>
+        <div class="map-item"><div class="map-dot" style="background:#38bdf8"></div>토파즈</div>
+        <div class="map-item"><div class="map-dot" style="background:#4ade80"></div>에메랄드</div>
+        <div class="map-item"><div class="map-dot" style="background:#e85d04"></div>이벤트 데스크</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="info-row"><span class="info-label">위치</span><span class="info-val">신라호텔 1층 로비 중앙</span></div>
+      <div class="info-row"><span class="info-label">운영 시간</span><span class="info-val">09:00 – 17:30 (3일간)</span></div>
+      <div class="info-row"><span class="info-label">문의</span><span class="info-val" style="color:var(--primary)">현장 스태프</span></div>
+    </div>
+  </div>
+
+  <!-- 일정 -->
+  <div class="tab-pane" id="tab-sched">
+    <div class="sec-label">Schedule</div>
+    <div class="sec-title">행사 일정</div>
+    <div class="sec-sub">2026. 09. 08(화) – 09. 10(목), 서울 신라호텔</div>
+    <div class="day-head">DAY 1 · 9월 8일 (화)</div>
+    <div class="t-row"><div class="t-tag">08:00</div><div><div class="t-title">등록 & 웰컴 키트 수령</div><div class="t-sub">메인 로비 · 이벤트 데스크 오픈</div></div></div>
+    <div class="t-row"><div class="t-tag">09:30</div><div><div class="t-title">오프닝 세레모니</div><div class="t-sub">The Promethean Moment 개막</div><span class="t-hall" style="background:rgba(255,215,0,.15);color:#b45309">다이너스티 A</span></div></div>
+    <div class="t-row"><div class="t-tag">10:30</div><div><div class="t-title">기조연설 I: Co-Intelligence 시대</div><div class="t-sub">AI와 인간 협업의 현재와 미래</div><span class="t-hall" style="background:rgba(255,215,0,.15);color:#b45309">다이너스티 A</span></div></div>
+    <div class="t-row"><div class="t-tag">17:00</div><div><div class="t-title">Day 1 참여상 추첨</div><div class="t-sub">이벤트 데스크 앞 현장 추첨</div></div></div>
+    <div class="day-head" style="margin-top:8px">DAY 2 · 9월 9일 (수)</div>
+    <div class="t-row"><div class="t-tag">09:00</div><div><div class="t-title">기조연설 II: AI Governance</div><div class="t-sub">규제와 자율, 공존의 설계</div><span class="t-hall" style="background:rgba(168,85,247,.12);color:#7c3aed">다이너스티 B</span></div></div>
+    <div class="t-row"><div class="t-tag">13:00</div><div><div class="t-title">패널 토론: 공존지능 혁신</div><div class="t-sub">글로벌 리더 6인 좌담</div><span class="t-hall" style="background:rgba(56,189,248,.12);color:#0369a1">토파즈</span></div></div>
+    <div class="t-row"><div class="t-tag">17:00</div><div><div class="t-title">Day 2 참여상 추첨</div></div></div>
+    <div class="day-head" style="margin-top:8px">DAY 3 · 9월 10일 (목)</div>
+    <div class="t-row"><div class="t-tag">09:00</div><div><div class="t-title">기조연설 III: 미래 지식 생태계</div><span class="t-hall" style="background:rgba(74,222,128,.12);color:#15803d">에메랄드</span></div></div>
+    <div class="t-row"><div class="t-tag">15:00</div><div><div class="t-title">최종 응모 마감</div><span class="t-hall" style="background:rgba(232,93,4,.1);color:#e85d04">⚠ 마감</span></div></div>
+    <div class="t-row"><div class="t-tag">16:00</div><div><div class="t-title">🏆 경품 시상식 & 클로징</div><div class="t-sub">대상·최우수·우수상 발표</div><span class="t-hall" style="background:rgba(255,215,0,.15);color:#b45309">다이너스티 A 로비</span></div></div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="tab-pane" id="tab-faq">
+    <div class="sec-label">FAQ</div>
+    <div class="sec-title">자주 묻는 질문</div>
+    <div class="sec-sub">이벤트 참여 전 확인해주세요.</div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>AR이 작동하지 않아요</span><span class="acc-arrow">›</span></div><div class="acc-body">카카오톡·인스타 인앱 브라우저에서는 카메라 권한이 제한됩니다.<br><br>✅ Safari(iOS) 또는 Chrome(Android)으로 직접 열어주세요.<br>설정 → Safari → 카메라 → 허용 후 새로고침하세요.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>하루에 몇 번 응모 가능한가요?</span><span class="acc-arrow">›</span></div><div class="acc-body">1인 1일 1회, 3일간 총 3회 가능합니다.<br>SNS 공유 인증(#WKF2026) 시 당일 추가 응모권 1매 제공.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>이미지 저장이 안 돼요</span><span class="acc-arrow">›</span></div><div class="acc-body">iOS: 설정 → Safari → 사진 → 허용 후 재시도.<br>저장이 어려우면 홈버튼+전원으로 스크린샷을 찍어 사용하세요.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>경품 수령은 어떻게 하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body">추첨 현장에서 호명됩니다. 미참석 시 등록된 연락처로 안내 후 택배 발송됩니다.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>마커 인식이 잘 안 돼요</span><span class="acc-arrow">›</span></div><div class="acc-body">• 마커와 거리: 30~60cm 최적<br>• 마커가 구겨지면 인식률 저하<br>• 어두운 환경 피하기<br><br>계속 안 되면 화면의 <strong>시뮬레이션 버튼</strong>으로 체험 후 데스크에서 확인받으세요.</div></div>
+    <div style="text-align:center;padding:24px 0 8px;font-size:12px;color:var(--text-3)">추가 문의는 현장 안내 데스크 스태프에게 문의해주세요</div>
+  </div>
+</div>
+
+<!-- 하단 탭바 -->
+<div class="bottom-nav">
+  <a href="ar.html" class="nav-lnk"><span class="nav-icon">📷</span><span>AR 불꽃</span></a>
+  <a href="quiz.html" class="nav-lnk"><span class="nav-icon">🔥</span><span>유형 테스트</span></a>
+  <a href="index.html" class="nav-lnk"><span class="nav-icon">🏠</span><span>홈</span></a>
+</div>
+
+<script>
+function tab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  btn.classList.add('on');
+  btn.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}
+function acc(head){head.parentElement.classList.toggle('open');}
+</script>
+</body>
+</html>

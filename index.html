@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f0ebe3">
+  <title>WKF 2026</title>
+  <style>
+    
+
+    :root {
+      --bg: #f0ebe3;
+      --s-dark: #d0c9c0;
+      --s-light: #ffffff;
+      --elev: 8px 8px 18px var(--s-dark), -8px -8px 18px var(--s-light);
+      --elev-sm: 4px 4px 10px var(--s-dark), -4px -4px 10px var(--s-light);
+      --press: inset 4px 4px 10px var(--s-dark), inset -4px -4px 10px var(--s-light);
+      --primary: #e85d04;
+      --primary-light: #fb923c;
+      --text: #1c1917;
+      --text-2: #78716c;
+      --text-3: #a8a29e;
+      --r: 22px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { min-height:100%; background:var(--bg); font-family:-apple-system,sans-serif; color:var(--text); }
+
+    /* ── 불꽃 배경 (매우 은은) ── */
+    .flame-bg {
+      position:fixed; inset:0; display:flex; align-items:flex-end;
+      justify-content:center; gap:5px; padding:0 20px; z-index:0; pointer-events:none;
+    }
+    .flame-bar {
+      flex:1; border-radius:100px 100px 0 0;
+      background:linear-gradient(to top, #c2410c22, #f9731622, #fbbf2411, transparent);
+      animation:fbar var(--d,2s) ease-in-out infinite alternate;
+    }
+    @keyframes fbar {
+      from { height:var(--h1); opacity:.6; }
+      to   { height:var(--h2); opacity:1; }
+    }
+
+    .page { position:relative; z-index:1; max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; padding:0 24px; }
+
+    /* ── 헤더 ── */
+    header {
+      padding-top:max(env(safe-area-inset-top,0px),20px);
+      padding-bottom:16px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .logo {
+      display:flex; align-items:center; gap:10px;
+    }
+    .logo-icon {
+      width:38px; height:38px; border-radius:12px;
+      background:var(--primary); display:flex; align-items:center; justify-content:center;
+      box-shadow: 4px 4px 10px rgba(232,93,4,0.35), -2px -2px 6px rgba(255,255,255,0.5);
+      font-size:18px; flex-shrink:0;
+    }
+    .logo-words { line-height:1.25; }
+    .logo-top { font-size:9px; font-weight:700; letter-spacing:.1em; color:var(--text-2); text-transform:uppercase; }
+    .logo-bot { font-size:11px; font-weight:800; letter-spacing:.04em; color:var(--text); }
+    .year-tag {
+      font-size:11px; font-weight:800; color:var(--primary);
+      background:rgba(232,93,4,.1); padding:5px 10px; border-radius:20px;
+    }
+
+    /* ── 히어로 ── */
+    .hero { flex:1; display:flex; flex-direction:column; justify-content:center; padding:8px 0 24px; gap:28px; }
+
+    .hero-title {
+      font-size:34px; font-weight:800; line-height:1.15; letter-spacing:-.03em;
+    }
+    .hero-title .accent { color:var(--primary); }
+
+    .hero-sub { font-size:13px; color:var(--text-2); line-height:1.6; font-weight:400; }
+
+    /* ── CTA 버튼 ── */
+    .cta-list { display:flex; flex-direction:column; gap:14px; }
+
+    .cta {
+      display:flex; align-items:center; gap:16px;
+      padding:20px 22px; border-radius:var(--r);
+      background:var(--bg); box-shadow:var(--elev);
+      text-decoration:none; color:var(--text);
+      transition:box-shadow .15s ease, transform .15s ease;
+      position:relative; overflow:hidden;
+    }
+    .cta:active { box-shadow:var(--press); transform:scale(.98); }
+
+    .cta.featured {
+      background:linear-gradient(135deg, #c2410c 0%, #f97316 60%, #fb923c 100%);
+      box-shadow:6px 6px 16px rgba(194,65,12,.4), -4px -4px 12px rgba(255,255,255,.25);
+      color:#fff;
+    }
+    .cta.featured:active { box-shadow:inset 4px 4px 10px rgba(0,0,0,.2), inset -2px -2px 6px rgba(255,255,255,.1); }
+
+    .cta-icon {
+      width:46px; height:46px; border-radius:14px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:22px;
+      background:rgba(255,255,255,.15); backdrop-filter:blur(4px);
+    }
+    .cta:not(.featured) .cta-icon { background:rgba(232,93,4,.1); }
+
+    .cta-body { flex:1; min-width:0; }
+    .cta-label { font-size:15px; font-weight:700; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cta-hint { font-size:11px; opacity:.65; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cta-arrow { font-size:20px; opacity:.5; flex-shrink:0; }
+
+    /* Ripple */
+    .ripple-wrap { position:absolute; inset:0; border-radius:inherit; overflow:hidden; pointer-events:none; }
+    .ripple { position:absolute; border-radius:50%; background:rgba(255,255,255,.35); transform:scale(0); animation:ripple .5s ease-out; pointer-events:none; }
+    @keyframes ripple { to { transform:scale(4); opacity:0; } }
+
+    /* ── 푸터 ── */
+    footer {
+      padding:20px 0 max(env(safe-area-inset-bottom,0px),20px);
+      display:flex; align-items:center; justify-content:space-between;
+      border-top:1px solid rgba(0,0,0,.07);
+    }
+    .footer-date { font-size:13px; font-weight:700; color:var(--text); }
+    .footer-place { font-size:11px; color:var(--text-3); margin-top:2px; }
+    .footer-logo { font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); text-align:right; line-height:1.5; }
+  </style>
+</head>
+<body>
+<div class="flame-bg" id="fb"></div>
+
+<div class="page">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🔥</div>
+      <div class="logo-words">
+        <div class="logo-top">World Knowledge Forum</div>
+        <div class="logo-bot">The Promethean Moment</div>
+      </div>
+    </div>
+    <div class="year-tag">2026</div>
+  </header>
+
+  <main class="hero">
+    <div>
+      <h1 class="hero-title">프로메테우스의<br><span class="accent">불꽃</span>을<br>경험하세요</h1>
+      <p class="hero-sub" style="margin-top:12px">Architecting the Co-Intelligence Order</p>
+    </div>
+
+    <div class="cta-list">
+      <a href="ar.html" class="cta featured" onclick="rippleEffect(event)">
+        <div class="ripple-wrap"></div>
+        <div class="cta-icon">📷</div>
+        <div class="cta-body">
+          <div class="cta-label">세션장별 불꽃 확인</div>
+          <div class="cta-hint">AR 카메라로 횃불 마커 인식</div>
+        </div>
+        <div class="cta-arrow">›</div>
+      </a>
+
+      <a href="quiz.html" class="cta" onclick="rippleEffect(event)">
+        <div class="ripple-wrap"></div>
+        <div class="cta-icon">🔥</div>
+        <div class="cta-body">
+          <div class="cta-label">나만의 프로메테온 불꽃</div>
+          <div class="cta-hint">AI 시대 유형 테스트</div>
+        </div>
+        <div class="cta-arrow">›</div>
+      </a>
+
+      <a href="info.html" class="cta" onclick="rippleEffect(event)">
+        <div class="ripple-wrap"></div>
+        <div class="cta-icon">🎁</div>
+        <div class="cta-body">
+          <div class="cta-label">현장 이벤트 안내</div>
+          <div class="cta-hint">경품 · 웰컴키트 · 데스크 위치</div>
+        </div>
+        <div class="cta-arrow">›</div>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <div>
+      <div class="footer-date">2026. 09. 08 – 09. 10</div>
+      <div class="footer-place">📍 서울 신라호텔</div>
+    </div>
+    <div class="footer-logo">WORLD<br>KNOWLEDGE<br>FORUM</div>
+  </footer>
+</div>
+
+<script>
+// 불꽃 배경
+const fb = document.getElementById('fb');
+for (let i=0;i<9;i++){
+  const b=document.createElement('div'); b.className='flame-bar';
+  const c=Math.abs(i-4)/4;
+  const h1=20+(1-c)*35, h2=h1+12+Math.random()*12;
+  b.style.cssText=`--h1:${h1}vh;--h2:${h2}vh;--d:${(1.8+Math.random()*1.2).toFixed(1)}s;animation-delay:${(Math.random()*-2).toFixed(1)}s`;
+  fb.appendChild(b);
+}
+
+// Ripple
+function rippleEffect(e){
+  const el=e.currentTarget, wrap=el.querySelector('.ripple-wrap');
+  if(!wrap)return;
+  const r=document.createElement('div'); r.className='ripple';
+  const rect=el.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height)*1.5;
+  r.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  wrap.appendChild(r);
+  r.addEventListener('animationend',()=>r.remove());
+}
+</script>
+</body>
+</html>
