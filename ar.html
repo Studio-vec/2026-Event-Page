@@ -10,16 +10,18 @@
   <style>
     :root {
       --bg:#ffffff; --surface:#f4f4f4; --border:#e8e8e8;
-      --primary:#dc2626; --primary-dark:#991b1b;
-      --accent:#fef08a; --text:#111111; --text-2:#666666; --text-3:#aaaaaa; --r:16px;
+      --primary:#dc2626; --text:#111111; --text-2:#666666; --text-3:#aaaaaa; --r:16px;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
     html,body{height:100%;font-family:-apple-system,sans-serif;color:var(--text);background:var(--bg);}
 
-    .screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);}
-    .screen.active{display:flex;}
+    /* 세션장 선택 화면 */
+    #hallScreen{
+      position:fixed;inset:0;display:flex;flex-direction:column;
+      background:var(--bg);z-index:30;overflow-y:auto;
+    }
+    #hallScreen.hidden{display:none;}
 
-    /* 상단바 */
     .top-bar{
       display:flex;align-items:center;gap:12px;
       padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
@@ -32,9 +34,6 @@
     }
     .back:active{opacity:.6;}
     .bar-title{flex:1;font-size:14px;font-weight:700;}
-
-    /* 세션장 선택 */
-    #hallScreen{overflow-y:auto;}
     .hall-content{padding:20px 20px max(env(safe-area-inset-bottom,0px),90px);max-width:480px;margin:0 auto;width:100%;}
     .section-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:6px;}
     .section-title{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;}
@@ -56,19 +55,45 @@
     .guide-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:12px;color:var(--text-2);line-height:1.5;}
     .guide-step:last-child{margin-bottom:0;}
     .gnum{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-
-    /* 카메라 화면 */
-    #cameraScreen{background:#000;position:relative;}
-    #arScene{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
-
-    .cam-ui{
-      position:absolute;inset:0;z-index:20;
-      display:flex;flex-direction:column;pointer-events:none;
+    .home-bar{
+      position:fixed;bottom:0;left:0;right:0;
+      background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);
+      padding:12px 20px max(env(safe-area-inset-bottom,0px),12px);
+      display:flex;justify-content:center;z-index:200;
     }
+    .home-btn{
+      display:flex;align-items:center;gap:8px;padding:11px 28px;border-radius:50px;
+      background:var(--surface);color:var(--text-2);font-size:13px;font-weight:700;text-decoration:none;
+    }
+
+    /* A-Frame scene: body 첫 번째 자식, fixed fullscreen */
+    #arScene{
+      position:fixed !important;
+      top:0 !important; left:0 !important; right:0 !important; bottom:0 !important;
+      width:100vw !important;
+      height:100vh !important;
+      z-index:10 !important;
+      display:block !important;
+    }
+    /* A-Frame이 자동으로 추가하는 canvas도 fullscreen */
+    #arScene canvas{
+      position:absolute !important;
+      top:0 !important; left:0 !important;
+      width:100% !important; height:100% !important;
+    }
+
+    /* 카메라 UI 오버레이 */
+    #camOverlay{
+      position:fixed;inset:0;z-index:20;
+      display:none;flex-direction:column;
+      pointer-events:none;
+    }
+    #camOverlay.active{display:flex;}
     .cam-top{
       display:flex;align-items:center;justify-content:space-between;
       padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
-      background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);
+      background:linear-gradient(to bottom,rgba(0,0,0,.65),transparent);
       pointer-events:all;
     }
     .cam-back{
@@ -84,28 +109,29 @@
       border:1px solid rgba(255,255,255,.2);
       font-size:13px;font-weight:700;color:#fff;
     }
-    .cam-status{flex:1;display:flex;align-items:flex-end;justify-content:center;padding-bottom:24px;}
-    .status-pill{
-      display:flex;align-items:center;gap:8px;
-      padding:10px 20px;border-radius:50px;
-      background:rgba(0,0,0,.5);backdrop-filter:blur(8px);
-      border:1px solid rgba(255,255,255,.15);
-      font-size:13px;font-weight:600;color:rgba(255,255,255,.8);
-      transition:all .3s;
-    }
-    .status-pill.found{background:rgba(220,38,38,.7);border-color:rgba(255,100,100,.4);color:#fff;}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);animation:blink 1.4s infinite;}
-    .status-pill.found .status-dot{background:#fff;animation:none;}
-    @keyframes blink{0%,100%{opacity:.3;}50%{opacity:1;}}
-    .cam-hint-box{
+    .cam-middle{flex:1;}
+    .cam-bottom{
       padding:14px 20px;padding-bottom:max(env(safe-area-inset-bottom,0px),14px);
       display:flex;align-items:center;gap:12px;
       background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
       pointer-events:all;
     }
-    .marker-preview-img{width:40px;height:40px;object-fit:contain;filter:brightness(0) invert(1);opacity:.6;}
-    .marker-preview-txt{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4;}
-    .marker-preview-txt strong{display:block;color:rgba(255,255,255,.8);font-size:12px;}
+    .status-pill{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 18px;border-radius:50px;
+      background:rgba(0,0,0,.55);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.15);
+      font-size:13px;font-weight:600;color:rgba(255,255,255,.85);
+      transition:all .3s;
+    }
+    .status-pill.found{background:rgba(220,38,38,.75);border-color:rgba(255,100,100,.4);color:#fff;}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);animation:blink 1.4s infinite;}
+    .status-pill.found .status-dot{background:#fff;animation:none;}
+    @keyframes blink{0%,100%{opacity:.3;}50%{opacity:1;}}
+    .marker-hint{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .marker-hint-img{width:36px;height:36px;object-fit:contain;filter:brightness(0) invert(1);opacity:.55;}
+    .marker-hint-txt{font-size:11px;color:rgba(255,255,255,.5);line-height:1.4;}
+    .marker-hint-txt strong{display:block;color:rgba(255,255,255,.75);font-size:12px;}
 
     /* 인앱 경고 */
     #inappWarn{
@@ -119,33 +145,12 @@
     .warn-desc{font-size:13px;color:var(--text-2);line-height:1.7;}
     #warnUrl{width:100%;max-width:320px;padding:14px 16px;border-radius:12px;background:var(--surface);font-size:12px;color:var(--text-2);word-break:break-all;line-height:1.5;text-align:left;}
     .warn-btn{width:100%;max-width:320px;padding:18px;border-radius:var(--r);border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
-
-    /* 홈 바 */
-    .home-bar{
-      position:fixed;bottom:0;left:0;right:0;
-      background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
-      border-top:1px solid var(--border);
-      padding:12px 20px max(env(safe-area-inset-bottom,0px),12px);
-      display:flex;justify-content:center;z-index:200;
-    }
-    .home-btn{
-      display:flex;align-items:center;gap:8px;padding:11px 28px;border-radius:50px;
-      background:var(--surface);color:var(--text-2);font-size:13px;font-weight:700;text-decoration:none;
-    }
   </style>
 </head>
 <body>
 
-<div id="inappWarn">
-  <div class="warn-icon">📵</div>
-  <div class="warn-title">다른 브라우저로<br>열어주세요</div>
-  <div class="warn-desc">카카오톡 인앱 브라우저에서는 카메라 권한이 제한됩니다.<br><br>아래 주소를 <strong>Chrome</strong> 또는 <strong>기본 브라우저</strong>에서 열어주세요.</div>
-  <div id="warnUrl"></div>
-  <button class="warn-btn" onclick="copyUrl()">🔗 주소 복사</button>
-</div>
-
-<!-- 세션장 선택 -->
-<div class="screen active" id="hallScreen">
+<!-- 세션장 선택 화면 -->
+<div id="hallScreen">
   <div class="top-bar" style="max-width:480px;margin:0 auto;width:100%">
     <a href="index.html" class="back">‹</a>
     <div class="bar-title">세션장별 불꽃 확인</div>
@@ -165,46 +170,45 @@
   <div class="home-bar"><a href="index.html" class="home-btn">← 메인 메뉴</a></div>
 </div>
 
-<!-- 카메라 + AR -->
-<div class="screen" id="cameraScreen">
-  <!-- A-Frame scene은 JS로 동적 삽입 -->
-  <div class="cam-ui">
-    <div class="cam-top">
-      <div class="cam-back" onclick="goHall()">‹</div>
-      <div class="hall-pill"><span id="pillName"></span></div>
-      <div style="width:40px"></div>
+<!-- 카메라 UI 오버레이 (A-Frame 위에 표시) -->
+<div id="camOverlay">
+  <div class="cam-top">
+    <div class="cam-back" onclick="goHall()">‹</div>
+    <div class="hall-pill"><span id="pillName"></span></div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="cam-middle"></div>
+  <div class="cam-bottom">
+    <div class="status-pill" id="statusPill">
+      <div class="status-dot"></div>
+      <span id="statusTxt">횃불 마커를 비춰주세요</span>
     </div>
-    <div class="cam-status">
-      <div class="status-pill" id="statusPill">
-        <div class="status-dot"></div>
-        <span id="statusTxt">횃불 마커를 비춰주세요</span>
-      </div>
-    </div>
-    <div class="cam-hint-box">
-      <img class="marker-preview-img" id="markerHintImg" src="" alt="">
-      <div class="marker-preview-txt">
-        <strong>찾을 마커</strong>이 횃불 손잡이를 비추세요
-      </div>
+    <div class="marker-hint">
+      <img class="marker-hint-img" id="markerHintImg" src="" alt="">
+      <div class="marker-hint-txt"><strong>찾을 마커</strong>비추세요</div>
     </div>
   </div>
+</div>
+
+<!-- 인앱 경고 -->
+<div id="inappWarn">
+  <div class="warn-icon">📵</div>
+  <div class="warn-title">다른 브라우저로<br>열어주세요</div>
+  <div class="warn-desc">카카오톡 인앱 브라우저에서는 카메라 권한이 제한됩니다.<br><br>아래 주소를 <strong>Chrome</strong> 또는 <strong>기본 브라우저</strong>에서 열어주세요.</div>
+  <div id="warnUrl"></div>
+  <button class="warn-btn" onclick="copyUrl()">🔗 주소 복사</button>
 </div>
 
 <script>
 /* ── 세션장 데이터 ── */
 const HALLS = {
-  'dynasty-a': { name:'다이너스티 A', en:'Dynasty Hall A', mindFile:'marker-1.mind', markerImg:'image/marker-1.png',
-    color:'#FFD700', flameKey:'gold' },
-  'dynasty-b': { name:'다이너스티 B', en:'Dynasty Hall B', mindFile:'marker-2.mind', markerImg:'image/marker-2.png',
-    color:'#a855f7', flameKey:'purple' },
-  'ruby':      { name:'루비',         en:'Ruby Hall',      mindFile:'marker-3.mind', markerImg:'image/marker-3.png',
-    color:'#dc2626', flameKey:'fire' },
-  'topaz':     { name:'토파즈',       en:'Topaz Hall',     mindFile:'marker-4.mind', markerImg:'image/marker-4.png',
-    color:'#38bdf8', flameKey:'blue' },
-  'emerald':   { name:'에메랄드',     en:'Emerald Hall',   mindFile:'marker-5.mind', markerImg:'image/marker-5.png',
-    color:'#16a34a', flameKey:'green' },
+  'dynasty-a': { name:'다이너스티 A', en:'Dynasty Hall A', mindFile:'marker-1.mind', markerImg:'image/marker-1.png', flameKey:'gold' },
+  'dynasty-b': { name:'다이너스티 B', en:'Dynasty Hall B', mindFile:'marker-2.mind', markerImg:'image/marker-2.png', flameKey:'purple' },
+  'ruby':      { name:'루비',         en:'Ruby Hall',      mindFile:'marker-3.mind', markerImg:'image/marker-3.png', flameKey:'fire' },
+  'topaz':     { name:'토파즈',       en:'Topaz Hall',     mindFile:'marker-4.mind', markerImg:'image/marker-4.png', flameKey:'blue' },
+  'emerald':   { name:'에메랄드',     en:'Emerald Hall',   mindFile:'marker-5.mind', markerImg:'image/marker-5.png', flameKey:'green' },
 };
 
-/* ── 불꽃 파라미터 ── */
 const BAR_PARAMS = [
   {h:30,dur:1.1, del:0,    sy1:0.68,sy2:1.06},
   {h:50,dur:0.92,del:0.2,  sy1:0.75,sy2:1.00},
@@ -235,7 +239,6 @@ function drawFlameFrame(ctx, W, H, stops, t) {
     ctx.fillStyle = grad;
     ctx.fillRect(i * barW + 1, H - bh, barW - 2, bh);
   });
-  // glow
   const glow = ctx.createRadialGradient(W/2, H*.7, 0, W/2, H*.7, W*.55);
   glow.addColorStop(0, stops[Math.floor(stops.length/2)] + '88');
   glow.addColorStop(1, 'rgba(0,0,0,0)');
@@ -245,13 +248,12 @@ function drawFlameFrame(ctx, W, H, stops, t) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
-/* ── A-Frame 커스텀 컴포넌트 (scene 생성 전에 등록) ── */
+/* ── A-Frame 컴포넌트 등록 ── */
 AFRAME.registerComponent('flame-canvas', {
   schema: { hallId: {type:'string', default:''} },
   init() {
     this.canvas = document.createElement('canvas');
-    this.canvas.width = 512;
-    this.canvas.height = 512;
+    this.canvas.width = 512; this.canvas.height = 512;
     this.ctx = this.canvas.getContext('2d');
     this.texture = new THREE.CanvasTexture(this.canvas);
   },
@@ -266,13 +268,12 @@ AFRAME.registerComponent('flame-canvas', {
     }
     const h = HALLS[this.data.hallId];
     if (!h) return;
-    const stops = FLAME_COLS[h.flameKey] || FLAME_COLS.fire;
-    drawFlameFrame(this.ctx, 512, 512, stops, time);
+    drawFlameFrame(this.ctx, 512, 512, FLAME_COLS[h.flameKey] || FLAME_COLS.fire, time);
     this.texture.needsUpdate = true;
   }
 });
 
-/* ── 세션장 카드 ── */
+/* ── 세션장 카드 렌더 ── */
 const grid = document.getElementById('hallGrid');
 Object.entries(HALLS).forEach(([id, h], idx) => {
   const card = document.createElement('div');
@@ -288,23 +289,20 @@ Object.entries(HALLS).forEach(([id, h], idx) => {
 /* ── 상태 ── */
 let curHall = null;
 
-function isInApp() { return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line|FBAV/i.test(navigator.userAgent); }
-function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function isInApp() {
+  return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line|FBAV/i.test(navigator.userAgent);
+}
 function copyUrl() {
-  const url = location.href;
-  navigator.clipboard?.writeText(url)
+  navigator.clipboard?.writeText(location.href)
     .then(() => alert('주소가 복사되었습니다!\nChrome 또는 기본 브라우저에 붙여넣기 해주세요.'))
-    .catch(() => prompt('아래 주소를 복사하세요', url));
+    .catch(() => prompt('아래 주소를 복사하세요', location.href));
 }
-
 function setStatus(found) {
-  const pill = document.getElementById('statusPill');
-  const txt = document.getElementById('statusTxt');
-  pill.classList.toggle('found', found);
-  txt.textContent = found ? '🔥 불꽃 인식됨!' : '횃불 마커를 비춰주세요';
+  document.getElementById('statusPill').classList.toggle('found', found);
+  document.getElementById('statusTxt').textContent = found ? '🔥 불꽃 인식됨!' : '횃불 마커를 비춰주세요';
 }
 
-async function selectHall(id) {
+function selectHall(id) {
   curHall = id;
   if (isInApp()) {
     document.getElementById('warnUrl').textContent = location.href;
@@ -315,61 +313,69 @@ async function selectHall(id) {
   document.getElementById('pillName').textContent = h.name;
   document.getElementById('markerHintImg').src = h.markerImg;
   setStatus(false);
-  show('cameraScreen');
-  startAR();
+  startAR(id, h.mindFile);
 }
 
-function startAR() {
-  stopAR();
-  const h = HALLS[curHall];
+function startAR(hallId, mindFile) {
+  // 기존 scene 제거
+  const old = document.getElementById('arScene');
+  if (old) old.remove();
 
-  // A-Frame scene 동적 생성
+  // 세션장 선택 화면 숨기기
+  document.getElementById('hallScreen').classList.add('hidden');
+
+  // A-Frame scene 생성 — body 최상위 자식 (flex 컨테이너 밖)
   const scene = document.createElement('a-scene');
   scene.id = 'arScene';
-  scene.setAttribute('mindar-image', `imageTargetSrc: ${h.mindFile}; uiScanning: no; uiLoading: no`);
+  scene.setAttribute('mindar-image', `imageTargetSrc: ${mindFile}; uiScanning: no; uiLoading: no`);
   scene.setAttribute('embedded', '');
-  scene.setAttribute('color-space', 'sRGB');
-  scene.setAttribute('renderer', 'colorManagement: true; physicallyCorrectLights: true');
   scene.setAttribute('vr-mode-ui', 'enabled: false');
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-  scene.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:1;';
+  scene.setAttribute('renderer', 'colorManagement: true');
 
   // 카메라
   const cam = document.createElement('a-camera');
   cam.setAttribute('position', '0 0 0');
   cam.setAttribute('look-controls', 'enabled: false');
-  cam.setAttribute('cursor', 'rayOrigin: mouse');
   scene.appendChild(cam);
 
   // 마커 타겟
   const target = document.createElement('a-entity');
   target.setAttribute('mindar-image-target', 'targetIndex: 0');
-
-  // 불꽃 plane (마커 위쪽)
-  const plane = document.createElement('a-plane');
-  plane.setAttribute('position', '0 0.7 0');
-  plane.setAttribute('width', '0.8');
-  plane.setAttribute('height', '0.9');
-  plane.setAttribute('material', 'transparent: true; alphaTest: 0.01; side: double; color: #ffffff');
-  plane.setAttribute('flame-canvas', `hallId: ${curHall}`);
-  target.appendChild(plane);
-  scene.appendChild(target);
-
   target.addEventListener('targetFound', () => setStatus(true));
   target.addEventListener('targetLost',  () => setStatus(false));
 
-  document.getElementById('cameraScreen').insertBefore(scene, document.getElementById('cameraScreen').firstChild);
+  // 불꽃 plane
+  const plane = document.createElement('a-plane');
+  plane.setAttribute('position', '0 0.6 0');
+  plane.setAttribute('width', '0.9');
+  plane.setAttribute('height', '1.0');
+  plane.setAttribute('material', 'transparent: true; alphaTest: 0.01; side: double; color: #ffffff');
+  plane.setAttribute('flame-canvas', `hallId: ${hallId}`);
+  target.appendChild(plane);
+  scene.appendChild(target);
+
+  // body 첫 번째 자식으로 삽입
+  document.body.insertBefore(scene, document.body.firstChild);
+
+  // 카메라 UI 오버레이 표시
+  document.getElementById('camOverlay').classList.add('active');
 }
 
 function stopAR() {
-  const old = document.getElementById('arScene');
-  if (old) old.parentElement.removeChild(old);
+  const scene = document.getElementById('arScene');
+  if (scene) {
+    const sys = scene.systems && scene.systems['mindar-image-system'];
+    if (sys) { try { sys.stop(); } catch(e) {} }
+    scene.remove();
+  }
+  document.getElementById('camOverlay').classList.remove('active');
   setStatus(false);
 }
 
 function goHall() {
   stopAR();
-  show('hallScreen');
+  document.getElementById('hallScreen').classList.remove('hidden');
 }
 </script>
 </body>
