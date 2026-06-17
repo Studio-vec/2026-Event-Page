@@ -446,8 +446,10 @@ function startGenerate(){
   document.getElementById('nextWrap').style.display='none';
   document.getElementById('progressDots').style.display='none';
   document.getElementById('stepPill').textContent='완성!';
-  document.getElementById('genFlame').innerHTML=buildFlame(A.q1);
-  document.getElementById('genHandle').src=HANDLE[A.q2];
+  const gf=document.getElementById('genFlame');
+  const gh=document.getElementById('genHandle');
+  if(gf) gf.innerHTML=buildFlame(A.q1);
+  if(gh) gh.src=HANDLE[A.q2];
   setTimeout(showResult,2200);
 }
 
