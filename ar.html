@@ -390,6 +390,24 @@ function goHall() {
   stopAR();
   document.getElementById('hallScreen').classList.remove('hidden');
 }
+
+/* ── 임시 디버그 패널 ── */
+const dbg = document.createElement('div');
+dbg.id = 'dbgPanel';
+dbg.style.cssText = 'position:fixed;top:70px;left:8px;right:8px;background:rgba(0,0,0,.88);color:#0f0;font-size:9px;padding:6px 8px;z-index:9999;border-radius:8px;font-family:monospace;white-space:pre-wrap;max-height:180px;overflow-y:auto;pointer-events:none;';
+document.body.appendChild(dbg);
+setInterval(() => {
+  const scene = document.getElementById('arScene');
+  const vids = [...document.querySelectorAll('video')];
+  const cvs  = [...document.querySelectorAll('canvas')];
+  dbg.textContent = [
+    `UA: ${navigator.userAgent.slice(0,60)}`,
+    `Scene: ${scene ? scene.clientWidth+'x'+scene.clientHeight+' style='+scene.style.width : 'null'}`,
+    `Videos(${vids.length}): `+vids.map(v=>`${v.videoWidth}x${v.videoHeight} ready=${v.readyState} zi=${v.style.zIndex}`).join(' | '),
+    `Canvas(${cvs.length}): `+cvs.map(c=>`${c.width}x${c.height} op=${c.style.opacity}`).join(' | '),
+    `MINDAR: ${typeof window.MINDAR}`,
+  ].join('\n');
+}, 600);
 </script>
 </body>
 </html>
