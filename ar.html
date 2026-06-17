@@ -342,6 +342,9 @@ function startAR(hallId, mindFile) {
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
   scene.setAttribute('renderer', 'colorManagement: true; alpha: true');
   scene.setAttribute('background', 'color: transparent; transparent: true');
+  // MindAR이 clientWidth/Height를 읽을 때 0이 되지 않도록 픽셀값 직접 지정
+  const vpW = window.innerWidth, vpH = window.innerHeight;
+  scene.style.cssText = `position:fixed!important;top:0!important;left:0!important;width:${vpW}px!important;height:${vpH}px!important;z-index:10!important;`;
 
   // 카메라
   const cam = document.createElement('a-camera');
