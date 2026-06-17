@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#ffffff">
   <title>AR 불꽃 | WKF 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
   <style>
     :root {
@@ -449,7 +450,8 @@ async function startAR(){
 
   } catch(e){
     console.warn('MindAR 오류:', e.message);
-    alert('마커 인식을 시작할 수 없습니다: '+e.message);
+    setStatus(false);
+    document.getElementById('statusTxt').textContent='카메라를 다시 시도해주세요';
   }
 }
 
