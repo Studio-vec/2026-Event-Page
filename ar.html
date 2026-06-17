@@ -3,83 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#f0ebe3">
+  <meta name="theme-color" content="#ffffff">
   <title>AR 불꽃 | WKF 2026</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    :root{
-      --bg:#f0ebe3;--s-dark:#d0c9c0;--s-light:#ffffff;
-      --elev:8px 8px 18px var(--s-dark),-8px -8px 18px var(--s-light);
-      --elev-sm:4px 4px 10px var(--s-dark),-4px -4px 10px var(--s-light);
-      --press:inset 5px 5px 12px var(--s-dark),inset -5px -5px 12px var(--s-light);
-      --primary:#e85d04;--text:#1c1917;--text-2:#78716c;--text-3:#a8a29e;--r:22px;
+    :root {
+      --bg:#ffffff; --surface:#f4f4f4; --border:#e8e8e8;
+      --primary:#dc2626; --primary-dark:#991b1b;
+      --accent:#fef08a; --accent-dark:#eab308;
+      --text:#111111; --text-2:#666666; --text-3:#aaaaaa; --r:16px;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{height:100%;font-family:-apple-system,sans-serif;color:var(--text);}
+    html,body{height:100%;font-family:-apple-system,sans-serif;color:var(--text);background:var(--bg);}
 
-    /* ── 화면 ── */
     .screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);}
     .screen.active{display:flex;}
 
-    /* ── 상단바 ── */
+    /* 상단바 */
     .top-bar{
       display:flex;align-items:center;gap:12px;
       padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
-      flex-shrink:0;background:var(--bg);
+      flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);
     }
     .back{
-      width:40px;height:40px;border-radius:14px;background:var(--bg);
-      box-shadow:var(--elev-sm);display:flex;align-items:center;justify-content:center;
-      font-size:20px;color:var(--text-2);text-decoration:none;transition:box-shadow .15s;flex-shrink:0;
+      width:38px;height:38px;border-radius:10px;background:var(--surface);
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;color:var(--text-2);text-decoration:none;transition:opacity .12s;flex-shrink:0;
     }
-    .back:active{box-shadow:var(--press);}
+    .back:active{opacity:.6;}
     .bar-title{flex:1;font-size:14px;font-weight:700;}
 
-    /* ── 세션장 선택 ── */
+    /* 세션장 선택 */
     #hallScreen{overflow-y:auto;}
-    .hall-content{padding:8px 20px max(env(safe-area-inset-bottom,0px),32px);max-width:480px;margin:0 auto;width:100%;}
-    .section-head{margin-bottom:20px;}
+    .hall-content{padding:20px 20px max(env(safe-area-inset-bottom,0px),90px);max-width:480px;margin:0 auto;width:100%;}
     .section-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:6px;}
-    .section-title{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2;}
-    .section-sub{font-size:13px;color:var(--text-2);margin-top:6px;line-height:1.6;}
+    .section-title{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;}
+    .section-sub{font-size:13px;color:var(--text-2);margin-top:6px;line-height:1.6;margin-bottom:20px;}
 
-    .hall-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    /* 2×3 그리드 */
+    .hall-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .hall-card{
-      display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;
-      padding:20px 18px;border-radius:var(--r);aspect-ratio:1/1;
-      background:var(--bg);box-shadow:var(--elev);
-      cursor:pointer;transition:box-shadow .15s,transform .15s;
+      display:flex;flex-direction:column;justify-content:flex-end;
+      padding:18px 16px;border-radius:var(--r);aspect-ratio:1/1;
+      background:var(--surface);
+      cursor:pointer;transition:opacity .12s,transform .1s;
       position:relative;overflow:hidden;
     }
-    .hall-card:active{box-shadow:var(--press);transform:scale(.97);}
+    .hall-card:active{opacity:.7;transform:scale(.97);}
     .hall-card-num{
-      position:absolute;top:16px;right:16px;
-      font-size:11px;font-weight:800;color:var(--text-3);
-      letter-spacing:.05em;
+      position:absolute;top:14px;right:14px;
+      font-size:11px;font-weight:800;color:var(--text-3);letter-spacing:.05em;
     }
-    .hall-torch-icon{
-      font-size:28px;margin-bottom:10px;
-    }
-    .hall-name{font-size:15px;font-weight:800;margin-bottom:2px;line-height:1.2;}
+    .hall-torch-icon{font-size:26px;margin-bottom:8px;}
+    .hall-name{font-size:14px;font-weight:800;line-height:1.2;margin-bottom:2px;}
     .hall-en{font-size:10px;color:var(--text-3);font-weight:500;}
     /* 5번째 카드 전체 너비 */
     .hall-card:last-child:nth-child(odd){
-      grid-column:span 2;aspect-ratio:auto;flex-direction:row;align-items:center;
-      padding:20px 24px;gap:16px;
+      grid-column:span 2;aspect-ratio:auto;
+      flex-direction:row;align-items:center;gap:14px;padding:18px 20px;
     }
-    .hall-card:last-child:nth-child(odd) .hall-torch-icon{margin-bottom:0;}
+    .hall-card:last-child:nth-child(odd) .hall-torch-icon{margin-bottom:0;font-size:24px;}
     .hall-card:last-child:nth-child(odd) .hall-info{flex:1;}
 
     .guide-card{
-      margin-top:16px;padding:18px 20px;border-radius:var(--r);
-      background:var(--bg);box-shadow:var(--elev-sm);
+      margin-top:12px;padding:16px;border-radius:var(--r);
+      background:var(--surface);
     }
-    .guide-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:12px;}
-    .guide-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:12px;color:var(--text-2);line-height:1.5;}
+    .guide-title{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px;letter-spacing:.05em;text-transform:uppercase;}
+    .guide-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:12px;color:var(--text-2);line-height:1.5;}
     .guide-step:last-child{margin-bottom:0;}
-    .gnum{width:22px;height:22px;border-radius:50%;background:rgba(232,93,4,.1);color:var(--primary);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .gnum{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 
-    /* ── 카메라 화면 ── */
+    /* 카메라 화면 */
     #cameraScreen{background:#000;}
     #videoEl{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
     .cam-ui{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;pointer-events:none;}
@@ -90,7 +84,7 @@
       pointer-events:all;
     }
     .cam-back{
-      width:40px;height:40px;border-radius:14px;
+      width:40px;height:40px;border-radius:12px;
       background:rgba(255,255,255,.15);backdrop-filter:blur(8px);
       border:1px solid rgba(255,255,255,.2);
       display:flex;align-items:center;justify-content:center;
@@ -103,30 +97,24 @@
       border:1px solid rgba(255,255,255,.2);
       font-size:13px;font-weight:700;color:#fff;
     }
-    .pill-dot{width:8px;height:8px;border-radius:50%;}
-
-    /* 뷰파인더 */
     .vf-area{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
     .vf-frame{width:220px;height:220px;position:relative;}
-    .vf-corner{position:absolute;width:30px;height:30px;border-style:solid;border-color:rgba(255,255,255,.85);}
-    .tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:8px 0 0 0;}
-    .tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 8px 0 0;}
-    .bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 8px;}
-    .br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 8px 0;}
+    .vf-corner{position:absolute;width:28px;height:28px;border-style:solid;border-color:rgba(255,255,255,.85);}
+    .tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:6px 0 0 0;}
+    .tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 6px 0 0;}
+    .bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 6px;}
+    .br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 6px 0;}
     .scan{position:absolute;left:6px;right:6px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);animation:scan 2s ease-in-out infinite;}
     @keyframes scan{0%,100%{top:8px;opacity:.4;}50%{top:calc(100% - 10px);opacity:1;}}
     .detect-ring{position:absolute;inset:-22px;border-radius:50%;border:3px solid transparent;display:none;}
     .detect-ring.on{display:block;animation:ring 1s ease-in-out infinite alternate;}
-    @keyframes ring{from{box-shadow:0 0 20px var(--rc,#f97316);transform:scale(.97);}to{box-shadow:0 0 40px var(--rc,#f97316);transform:scale(1.03);}}
+    @keyframes ring{from{box-shadow:0 0 20px var(--rc,#dc2626);transform:scale(.97);}to{box-shadow:0 0 40px var(--rc,#dc2626);transform:scale(1.03);}}
     .vf-label{font-size:13px;color:rgba(255,255,255,.75);font-weight:600;letter-spacing:.03em;text-align:center;}
-    .vf-label.found{color:#86efac;}
-
     #arCanvas{position:absolute;inset:0;z-index:5;pointer-events:none;}
-
     .cam-bottom{
       padding:20px;padding-bottom:max(env(safe-area-inset-bottom,0px),20px);
       background:linear-gradient(to top,rgba(0,0,0,.65),transparent);
-      display:flex;flex-direction:column;align-items:center;gap:12px;
+      display:flex;flex-direction:column;align-items:center;gap:10px;
       pointer-events:all;
     }
     .sim-btn{
@@ -135,8 +123,8 @@
       border:1px solid rgba(255,255,255,.25);
       color:#fff;font-size:14px;font-weight:700;transition:all .18s;
     }
-    .sim-btn:active{background:rgba(232,93,4,.4);}
-    .cam-hint{font-size:11px;color:rgba(255,255,255,.4);text-align:center;line-height:1.5;}
+    .sim-btn:active{background:rgba(220,38,38,.4);}
+    .cam-hint{font-size:11px;color:rgba(255,255,255,.4);text-align:center;}
 
     /* 인앱 경고 */
     #inappWarn{
@@ -150,58 +138,61 @@
     .warn-desc{font-size:13px;color:var(--text-2);line-height:1.7;}
     .warn-btn{
       width:100%;max-width:320px;padding:18px;border-radius:var(--r);border:none;
-      background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;
+      background:var(--primary);color:#fff;
       font-size:15px;font-weight:700;cursor:pointer;
-      box-shadow:5px 5px 12px rgba(194,65,12,.35);
     }
 
-    /* ── 결과 화면 ── */
+    /* 결과 화면 */
     #resultScreen{overflow-y:auto;}
-    .result-wrap{padding:20px 20px max(env(safe-area-inset-bottom,0px),40px);max-width:480px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:16px;}
-
-    .capture-card{
-      border-radius:24px;background:var(--bg);box-shadow:var(--elev);
-      overflow:hidden;position:relative;
-    }
-    #captureCanvas{width:100%;display:block;}
-
+    .result-wrap{padding:20px 20px max(env(safe-area-inset-bottom,0px),90px);max-width:480px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px;}
     .hall-badge{
-      display:flex;align-items:center;gap:8px;
-      padding:8px 18px;border-radius:20px;
-      background:var(--bg);box-shadow:var(--elev-sm);
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 14px;border-radius:20px;
+      background:var(--surface);
       font-size:13px;font-weight:700;align-self:flex-start;
     }
-    .result-msg{font-size:24px;font-weight:800;letter-spacing:-.02em;}
-    .result-sub{font-size:13px;color:var(--text-2);line-height:1.65;}
-
-    .reward-card{
-      padding:18px 20px;border-radius:20px;
-      background:var(--bg);box-shadow:var(--elev-sm);
-    }
-    .reward-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:12px;}
+    .result-msg{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+    .result-sub{font-size:13px;color:var(--text-2);line-height:1.65;white-space:pre-line;}
+    .capture-card{border-radius:var(--r);background:var(--surface);overflow:hidden;}
+    #captureCanvas{width:100%;display:block;}
+    .reward-card{padding:16px;border-radius:var(--r);background:var(--surface);}
+    .reward-title{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
     .reward-step{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;margin-bottom:8px;}
     .reward-step:last-child{margin-bottom:0;}
     .rnum{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-
     .save-btn{
-      width:100%;padding:18px;border-radius:var(--r);border:none;cursor:pointer;
-      background:linear-gradient(135deg,#c2410c,#f97316);color:#fff;
-      font-size:15px;font-weight:700;
-      box-shadow:5px 5px 14px rgba(194,65,12,.4),-3px -3px 8px rgba(255,255,255,.3);
-      transition:all .18s;
+      width:100%;padding:17px;border-radius:var(--r);border:none;cursor:pointer;
+      background:var(--primary);color:#fff;
+      font-size:15px;font-weight:700;transition:opacity .15s;
     }
-    .save-btn:active{transform:scale(.97);}
+    .save-btn:active{opacity:.8;}
     .retry-btn{
       width:100%;padding:14px;border-radius:var(--r);border:none;cursor:pointer;
-      background:var(--bg);box-shadow:var(--elev-sm);color:var(--text-3);
-      font-size:13px;font-weight:600;transition:all .18s;
+      background:var(--surface);color:var(--text-3);
+      font-size:13px;font-weight:600;transition:opacity .15s;
     }
-    .retry-btn:active{box-shadow:var(--press);}
+    .retry-btn:active{opacity:.7;}
+
+    /* 홈 바 */
+    .home-bar{
+      position:fixed;bottom:0;left:0;right:0;
+      background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);
+      padding:12px 20px max(env(safe-area-inset-bottom,0px),12px);
+      display:flex;justify-content:center;z-index:200;
+    }
+    .home-btn{
+      display:flex;align-items:center;gap:8px;
+      padding:11px 28px;border-radius:50px;
+      background:var(--surface);color:var(--text-2);
+      font-size:13px;font-weight:700;text-decoration:none;
+      transition:opacity .12s;
+    }
+    .home-btn:active{opacity:.6;}
   </style>
 </head>
 <body>
 
-<!-- 인앱 경고 -->
 <div id="inappWarn">
   <div class="warn-icon">📵</div>
   <div class="warn-title">Safari로 열어주세요</div>
@@ -216,18 +207,19 @@
     <div class="bar-title">세션장별 불꽃 확인</div>
   </div>
   <div class="hall-content">
-    <div class="section-head">
-      <div class="section-label">📷 AR 카메라</div>
-      <div class="section-title">어느 세션장에<br>계신가요?</div>
-      <div class="section-sub">세션장을 선택하면 그 공간만의 불꽃을 확인할 수 있습니다.</div>
-    </div>
+    <div class="section-label">📷 AR 카메라</div>
+    <div class="section-title">어느 세션장에<br>계신가요?</div>
+    <div class="section-sub">세션장을 선택하고 횃불 마커에 카메라를 비추면<br>그 공간만의 불꽃이 나타납니다.</div>
     <div class="hall-grid" id="hallGrid"></div>
     <div class="guide-card">
-      <div class="guide-title">📖 이용 방법</div>
+      <div class="guide-title">이용 방법</div>
       <div class="guide-step"><div class="gnum">1</div><span>현재 세션장을 위에서 선택하세요</span></div>
       <div class="guide-step"><div class="gnum">2</div><span>카메라 권한 허용 후 <strong>횃불 손잡이 마커</strong>에 카메라를 맞추세요</span></div>
       <div class="guide-step"><div class="gnum">3</div><span>불꽃이 나타나면 인증 이미지를 저장해 안내 데스크에 제시하세요</span></div>
     </div>
+  </div>
+  <div class="home-bar">
+    <a href="index.html" class="home-btn">← 메인 메뉴</a>
   </div>
 </div>
 
@@ -238,7 +230,7 @@
   <div class="cam-ui">
     <div class="cam-top">
       <div class="cam-back" onclick="goHall()">‹</div>
-      <div class="hall-pill"><div class="pill-dot" id="pillDot"></div><span id="pillName"></span></div>
+      <div class="hall-pill"><span id="pillName"></span></div>
       <div style="width:40px"></div>
     </div>
     <div class="vf-area">
@@ -251,7 +243,7 @@
       <div class="vf-label" id="vfLabel">횃불 마커를 화면 중앙에 맞춰주세요</div>
     </div>
     <div class="cam-bottom">
-      <button class="sim-btn" onclick="simulate()">🔥 불꽃 미리보기</button>
+      <button class="sim-btn" onclick="simulate()">🔥 불꽃 시뮬레이션</button>
       <div class="cam-hint">실제 마커 인식 시 자동으로 불꽃이 나타납니다</div>
     </div>
   </div>
@@ -262,18 +254,17 @@
   <div class="top-bar" style="max-width:480px;margin:0 auto;width:100%">
     <div class="back" onclick="goCamera()" style="cursor:pointer">‹</div>
     <div class="bar-title">불꽃 인식 완료!</div>
-    <div style="width:40px"></div>
+    <div style="width:38px"></div>
   </div>
   <div class="result-wrap">
     <div class="hall-badge">
-      <div class="hall-dot-sm" id="resDot" style="width:10px;height:10px;border-radius:50%"></div>
       <span id="resHallName"></span>
     </div>
     <div class="capture-card"><canvas id="captureCanvas" height="400"></canvas></div>
     <div class="result-msg" id="resMsg"></div>
     <div class="result-sub" id="resSub"></div>
     <div class="reward-card">
-      <div class="reward-title">🎁 경품 응모 방법</div>
+      <div class="reward-title">경품 응모 방법</div>
       <div class="reward-step"><div class="rnum">1</div><span>아래 저장 버튼으로 이미지를 저장하세요</span></div>
       <div class="reward-step"><div class="rnum">2</div><span>유형 테스트도 완료하세요 → <a href="quiz.html" style="color:var(--primary);font-weight:700">테스트 바로가기</a></span></div>
       <div class="reward-step"><div class="rnum">3</div><span>두 인증 화면을 <strong>안내 데스크</strong>에 제시하면 완료!</span></div>
@@ -281,20 +272,22 @@
     <button class="save-btn" onclick="saveCapture()">📥 이미지 저장</button>
     <button class="retry-btn" onclick="goHall()">↺ 다른 세션장 확인</button>
   </div>
+  <div class="home-bar">
+    <a href="index.html" class="home-btn">← 메인 메뉴</a>
+  </div>
 </div>
 
 <script>
 const HALLS={
   'dynasty-a':{name:'다이너스티 A',en:'Dynasty Hall A',color:'#FFD700',gc1:'#92400e',gc2:'#fbbf24',gc3:'#fef9c3',msg:'황금빛 지식의 불꽃',sub:'다이너스티 A홀의 황금 불꽃을 발견했습니다!\n지식과 리더십의 빛이 당신을 비춥니다.'},
   'dynasty-b':{name:'다이너스티 B',en:'Dynasty Hall B',color:'#a855f7',gc1:'#3b0764',gc2:'#a855f7',gc3:'#e9d5ff',msg:'신비로운 지혜의 불꽃',sub:'다이너스티 B홀의 보라 불꽃을 발견했습니다!\n창의와 혁신의 에너지가 넘칩니다.'},
-  'ruby':{name:'루비',en:'Ruby Hall',color:'#ef4444',gc1:'#7f1d1d',gc2:'#ef4444',gc3:'#fecaca',msg:'열정의 붉은 불꽃',sub:'루비홀의 붉은 불꽃을 발견했습니다!\n열정과 도전의 정신이 타오릅니다.'},
+  'ruby':{name:'루비',en:'Ruby Hall',color:'#dc2626',gc1:'#7f1d1d',gc2:'#dc2626',gc3:'#fecaca',msg:'열정의 붉은 불꽃',sub:'루비홀의 붉은 불꽃을 발견했습니다!\n열정과 도전의 정신이 타오릅니다.'},
   'topaz':{name:'토파즈',en:'Topaz Hall',color:'#38bdf8',gc1:'#0c4a6e',gc2:'#38bdf8',gc3:'#e0f2fe',msg:'이성의 푸른 불꽃',sub:'토파즈홀의 파란 불꽃을 발견했습니다!\n분석과 통찰의 차가운 불꽃입니다.'},
-  'emerald':{name:'에메랄드',en:'Emerald Hall',color:'#4ade80',gc1:'#14532d',gc2:'#4ade80',gc3:'#dcfce7',msg:'공존의 초록 불꽃',sub:'에메랄드홀의 초록 불꽃을 발견했습니다!\nAI와 인간의 공존이 싹트고 있습니다.'},
+  'emerald':{name:'에메랄드',en:'Emerald Hall',color:'#16a34a',gc1:'#14532d',gc2:'#16a34a',gc3:'#dcfce7',msg:'공존의 초록 불꽃',sub:'에메랄드홀의 초록 불꽃을 발견했습니다!\nAI와 인간의 공존이 싹트고 있습니다.'},
 };
 
 let curHall=null,vs=null,anim=null,detected=false;
 
-// 세션장 카드 생성
 const grid=document.getElementById('hallGrid');
 const hallEntries=Object.entries(HALLS);
 hallEntries.forEach(([id,h],idx)=>{
@@ -317,105 +310,105 @@ function isInApp(){return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line/i.test(nav
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
 function selectHall(id){
-  curHall=HALLS[id];detected=false;
+  curHall=id;
   if(isInApp()){document.getElementById('inappWarn').classList.add('on');return;}
-  document.getElementById('pillDot').style.background=curHall.color;
-  document.getElementById('pillName').textContent=curHall.name;
+  document.getElementById('pillName').textContent=HALLS[id].name;
   show('cameraScreen');
-  startCam();
+  startCamera();
 }
 
-async function startCam(){
-  stopCam();
-  document.getElementById('detectRing').className='detect-ring';
-  document.getElementById('vfLabel').textContent='횃불 마커를 화면 중앙에 맞춰주세요';
-  document.getElementById('vfLabel').className='vf-label';
-  const c=document.getElementById('arCanvas');
-  c.width=window.innerWidth;c.height=window.innerHeight;
+function goHall(){
+  stopCamera();
+  detected=false;
+  show('hallScreen');
+}
+
+function goCamera(){
+  show('cameraScreen');
+}
+
+async function startCamera(){
   try{
-    vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});
+    vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
     document.getElementById('videoEl').srcObject=vs;
-  }catch(e){console.warn(e);}
+    startARCanvas();
+  }catch(e){alert('카메라 권한을 허용해주세요.');}
 }
 
-function stopCam(){
-  if(vs){vs.getTracks().forEach(t=>t.stop());vs=null;}
-  if(anim){cancelAnimationFrame(anim);anim=null;}
-}
+function stopCamera(){if(vs){vs.getTracks().forEach(t=>t.stop());vs=null;}if(anim){cancelAnimationFrame(anim);anim=null;}}
 
-function goHall(){stopCam();show('hallScreen');}
-function goCamera(){show('cameraScreen');startCam();}
-
-function simulate(){
-  if(detected)return;
-  detected=true;
-  const ring=document.getElementById('detectRing');
-  ring.style.setProperty('--rc',curHall.color);
-  ring.className='detect-ring on';
-  document.getElementById('vfLabel').textContent='🔥 불꽃 인식 성공!';
-  document.getElementById('vfLabel').className='vf-label found';
-  flameOverlay(curHall.color);
-  setTimeout(()=>{stopCam();buildResult();show('resultScreen');},2200);
-}
-
-function flameOverlay(col){
+function startARCanvas(){
   const canvas=document.getElementById('arCanvas');
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height,ps=[],cx=W/2,cy=H/2-60;
-  function sp(){ps.push({x:cx+(Math.random()-.5)*25,y:cy+35,vx:(Math.random()-.5)*1.5,vy:-(1.5+Math.random()*2.5),life:1,decay:.013+Math.random()*.009,size:5+Math.random()*10,col});}
+  const h=HALLS[curHall];
+  const ps=[];
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();
+  window.addEventListener('resize',resize);
+  function sp(){
+    if(!detected)return;
+    const cx=canvas.width/2,cy=canvas.height*.38;
+    ps.push({x:cx+(Math.random()-.5)*40,y:cy,vx:(Math.random()-.5)*1.2,vy:-(1.5+Math.random()*2),life:1,decay:.012+Math.random()*.008,size:3+Math.random()*5});
+  }
   function loop(){
-    ctx.clearRect(0,0,W,H);
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,90);
-    g.addColorStop(0,col+'44');g.addColorStop(1,'transparent');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,90,0,Math.PI*2);ctx.fill();
-    for(let i=0;i<4;i++)sp();
-    ps.forEach((p,i)=>{p.x+=p.vx+Math.sin(Date.now()*.003+i)*.4;p.y+=p.vy;p.vy+=.04;p.life-=p.decay;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(Math.random()<.6)sp();
+    ps.forEach((p,i)=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.03;p.life-=p.decay;
       if(p.life<=0){ps.splice(i,1);return;}
-      const pg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size);
-      pg.addColorStop(0,col+'ff');pg.addColorStop(1,col+'00');
-      ctx.globalAlpha=p.life*.85;ctx.fillStyle=pg;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();});
-    ctx.globalAlpha=1;anim=requestAnimationFrame(loop);
+      ctx.globalAlpha=p.life*.8;
+      ctx.fillStyle=h.gc2;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    anim=requestAnimationFrame(loop);
   }
   loop();
 }
 
-function buildResult(){
-  document.getElementById('resHallName').textContent=`${curHall.name} · ${curHall.en}`;
-  document.getElementById('resDot').style.cssText=`background:${curHall.color};box-shadow:0 0 8px ${curHall.color};width:10px;height:10px;border-radius:50%`;
-  document.getElementById('resMsg').textContent=curHall.msg;
-  document.getElementById('resSub').textContent=curHall.sub;
+function simulate(){
+  detected=true;
+  const ring=document.getElementById('detectRing');
+  ring.style.setProperty('--rc',HALLS[curHall].color);
+  ring.classList.add('on');
+  document.getElementById('vfLabel').textContent='🔥 불꽃 감지됨!';
+  document.getElementById('vfLabel').style.color='#86efac';
+  setTimeout(()=>showResult(),1800);
+}
 
+async function showResult(){
+  stopCamera();
+  const h=HALLS[curHall];
+  document.getElementById('resHallName').textContent=h.name;
+  document.getElementById('resMsg').textContent=h.msg;
+  document.getElementById('resSub').textContent=h.sub;
+  show('resultScreen');
+  await drawCapture(h);
+}
+
+async function drawCapture(h){
   const canvas=document.getElementById('captureCanvas');
-  const W=canvas.offsetWidth||360,H=400;
-  canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');
-  // 배경
-  ctx.fillStyle='#0f1520';ctx.fillRect(0,0,W,H);
-  // 파티클
-  const cx=W/2;
-  for(let i=0;i<50;i++){
-    const a=Math.random()*Math.PI*2,r=15+Math.random()*55;
-    const px=cx+Math.cos(a)*r*.6,py=H*.4-Math.random()*H*.28;
-    const sz=3+Math.random()*10,al=.25+Math.random()*.6;
-    const pg=ctx.createRadialGradient(px,py,0,px,py,sz);
-    pg.addColorStop(0,curHall.color+'ff');pg.addColorStop(1,curHall.color+'00');
-    ctx.globalAlpha=al;ctx.fillStyle=pg;ctx.beginPath();ctx.arc(px,py,sz,0,Math.PI*2);ctx.fill();
+  const W=canvas.offsetWidth*2||640,H=400;
+  canvas.width=W;canvas.height=H;
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,h.gc1);bg.addColorStop(.5,h.gc2);bg.addColorStop(1,h.gc3);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,0,0,.25)';
+  for(let i=0;i<7;i++){
+    const bw=W/9,bh=100+Math.random()*80,bx=i*(W/7)+(W/14-bw/2),by=H-bh-40;
+    ctx.fillRect(bx,by,bw,bh);
   }
-  ctx.globalAlpha=1;
-  ctx.fillStyle=curHall.color;ctx.font=`bold ${Math.round(W*.042)}px Inter,sans-serif`;ctx.textAlign='center';
-  ctx.fillText(`${curHall.name} · ${curHall.en}`,cx,H*.72);
-  ctx.fillStyle='#fff';ctx.font=`bold ${Math.round(W*.052)}px Inter,sans-serif`;
-  ctx.fillText(curHall.msg,cx,H*.83);
-  ctx.fillStyle='rgba(255,255,255,.4)';ctx.font=`${Math.round(W*.028)}px Inter,sans-serif`;
-  ctx.fillText('WKF 2026 · 서울 신라호텔',cx,H*.93);
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=`bold ${W*.06}px -apple-system,sans-serif`;ctx.textAlign='center';
+  ctx.fillText(h.msg,W/2,H*.6);
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font=`${W*.028}px -apple-system,sans-serif`;
+  ctx.fillText(h.name+' · WKF 2026',W/2,H*.75);
 }
 
-function saveCapture(){
+async function saveCapture(){
   const canvas=document.getElementById('captureCanvas');
-  canvas.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`WKF2026_AR_${curHall.name}.png`;a.click();URL.revokeObjectURL(u);},'image/png');
+  canvas.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`WKF2026_${HALLS[curHall].name}.png`;a.click();URL.revokeObjectURL(u);},'image/png');
 }
-
-if(isInApp())document.getElementById('inappWarn').classList.add('on');
 </script>
 </body>
 </html>
