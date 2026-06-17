@@ -75,12 +75,21 @@
       height:100vh !important;
       z-index:10 !important;
       display:block !important;
+      background:transparent !important;
     }
-    /* A-Frame이 자동으로 추가하는 canvas도 fullscreen */
+    /* A-Frame 캔버스 투명 배경 */
     #arScene canvas{
       position:absolute !important;
       top:0 !important; left:0 !important;
       width:100% !important; height:100% !important;
+      background:transparent !important;
+    }
+    /* MindAR이 생성하는 카메라 video */
+    #arScene video{
+      position:absolute !important;
+      top:0 !important; left:0 !important;
+      width:100% !important; height:100% !important;
+      object-fit:cover !important;
     }
 
     /* 카메라 UI 오버레이 */
@@ -331,7 +340,8 @@ function startAR(hallId, mindFile) {
   scene.setAttribute('embedded', '');
   scene.setAttribute('vr-mode-ui', 'enabled: false');
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-  scene.setAttribute('renderer', 'colorManagement: true');
+  scene.setAttribute('renderer', 'colorManagement: true; alpha: true');
+  scene.setAttribute('background', 'color: transparent; transparent: true');
 
   // 카메라
   const cam = document.createElement('a-camera');
