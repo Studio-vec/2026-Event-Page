@@ -56,13 +56,6 @@
     .hall-torch-icon{font-size:26px;margin-bottom:8px;}
     .hall-name{font-size:14px;font-weight:800;line-height:1.2;margin-bottom:2px;}
     .hall-en{font-size:10px;color:var(--text-3);font-weight:500;}
-    /* 5번째 카드 전체 너비 */
-    .hall-card:last-child:nth-child(odd){
-      grid-column:span 2;aspect-ratio:auto;
-      flex-direction:row;align-items:center;gap:14px;padding:18px 20px;
-    }
-    .hall-card:last-child:nth-child(odd) .hall-torch-icon{margin-bottom:0;font-size:24px;}
-    .hall-card:last-child:nth-child(odd) .hall-info{flex:1;}
 
     .guide-card{
       margin-top:12px;padding:16px;border-radius:var(--r);
@@ -210,13 +203,13 @@
     <div class="section-label">📷 AR 카메라</div>
     <div class="section-title">어느 세션장에<br>계신가요?</div>
     <div class="section-sub">세션장을 선택하고 횃불 마커에 카메라를 비추면<br>그 공간만의 불꽃이 나타납니다.</div>
-    <div class="hall-grid" id="hallGrid"></div>
     <div class="guide-card">
       <div class="guide-title">이용 방법</div>
-      <div class="guide-step"><div class="gnum">1</div><span>현재 세션장을 위에서 선택하세요</span></div>
+      <div class="guide-step"><div class="gnum">1</div><span>현재 세션장을 아래에서 선택하세요</span></div>
       <div class="guide-step"><div class="gnum">2</div><span>카메라 권한 허용 후 <strong>횃불 손잡이 마커</strong>에 카메라를 맞추세요</span></div>
-      <div class="guide-step"><div class="gnum">3</div><span>불꽃이 나타나면 인증 이미지를 저장해 안내 데스크에 제시하세요</span></div>
+      <div class="guide-step"><div class="gnum">3</div><span>불꽃을 확인하고 웰컴키트에 알맞는 스티커를 붙이세요</span></div>
     </div>
+    <div class="hall-grid" id="hallGrid"></div>
   </div>
   <div class="home-bar">
     <a href="index.html" class="home-btn">← 메인 메뉴</a>

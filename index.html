@@ -31,8 +31,9 @@
     .logo { display:flex; align-items:center; gap:10px; }
     .logo-mark {
       width:36px; height:36px; border-radius:10px;
-      background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:18px;
+      background:transparent; display:flex; align-items:center; justify-content:center; overflow:hidden;
     }
+    .logo-mark img { width:100%; height:100%; object-fit:contain; display:block; }
     .logo-text { line-height:1.3; }
     .logo-top { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-3); }
     .logo-bot { font-size:11px; font-weight:800; color:var(--text); }
@@ -83,7 +84,7 @@
 <div class="page">
   <header>
     <div class="logo">
-      <div class="logo-mark">🔥</div>
+      <div class="logo-mark"><img src="WKF_logo.png" alt="WKF"></div>
       <div class="logo-text">
         <div class="logo-top">World Knowledge Forum</div>
         <div class="logo-bot">The Promethean Moment</div>
