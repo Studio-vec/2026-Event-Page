@@ -384,12 +384,26 @@ function selectHall(id) {
   startAR(id, h.mindFile);
 }
 
-function startAR(hallId, mindFile) {
+async function startAR(hallId, mindFile) {
   stopAR();
   document.getElementById('hallScreen').classList.add('hidden');
   document.getElementById('camOverlay').classList.add('active');
 
-  // 기존 a-scene 제거 후 재생성 (다른 마인드 파일로 전환)
+  // 1) 직접 getUserMedia로 후면 카메라 열기
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false,
+    });
+    const displayVideo = document.getElementById('arVideo');
+    displayVideo.srcObject = stream;
+    displayVideo.play().catch(() => {});
+    displayVideo.classList.add('active');
+  } catch(e) {
+    console.warn('Camera open error:', e);
+  }
+
+  // 2) A-Frame scene (1×1px 숨김) - MindAR 마커 감지 전용
   const old = document.getElementById('arScene');
   if (old) old.remove();
 
@@ -399,8 +413,7 @@ function startAR(hallId, mindFile) {
   scene.setAttribute('embedded', '');
   scene.setAttribute('vr-mode-ui', 'enabled: false');
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-  // 화면에 보이지 않게 (감지 전용)
-  scene.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:1;';
+  scene.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:1;overflow:hidden;';
 
   const cam = document.createElement('a-camera');
   cam.setAttribute('position', '0 0 0');
@@ -411,7 +424,6 @@ function startAR(hallId, mindFile) {
   target.setAttribute('mindar-image-target', 'targetIndex: 0');
   target.addEventListener('targetFound', () => setStatus(true));
   target.addEventListener('targetLost',  () => setStatus(false));
-  // 감지용 더미 plane (렌더링 불필요)
   const plane = document.createElement('a-plane');
   plane.setAttribute('width', '0.1');
   plane.setAttribute('height', '0.1');
@@ -421,35 +433,6 @@ function startAR(hallId, mindFile) {
 
   document.body.appendChild(scene);
   arSceneEl = scene;
-
-  // scene loaded 후 MindAR video를 꺼내 직접 표시
-  scene.addEventListener('loaded', () => {
-    // MindAR이 생성한 video 요소 찾기
-    const mindVideo = scene.querySelector('video') || document.querySelector('#arScene video');
-    const displayVideo = document.getElementById('arVideo');
-    if (mindVideo && mindVideo.srcObject) {
-      displayVideo.srcObject = mindVideo.srcObject;
-    } else if (mindVideo) {
-      // srcObject가 아직 없으면 스트림 대기
-      mindVideo.addEventListener('loadedmetadata', () => {
-        if (mindVideo.srcObject) displayVideo.srcObject = mindVideo.srcObject;
-      }, { once: true });
-    }
-    displayVideo.classList.add('active');
-  });
-
-  // video srcObject를 polling으로 확인 (loaded 이전에 스트림이 올 수 있음)
-  const pollVideo = setInterval(() => {
-    const mindVideo = document.querySelector('#arScene video');
-    const displayVideo = document.getElementById('arVideo');
-    if (mindVideo && mindVideo.srcObject && !displayVideo.srcObject) {
-      displayVideo.srcObject = mindVideo.srcObject;
-      displayVideo.classList.add('active');
-    }
-    if (displayVideo.srcObject) clearInterval(pollVideo);
-  }, 200);
-
-  setTimeout(() => clearInterval(pollVideo), 15000);
 }
 
 function stopAR() {
