@@ -221,9 +221,14 @@
 
 <div id="inappWarn">
   <div class="warn-icon">📵</div>
-  <div class="warn-title">Safari로 열어주세요</div>
-  <div class="warn-desc">카카오톡·인스타그램 등 인앱 브라우저에서는<br>카메라 권한이 제한됩니다.</div>
-  <button class="warn-btn" onclick="location.href='x-web-search://?q='+encodeURIComponent(location.href)">Safari로 열기</button>
+  <div class="warn-title">다른 브라우저로<br>열어주세요</div>
+  <div class="warn-desc">카카오톡 인앱 브라우저에서는<br>카메라 권한이 제한됩니다.<br><br>아래 주소를 <strong>Chrome</strong> 또는<br><strong>기본 브라우저</strong>에서 열어주세요.</div>
+  <div id="urlBox" style="
+    width:100%;max-width:320px;padding:14px 16px;border-radius:12px;
+    background:var(--surface);font-size:12px;color:var(--text-2);
+    word-break:break-all;line-height:1.5;text-align:left;
+  " id="warnUrl"></div>
+  <button class="warn-btn" onclick="copyUrl()">🔗 주소 복사</button>
 </div>
 
 <!-- 세션장 선택 -->
@@ -398,12 +403,22 @@ Object.entries(HALLS).forEach(([id,h],idx)=>{
 /* ── MindAR 상태 ── */
 let curHall=null, mindAR=null, detected=false, flameAnim=null;
 
-function isInApp(){return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line/i.test(navigator.userAgent);}
+function isInApp(){return /KAKAOTALK|NAVER|Instagram|FB_IAB|FBAN|Line|FBAV/i.test(navigator.userAgent);}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function copyUrl(){
+  const url=location.href;
+  navigator.clipboard?.writeText(url).then(()=>alert('주소가 복사되었습니다!\nChrome 또는 기본 브라우저 주소창에 붙여넣기 해주세요.')).catch(()=>{
+    prompt('아래 주소를 복사하세요',url);
+  });
+}
 
 async function selectHall(id){
   curHall=id;
-  if(isInApp()){document.getElementById('inappWarn').classList.add('on');return;}
+  if(isInApp()){
+    document.getElementById('warnUrl').textContent=location.href;
+    document.getElementById('inappWarn').classList.add('on');
+    return;
+  }
   const h=HALLS[id];
   document.getElementById('pillName').textContent=h.name;
   document.getElementById('markerHintImg').src=h.markerImg;
@@ -413,49 +428,74 @@ async function selectHall(id){
   await startMindAR();
 }
 
+let nativeStream=null;
+
 async function startMindAR(){
   stopMindAR();
   const h = HALLS[curHall];
 
-  // .mind 파일 없으면 시뮬레이션 모드로 폴백
+  // 먼저 네이티브 카메라 스트림 시작 (항상)
   try {
-    const res = await fetch(h.mindFile, {method:'HEAD'});
-    if(!res.ok) throw new Error('no mind file');
-  } catch(e) {
-    console.warn('마커 파일 없음 — 시뮬레이션 모드');
-    startFlameOverlay();
+    if(!navigator.mediaDevices) throw new Error('no mediaDevices');
+    nativeStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    // MindAR이 없거나 실패할 경우 보여줄 fallback 비디오
+    let vid = document.getElementById('fallbackVideo');
+    if(!vid){
+      vid = document.createElement('video');
+      vid.id = 'fallbackVideo';
+      vid.setAttribute('autoplay','');
+      vid.setAttribute('playsinline','');
+      vid.setAttribute('muted','');
+      vid.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+      document.getElementById('cameraScreen').prepend(vid);
+    }
+    vid.srcObject = nativeStream;
+    vid.style.display = 'block';
+  } catch(e){
+    if(e.name==='NotAllowedError') alert('카메라 권한을 허용해주세요.');
+    else alert('카메라를 시작할 수 없습니다: '+e.message);
     return;
   }
 
+  // MindAR 마커 인식 시도 (선택적)
   try {
+    const res = await fetch(h.mindFile, {method:'HEAD'});
+    if(!res.ok) throw new Error('no mind file');
+
     mindAR = new MINDAR.IMAGE.MindARThree({
       container: document.getElementById('mindContainer'),
       imageTargetSrc: h.mindFile,
       uiScanning: false,
       uiLoading: false,
     });
-
     const {renderer, scene, camera} = mindAR;
-
     const anchor = mindAR.addAnchor(0);
     anchor.onTargetFound = () => {
       if(detected) return;
       detected = true;
       onDetected();
     };
-
     await mindAR.start();
+    // MindAR이 자체 비디오를 쓰므로 fallback 숨기기
+    document.getElementById('fallbackVideo').style.display='none';
     renderer.setAnimationLoop(()=>{ renderer.render(scene, camera); });
-    startFlameOverlay();
   } catch(e){
-    console.warn('MindAR 오류:', e);
-    startFlameOverlay();
+    console.warn('MindAR 미사용, 시뮬레이션 모드:', e.message);
   }
+
+  startFlameOverlay();
+}
+
+function stopNativeStream(){
+  if(nativeStream){nativeStream.getTracks().forEach(t=>t.stop());nativeStream=null;}
+  const vid=document.getElementById('fallbackVideo');
+  if(vid){vid.srcObject=null;vid.style.display='none';}
 }
 
 function stopMindAR(){
   if(mindAR){try{mindAR.stop();}catch(e){}mindAR=null;}
   if(flameAnim){cancelAnimationFrame(flameAnim);flameAnim=null;}
+  stopNativeStream();
   const fc=document.getElementById('flameCanvas');
   const ctx=fc.getContext('2d');
   ctx.clearRect(0,0,fc.width,fc.height);
