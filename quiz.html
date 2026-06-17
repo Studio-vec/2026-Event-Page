@@ -426,6 +426,7 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
     curQ++;
     updateDots();
     document.getElementById('stepPill').textContent=curQ+' / 3';
+    document.getElementById('nextBtn').textContent=curQ===3?'결과 확인 →':'다음';
     document.getElementById('nextBtn').classList.remove('visible');
     if(A['q'+curQ]) document.getElementById('nextBtn').classList.add('visible');
   } else {
@@ -515,10 +516,29 @@ async function saveImg(){
   ctx.fillStyle='#f4f4f4';ctx.fillRect(40,40,W-80,H-80);
   const li=s=>new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s;});
   const hI=await li(HANDLE[A.q2]);
-  const hW=150,hR=hI?hI.naturalHeight/hI.naturalWidth:2.5,hH=Math.round(hW*hR);
+  const hW=160,hR=hI?hI.naturalHeight/hI.naturalWidth:2.5,hH=Math.round(hW*hR);
   const cx=W/2;
-  if(hI)ctx.drawImage(hI,cx-hW/2,360,hW,hH);
-  const bY=360+hH+40;
+
+  // 불꽃 그리기 (캔버스 바 방식)
+  const fc=FLAME_COLS[A.q1]||FLAME_COLS.C;
+  const fW=200,fH=220,fX=cx-fW/2,fY=80;
+  const fGrad=ctx.createLinearGradient(0,fY+fH,0,fY);
+  fc.stops.forEach((c,i)=>fGrad.addColorStop(i/(fc.stops.length-1),c));
+  BAR_PARAMS.forEach((p,i)=>{
+    const bw=fW/7,bh=p.h*(fH/65),bx=fX+i*bw,by=fY+fH-bh;
+    ctx.fillStyle=fGrad;
+    ctx.fillRect(bx,by,bw-2,bh);
+  });
+  // 불꽃 글로우
+  const glowGrad=ctx.createRadialGradient(cx,fY+fH*.5,0,cx,fY+fH*.5,fW*.7);
+  glowGrad.addColorStop(0,GLOW[A.q1].replace('.5','.15'));
+  glowGrad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glowGrad;ctx.fillRect(cx-fW,fY-20,fW*2,fH+40);
+
+  // 손잡이
+  const handleY=fY+fH-20;
+  if(hI)ctx.drawImage(hI,cx-hW/2,handleY,hW,hH);
+  const bY=handleY+hH+30;
   ctx.textAlign='center';
   ctx.fillStyle='#dc2626';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText('나의 프로메테온 유형',cx,bY+40);
   ctx.fillStyle='#111111';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(T.name,cx,bY+96);
@@ -548,6 +568,7 @@ function retry(){
   document.getElementById('progressDots').style.display='';
   document.getElementById('nextWrap').style.display='';
   document.getElementById('stepPill').textContent='1 / 3';
+  document.getElementById('nextBtn').textContent='다음';
   document.querySelectorAll('.slide').forEach((s,i)=>{s.className='slide'+(i===0?' active':' enter-right');});
   document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
   document.getElementById('nextBtn').classList.remove('visible');

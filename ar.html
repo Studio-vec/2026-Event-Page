@@ -286,7 +286,7 @@ const HALLS={
   'emerald':{name:'에메랄드',en:'Emerald Hall',color:'#16a34a',gc1:'#14532d',gc2:'#16a34a',gc3:'#dcfce7',msg:'공존의 초록 불꽃',sub:'에메랄드홀의 초록 불꽃을 발견했습니다!\nAI와 인간의 공존이 싹트고 있습니다.'},
 };
 
-let curHall=null,vs=null,anim=null,detected=false;
+let curHall=null,vs=null,anim=null,detected=false,_resizeH=null;
 
 const grid=document.getElementById('hallGrid');
 const hallEntries=Object.entries(HALLS);
@@ -324,15 +324,24 @@ function goHall(){
 }
 
 function goCamera(){
+  detected=false;
+  document.getElementById('vfLabel').textContent='횃불 마커를 화면 중앙에 맞춰주세요';
+  document.getElementById('vfLabel').style.color='';
+  document.getElementById('detectRing').classList.remove('on');
   show('cameraScreen');
+  if(!vs) startCamera();
 }
 
 async function startCamera(){
   try{
+    if(!navigator.mediaDevices){alert('카메라를 사용하려면 HTTPS 환경(Safari/Chrome)에서 열어주세요.');return;}
     vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
     document.getElementById('videoEl').srcObject=vs;
     startARCanvas();
-  }catch(e){alert('카메라 권한을 허용해주세요.');}
+  }catch(e){
+    if(e.name==='NotAllowedError') alert('카메라 권한을 허용해주세요. 설정 → Safari → 카메라 → 허용');
+    else alert('카메라를 시작할 수 없습니다: '+e.message);
+  }
 }
 
 function stopCamera(){if(vs){vs.getTracks().forEach(t=>t.stop());vs=null;}if(anim){cancelAnimationFrame(anim);anim=null;}}
@@ -342,7 +351,9 @@ function startARCanvas(){
   const ctx=canvas.getContext('2d');
   const h=HALLS[curHall];
   const ps=[];
+  if(_resizeH){window.removeEventListener('resize',_resizeH);_resizeH=null;}
   function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  _resizeH=resize;
   resize();
   window.addEventListener('resize',resize);
   function sp(){
@@ -367,6 +378,7 @@ function startARCanvas(){
 }
 
 function simulate(){
+  if(detected) return;
   detected=true;
   const ring=document.getElementById('detectRing');
   ring.style.setProperty('--rc',HALLS[curHall].color);
