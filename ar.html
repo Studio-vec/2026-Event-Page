@@ -383,30 +383,6 @@ async function startAR(mindUrl) {
   arPollTimeoutId = setTimeout(() => { clearInterval(arPollId); arStarting = false; }, 15000);
 }
 
-/* ── 카메라 미리보기 (MindAR 시작 전 체감 속도 개선) ── */
-let previewStream = null;
-
-async function showCameraPreview() {
-  try {
-    previewStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    const v = document.getElementById('arVideo');
-    v.srcObject = previewStream;
-    v.style.display = 'block';
-  } catch(e) {}
-}
-
-function stopPreview() {
-  if (previewStream) {
-    previewStream.getTracks().forEach(t => t.stop());
-    previewStream = null;
-  }
-  const v = document.getElementById('arVideo');
-  v.srcObject = null;
-  v.style.display = 'none';
-}
-
 /* ── markers_all.mind 존재 여부 확인 ── */
 async function checkPrecompiled() {
   try {
@@ -420,13 +396,18 @@ async function compileMarkers() {
   const Compiler = window.MINDAR?.IMAGE?.Compiler;
   if (!Compiler) throw new Error('MindAR Compiler를 찾을 수 없습니다.');
 
-  setLoadProgress(20, '마커 이미지 불러오는 중...');
+  setLoadProgress(15, '마커 이미지 불러오는 중...');
   const images = await Promise.all(HALLS_ARR.map(h => loadImage(h.markerImg)));
 
-  setLoadProgress(35, '컴파일 중...');
+  setLoadProgress(30, '마커 분석 중...');
   const compiler = new Compiler();
+
+  // MindAR progress 콜백값은 0~1이 아닐 수 있으므로 clamp 처리
+  let lastNorm = 0;
   await compiler.compileImageTargets(images, p => {
-    setLoadProgress(35 + p * 55, Math.round(35 + p * 55) + '%');
+    const norm = (typeof p === 'number' && p >= 0 && p <= 1) ? p : Math.min(1, lastNorm + 0.04);
+    lastNorm = norm;
+    setLoadProgress(30 + norm * 60, '마커 분석 중...');
   });
 
   const buffer = await compiler.exportData();
@@ -443,31 +424,24 @@ async function init() {
   }
 
   try {
-    // 카메라를 로딩 중에도 미리 보여줌
-    showCameraPreview();
-
     setLoadProgress(5, '준비 중...');
 
     let mindUrl;
     const hasPrecompiled = await checkPrecompiled();
 
     if (hasPrecompiled) {
-      // 빠른 경로: 사전 컴파일된 파일 사용
-      setLoadProgress(50, '마커 파일 로드 중...');
+      setLoadProgress(60, '마커 파일 로드 중...');
       mindUrl = 'markers_all.mind';
       setLoadProgress(90, '카메라 시작 중...');
     } else {
-      // 느린 경로: 런타임 컴파일
       mindUrl = await compileMarkers();
       setLoadProgress(95, '카메라 시작 중...');
     }
 
-    stopPreview();
     await startAR(mindUrl);
 
   } catch (err) {
     console.error('AR init error:', err);
-    stopPreview();
     const ls = document.getElementById('loadScreen');
     ls.innerHTML = `
       <div class="load-icon">⚠️</div>
