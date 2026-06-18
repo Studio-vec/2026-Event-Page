@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마커 컴파일 도구 | WKF 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.5.0/dist/aframe-master.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    :root { --primary:#dc2626; --bg:#fff; --surface:#f4f4f4; --text:#111; --text-2:#666; --r:16px; }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+    .card{width:100%;max-width:420px;display:flex;flex-direction:column;gap:20px;}
+    h1{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+    p{font-size:13px;color:var(--text-2);line-height:1.7;}
+    .bar-wrap{height:6px;background:var(--surface);border-radius:3px;overflow:hidden;}
+    .bar{height:100%;background:var(--primary);border-radius:3px;transition:width .4s;width:0%;}
+    .pct{font-size:13px;font-weight:700;color:var(--primary);}
+    .log{font-size:12px;color:var(--text-2);min-height:20px;}
+    .btn{
+      padding:16px;border-radius:var(--r);border:none;
+      background:var(--primary);color:#fff;font-size:15px;font-weight:700;
+      cursor:pointer;transition:opacity .15s;
+    }
+    .btn:disabled{opacity:.4;cursor:not-allowed;}
+    .btn-dl{background:#111;}
+    .status{font-size:13px;font-weight:600;color:var(--text-2);}
+    .status.ok{color:#15803d;}
+    .status.err{color:var(--primary);}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div>
+    <h1>🔥 마커 컴파일 도구</h1>
+    <p style="margin-top:8px">5개 세션장 마커를 하나의 <strong>markers_all.mind</strong> 파일로 합칩니다.<br>생성된 파일을 프로젝트 루트에 넣고 배포하면 AR이 즉시 시작됩니다.</p>
+  </div>
+
+  <div>
+    <div class="status" id="statusTxt">준비 완료 — 아래 버튼을 누르세요</div>
+  </div>
+
+  <div>
+    <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;">
+      <div class="log" id="log"></div>
+      <div class="pct" id="pct"></div>
+    </div>
+  </div>
+
+  <button class="btn" id="startBtn" onclick="run()">컴파일 시작</button>
+  <button class="btn btn-dl" id="dlBtn" disabled onclick="download()">⬇ markers_all.mind 다운로드</button>
+</div>
+
+<script>
+const MARKER_IMGS = [
+  'image/marker-1.png',
+  'image/marker-2.png',
+  'image/marker-3.png',
+  'image/marker-4.png',
+  'image/marker-5.png',
+];
+
+let compiledBuffer = null;
+
+function setProgress(pct, log, statusClass) {
+  document.getElementById('bar').style.width = pct + '%';
+  document.getElementById('pct').textContent = pct ? Math.round(pct) + '%' : '';
+  if (log !== undefined) document.getElementById('log').textContent = log;
+  if (statusClass) {
+    const el = document.getElementById('statusTxt');
+    el.className = 'status ' + statusClass;
+  }
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('로드 실패: ' + src));
+    img.src = src;
+  });
+}
+
+async function run() {
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('dlBtn').disabled = true;
+  compiledBuffer = null;
+
+  try {
+    const statusEl = document.getElementById('statusTxt');
+    statusEl.className = 'status';
+    statusEl.textContent = '이미지 불러오는 중...';
+    setProgress(5, '마커 이미지 로드 중...');
+
+    const images = await Promise.all(MARKER_IMGS.map(loadImage));
+    setProgress(15, '컴파일 시작...');
+
+    statusEl.textContent = '컴파일 중... (시간이 걸릴 수 있습니다)';
+
+    const Compiler = window.MINDAR?.IMAGE?.Compiler;
+    if (!Compiler) throw new Error('MindAR Compiler를 찾을 수 없습니다. 페이지를 새로고침하세요.');
+
+    const compiler = new Compiler();
+    await compiler.compileImageTargets(images, progress => {
+      setProgress(15 + progress * 80, `컴파일 중... (${MARKER_IMGS.length}개 마커)`);
+    });
+
+    compiledBuffer = await compiler.exportData();
+    setProgress(100, '완료!', 'ok');
+    statusEl.textContent = '✅ 컴파일 완료! 아래 버튼으로 다운로드하세요.';
+    document.getElementById('dlBtn').disabled = false;
+
+  } catch(err) {
+    setProgress(0, err.message, 'err');
+    document.getElementById('statusTxt').textContent = '❌ ' + err.message;
+    document.getElementById('startBtn').disabled = false;
+  }
+}
+
+function download() {
+  if (!compiledBuffer) return;
+  const blob = new Blob([compiledBuffer]);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'markers_all.mind';
+  a.click();
+}
+</script>
+</body>
+</html>
