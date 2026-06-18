@@ -364,13 +364,40 @@ async function startAR(mindUrl) {
 
   document.body.appendChild(scene);
 
-  const moveVideo = () => {
-    const mindVideo = scene.querySelector('video');
+  let transitioned = false;
+
+  const showCamera = () => {
+    if (transitioned) return;
+
+    // scene 내부 또는 body에 직접 추가된 MindAR video 모두 탐색
+    const mindVideo =
+      scene.querySelector('video') ||
+      [...document.querySelectorAll('body > video')]
+        .find(v => v.id !== 'arVideo');
+
     if (!mindVideo) return false;
-    mindVideo.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;z-index:10!important;';
-    document.body.insertBefore(mindVideo, document.getElementById('flameOverlay'));
-    const cvs = scene.querySelector('canvas');
-    if (cvs) cvs.style.cssText = 'opacity:0!important;pointer-events:none!important;';
+
+    transitioned = true;
+    clearInterval(arPollId);
+    clearTimeout(arPollTimeoutId);
+
+    mindVideo.style.cssText = [
+      'position:fixed!important', 'top:0!important', 'left:0!important',
+      'width:100vw!important', 'height:100vh!important',
+      'object-fit:cover!important', 'z-index:10!important'
+    ].join(';');
+
+    // flameOverlay 앞에 삽입
+    const flameEl = document.getElementById('flameOverlay');
+    if (flameEl && flameEl.parentNode === document.body) {
+      document.body.insertBefore(mindVideo, flameEl);
+    }
+
+    // A-Frame canvas 숨기기
+    document.querySelectorAll('#arScene canvas').forEach(c => {
+      c.style.cssText = 'opacity:0!important;pointer-events:none!important;';
+    });
+
     document.getElementById('loadScreen').classList.add('hidden');
     document.getElementById('camOverlay').classList.add('active');
     setStatus(false);
@@ -378,9 +405,40 @@ async function startAR(mindUrl) {
     return true;
   };
 
-  scene.addEventListener('loaded', () => { setTimeout(moveVideo, 200); });
-  arPollId = setInterval(() => { if (moveVideo()) { clearInterval(arPollId); clearTimeout(arPollTimeoutId); } }, 300);
-  arPollTimeoutId = setTimeout(() => { clearInterval(arPollId); arStarting = false; }, 15000);
+  // scene loaded 이벤트
+  scene.addEventListener('loaded', () => setTimeout(showCamera, 300));
+
+  // 300ms 마다 폴링 (loaded 이벤트가 늦거나 안 올 때 대비)
+  arPollId = setInterval(() => showCamera(), 300);
+
+  // 20초 후 강제 전환 — 카메라는 켜졌지만 scene loaded가 안 된 경우
+  arPollTimeoutId = setTimeout(() => {
+    clearInterval(arPollId);
+    if (!transitioned) {
+      // video가 어디든 있으면 강제로 꺼내서 보여줌
+      const anyVideo = [...document.querySelectorAll('video')]
+        .find(v => v.id !== 'arVideo' && v.srcObject);
+      if (anyVideo) {
+        transitioned = true;
+        anyVideo.style.cssText = [
+          'position:fixed!important', 'top:0!important', 'left:0!important',
+          'width:100vw!important', 'height:100vh!important',
+          'object-fit:cover!important', 'z-index:10!important'
+        ].join(';');
+        document.getElementById('loadScreen').classList.add('hidden');
+        document.getElementById('camOverlay').classList.add('active');
+        setStatus(false);
+      } else {
+        // 카메라 자체를 못 열면 에러 표시
+        document.getElementById('loadScreen').innerHTML = `
+          <div class="load-icon">📵</div>
+          <div class="load-title">카메라를 열 수 없습니다</div>
+          <div class="load-err">카메라 권한을 허용하고 Chrome 브라우저에서 다시 시도하세요.</div>
+          <a href="index.html" class="err-btn">← 메인으로 돌아가기</a>`;
+      }
+      arStarting = false;
+    }
+  }, 20000);
 }
 
 /* ── markers_all.mind 존재 여부 확인 ── */
