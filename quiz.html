@@ -355,13 +355,13 @@ const FLAME_COLS={
 };
 
 const BAR_PARAMS=[
-  {h:30,dur:1.1, del:0,    sy1:0.68,sy2:1.06},
-  {h:50,dur:0.92,del:0.2,  sy1:0.75,sy2:1.00},
-  {h:57,dur:1.28,del:0.08, sy1:0.62,sy2:0.96},
-  {h:65,dur:0.98,del:0.04, sy1:0.70,sy2:1.05},
-  {h:55,dur:1.18,del:0.25, sy1:0.65,sy2:0.97},
-  {h:47,dur:0.85,del:0.14, sy1:0.80,sy2:1.10},
-  {h:37,dur:1.05,del:0.31, sy1:0.72,sy2:1.02},
+  {h:30,dur:1.1, del:0,    sy1:0.68,sy2:1.06, br:10},
+  {h:50,dur:0.92,del:0.2,  sy1:0.75,sy2:1.00, br:5},
+  {h:57,dur:1.28,del:0.08, sy1:0.62,sy2:0.96, br:0},
+  {h:65,dur:0.98,del:0.04, sy1:0.70,sy2:1.05, br:0},
+  {h:55,dur:1.18,del:0.25, sy1:0.65,sy2:0.97, br:0},
+  {h:47,dur:0.85,del:0.14, sy1:0.80,sy2:1.10, br:5},
+  {h:37,dur:1.05,del:0.31, sy1:0.72,sy2:1.02, br:10},
 ];
 
 function buildFlame(q1){
@@ -373,7 +373,7 @@ function buildFlame(q1){
   const rectArr=BAR_PARAMS.map((p,i)=>{
     const kn=`${gid}b${i}`;
     cssArr.push(`@keyframes ${kn}{from{transform:scaleY(${p.sy1});}to{transform:scaleY(${p.sy2});}}`);
-    return `<rect x="${i*7}" y="${65-p.h}" width="7" height="${p.h}" fill="url(#${gid})" style="transform-box:fill-box;transform-origin:bottom center;animation:${kn} ${p.dur}s ease-in-out infinite alternate;animation-delay:-${p.del}s"/>`;
+    return `<rect x="${i*7}" y="${65-p.h}" width="7" height="${p.h-(p.br||0)}" fill="url(#${gid})" style="transform-box:fill-box;transform-origin:bottom center;animation:${kn} ${p.dur}s ease-in-out infinite alternate;animation-delay:-${p.del}s"/>`;
   }).join('');
   return `<svg viewBox="0 0 49 65" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><style>${cssArr.join('')}</style><defs><linearGradient id="${gid}" x1="0" y1="1" x2="0" y2="0">${stopTags}</linearGradient></defs>${rectArr}</svg>`;
 }
@@ -519,8 +519,9 @@ async function saveImg(){
   fc.stops.forEach((c,i)=>fGrad.addColorStop(i/(fc.stops.length-1),c));
   BAR_PARAMS.forEach((p,i)=>{
     const bw=fW/7,bh=p.h*(fH/65),bx=fX+i*bw,by=fY+fH-bh;
+    const br=(p.br||0)*(fH/65);
     ctx.fillStyle=fGrad;
-    ctx.fillRect(bx,by,bw-2,bh);
+    ctx.fillRect(bx,by,bw-2,bh-br);
   });
   // 불꽃 글로우
   const glowGrad=ctx.createRadialGradient(cx,fY+fH*.5,0,cx,fY+fH*.5,fW*.7);
