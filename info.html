@@ -56,6 +56,13 @@
     .sec-title{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;}
     .sec-sub{font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:18px;}
 
+    /* 응모 방법 강조 */
+    #tab-how .sec-title{font-size:26px;font-weight:900;color:var(--primary);}
+    #tab-how .sec-sub{font-size:14px;color:var(--text);font-weight:600;}
+    #tab-how .step-title{font-size:16px;font-weight:800;color:var(--text);}
+    #tab-how .step-desc{font-size:13px;color:var(--text-2);font-weight:500;}
+    #tab-how .step-circ{width:38px;height:38px;font-size:15px;}
+
     /* 카드 */
     .card{background:var(--surface);border-radius:var(--r);padding:18px;margin-bottom:12px;}
     .card-sm{background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:10px;}
@@ -158,14 +165,14 @@
     <div class="bar-title">현장 이벤트 안내</div>
   </div>
   <div class="tab-row">
-    <button class="tab-btn on" onclick="tab('kit',this)">🎁 웰컴 키트</button>
+    <button class="tab-btn on" onclick="tab('how',this)">📋 응모 방법</button>
+    <button class="tab-btn" onclick="tab('kit',this)">🎁 웰컴 키트</button>
     <button class="tab-btn" onclick="tab('prize',this)">🏆 경품</button>
-    <button class="tab-btn" onclick="tab('how',this)">📋 응모 방법</button>
     <button class="tab-btn" onclick="tab('faq',this)">❓ FAQ</button>
   </div>
 
   <!-- 웰컴 키트 -->
-  <div class="tab-pane on" id="tab-kit">
+  <div class="tab-pane" id="tab-kit">
     <div class="sec-label">Welcome Kit</div>
     <div class="sec-title">참가자 웰컴 키트</div>
     <div class="sec-sub">등록 데스크에서 수령. 키트 안 QR 카드로 이벤트 참여 가능합니다.</div>
@@ -201,7 +208,7 @@
   </div>
 
   <!-- 응모 방법 -->
-  <div class="tab-pane" id="tab-how">
+  <div class="tab-pane on" id="tab-how">
     <div class="sec-label">How to Enter</div>
     <div class="sec-title">경품 응모 방법</div>
     <div class="sec-sub">두 이벤트를 모두 완료하고 안내 데스크에서 인증하세요.</div>

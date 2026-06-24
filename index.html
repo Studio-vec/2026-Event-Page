@@ -49,7 +49,9 @@
     .hero-title .accent { color:var(--primary); }
     .hero-sub { font-size:13px; color:var(--text-2); margin-top:10px; line-height:1.6; }
 
-    .cta-list { display:flex; flex-direction:column; gap:10px; }
+    .cta-list { display:flex; flex-direction:column; gap:12px; }
+    .cta-row { display:flex; gap:12px; }
+    .cta-row .cta { flex:1; }
     .cta {
       display:flex; align-items:center; gap:16px;
       padding:18px 20px; border-radius:var(--r);
@@ -59,6 +61,20 @@
     }
     .cta:hover { background:var(--primary); color:#fff; }
     .cta:active { background:var(--primary); color:#fff; transform:scale(.98); }
+    .cta-hero {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:12px; padding:32px 20px; border-radius:var(--r);
+      text-decoration:none; color:#fff;
+      background:var(--primary);
+      transition:opacity .18s, transform .1s;
+    }
+    .cta-hero:active { opacity:.85; transform:scale(.98); }
+    .cta-hero .cta-icon {
+      width:56px; height:56px; border-radius:16px;
+      background:rgba(255,255,255,.2); font-size:28px;
+    }
+    .cta-hero .cta-label { font-size:20px; font-weight:800; color:#fff; }
+    .cta-hero .cta-hint { font-size:13px; opacity:.75; color:#fff; }
     .cta-icon {
       width:44px; height:44px; border-radius:12px; flex-shrink:0;
       display:flex; align-items:center; justify-content:center; font-size:20px;
@@ -70,6 +86,9 @@
     .cta-label { font-size:15px; font-weight:700; margin-bottom:2px; }
     .cta-hint { font-size:11px; opacity:.6; }
     .cta-arrow { font-size:18px; opacity:.4; flex-shrink:0; }
+    .cta-row .cta { flex-direction:column; align-items:center; text-align:center; padding:20px 12px; gap:10px; }
+    .cta-row .cta-arrow { display:none; }
+    .cta-row .cta-body { flex:none; }
 
     footer {
       padding:16px 0 max(env(safe-area-inset-bottom,0px),20px);
@@ -102,32 +121,31 @@
     </div>
 
     <div class="cta-list">
-      <a href="info.html" class="cta">
+      <a href="info.html" class="cta-hero">
         <div class="cta-icon">🎁</div>
-        <div class="cta-body">
-          <div class="cta-label">현장 이벤트 안내</div>
-          <div class="cta-hint">경품 · 웰컴키트 · 데스크 위치</div>
-        </div>
-        <div class="cta-arrow">›</div>
+        <div class="cta-label">현장 이벤트 안내</div>
+        <div class="cta-hint">경품 · 응모 방법 · 웰컴키트</div>
       </a>
 
-      <a href="ar.html" class="cta">
-        <div class="cta-icon">📷</div>
-        <div class="cta-body">
-          <div class="cta-label">세션장별 불꽃 확인</div>
-          <div class="cta-hint">AR 카메라로 횃불 마커 인식</div>
-        </div>
-        <div class="cta-arrow">›</div>
-      </a>
+      <div class="cta-row">
+        <a href="ar.html" class="cta">
+          <div class="cta-icon">📷</div>
+          <div class="cta-body">
+            <div class="cta-label">세션장별 불꽃</div>
+            <div class="cta-hint">AR 카메라 인식</div>
+          </div>
+          <div class="cta-arrow">›</div>
+        </a>
 
-      <a href="quiz.html" class="cta">
-        <div class="cta-icon">🔥</div>
-        <div class="cta-body">
-          <div class="cta-label">나만의 프로메테온 불꽃</div>
-          <div class="cta-hint">AI 시대 유형 테스트</div>
-        </div>
-        <div class="cta-arrow">›</div>
-      </a>
+        <a href="quiz.html" class="cta">
+          <div class="cta-icon">🔥</div>
+          <div class="cta-body">
+            <div class="cta-label">나의 불꽃 유형</div>
+            <div class="cta-hint">AI 유형 테스트</div>
+          </div>
+          <div class="cta-arrow">›</div>
+        </a>
+      </div>
     </div>
   </main>
 
