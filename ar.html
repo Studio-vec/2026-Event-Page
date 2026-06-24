@@ -338,7 +338,7 @@ async function startAR(mindUrl) {
   const scene = document.createElement('a-scene');
   scene.id = 'arScene';
   scene.setAttribute('mindar-image',
-    `imageTargetSrc: ${mindUrl}; uiScanning: no; uiLoading: no; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 5; missTolerance: 5`);
+    `imageTargetSrc: ${mindUrl}; uiScanning: no; uiLoading: no; filterMinCF: 0.0001; filterBeta: 10000; warmupTolerance: 2; missTolerance: 8; maxTrack: 1`);
   scene.setAttribute('embedded', '');
   scene.setAttribute('vr-mode-ui', 'enabled: false');
   scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
