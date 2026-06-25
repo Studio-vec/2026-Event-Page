@@ -216,6 +216,16 @@
   <div id="dbMarkers"></div>
   <div class="db-section">Target Events</div>
   <div id="dbTargets"></div>
+  <div class="db-section">🧪 Test Marker</div>
+  <div id="dbTest">
+    <div style="font-size:10px;color:#aaa;margin-bottom:6px;">특징점이 풍부한 테스트 마커로 MindAR 인식 자체가 되는지 확인합니다.</div>
+    <button id="testMarkerBtn" onclick="runTestMarker()" style="width:100%;padding:8px;background:#1a6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">▶ 테스트 마커로 AR 재시작</button>
+    <div id="testMarkerStatus" style="margin-top:6px;font-size:10px;color:#aaa;"></div>
+    <canvas id="testMarkerPreview" style="display:none;margin-top:8px;width:100%;border:1px solid #333;border-radius:4px;"></canvas>
+    <div id="testMarkerHint" style="display:none;margin-top:6px;padding:8px;background:#111;border:1px solid #333;border-radius:6px;font-size:10px;color:#fa0;line-height:1.5;">
+      ⬆ 위 이미지를 다른 기기 화면에 띄우거나 캡처해서 카메라로 비춰보세요.<br>인식되면 MindAR 자체는 정상이고, 횃불 마커 이미지가 문제입니다.
+    </div>
+  </div>
   <div class="db-section">Log</div>
   <div id="debugLog"></div>
 </div>
@@ -722,6 +732,182 @@ fetch('markers_all.mind', {method:'HEAD'}).then(r => {
     dbLog(`markers_all.mind NOT found (${r.status}), will runtime compile`, 'warn');
   }
 }).catch(e => dbLog(`markers_all.mind fetch error: ${e.message}`, 'err'));
+
+// ── 테스트 마커 기능 ──
+function generateTestMarkerImage() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+
+  // 흰 배경
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // 특징점 풍부한 패턴: 체커보드 + 도형 + 텍스트
+  const gridSize = 8;
+  const cellSize = 512 / gridSize;
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      if ((x + y) % 2 === 0) {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+
+  // 비대칭 도형들 (방향 구분용)
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath();
+  ctx.arc(128, 128, 50, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#2563eb';
+  ctx.fillRect(300, 80, 100, 100);
+
+  ctx.fillStyle = '#16a34a';
+  ctx.beginPath();
+  ctx.moveTo(128, 320);
+  ctx.lineTo(188, 430);
+  ctx.lineTo(68, 430);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.moveTo(384, 300);
+  ctx.lineTo(450, 340);
+  ctx.lineTo(430, 420);
+  ctx.lineTo(338, 420);
+  ctx.lineTo(318, 340);
+  ctx.closePath();
+  ctx.fill();
+
+  // 텍스트
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('TEST', 256, 265);
+  ctx.font = '16px Arial';
+  ctx.fillText('MindAR', 256, 290);
+
+  return c;
+}
+
+async function runTestMarker() {
+  const btn = document.getElementById('testMarkerBtn');
+  const status = document.getElementById('testMarkerStatus');
+  const preview = document.getElementById('testMarkerPreview');
+  const hint = document.getElementById('testMarkerHint');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ 테스트 마커 컴파일 중...';
+  status.textContent = '';
+  dbLog('🧪 Test marker: generating image...', 'info');
+
+  try {
+    // 1. 테스트 패턴 이미지 생성
+    const testCanvas = generateTestMarkerImage();
+
+    // 프리뷰 표시
+    preview.width = 256; preview.height = 256;
+    preview.getContext('2d').drawImage(testCanvas, 0, 0, 256, 256);
+    preview.style.display = 'block';
+    hint.style.display = 'block';
+
+    // 2. canvas → Image 변환
+    const blob = await new Promise(r => testCanvas.toBlob(r, 'image/png'));
+    const imgUrl = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imgUrl;
+    });
+    dbLog(`🧪 Test image: ${img.naturalWidth}×${img.naturalHeight}`, 'ok');
+
+    // 3. MindAR 컴파일
+    const Compiler = window.MINDAR?.IMAGE?.Compiler;
+    if (!Compiler) throw new Error('MindAR Compiler not available');
+
+    status.textContent = '컴파일 중... (10~30초 소요)';
+    dbLog('🧪 Compiling test marker...', 'info');
+
+    const compiler = new Compiler();
+    await compiler.compileImageTargets([img], p => {
+      const pct = typeof p === 'number' ? Math.round(p * 100) : '?';
+      status.textContent = `컴파일 중... ${pct}%`;
+    });
+
+    const buffer = await compiler.exportData();
+    const mindUrl = URL.createObjectURL(new Blob([buffer]));
+    dbLog(`🧪 Test .mind compiled (${buffer.byteLength} bytes)`, 'ok');
+
+    // 4. 기존 AR scene 제거
+    clearInterval(arPollId);
+    clearTimeout(arPollTimeoutId);
+    cancelAnimationFrame(flameRafId);
+    const oldScene = document.getElementById('arScene');
+    if (oldScene) oldScene.remove();
+    arStarting = false;
+
+    // 5. 테스트 마커용 scene 생성
+    status.textContent = '테스트 AR scene 시작 중...';
+    dbLog('🧪 Starting test AR scene (1 target)...', 'info');
+
+    const scene = document.createElement('a-scene');
+    scene.id = 'arScene';
+    scene.setAttribute('mindar-image',
+      `imageTargetSrc: ${mindUrl}; uiScanning: no; uiLoading: no; filterMinCF: 0.0001; filterBeta: 10000; warmupTolerance: 0; missTolerance: 5; maxTrack: 1`);
+    scene.setAttribute('embedded', '');
+    scene.setAttribute('vr-mode-ui', 'enabled: false');
+    scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+    scene.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;';
+
+    const cam = document.createElement('a-camera');
+    cam.setAttribute('position', '0 0 0');
+    cam.setAttribute('look-controls', 'enabled: false');
+    scene.appendChild(cam);
+
+    const target = document.createElement('a-entity');
+    target.setAttribute('mindar-image-target', 'targetIndex: 0');
+    target.addEventListener('targetFound', () => {
+      dbLog('🧪✅ TEST TARGET FOUND — MindAR 인식 정상!', 'ok');
+      status.innerHTML = '<span style="color:#0f0;font-weight:700;">✅ 인식 성공! MindAR 자체는 정상입니다.<br>→ 횃불 마커 이미지가 인식에 불리한 것입니다.</span>';
+      setStatus(true, 0);
+    });
+    target.addEventListener('targetLost', () => {
+      dbLog('🧪❌ TEST TARGET LOST', 'warn');
+    });
+
+    const plane = document.createElement('a-plane');
+    plane.setAttribute('width', '0.1');
+    plane.setAttribute('height', '0.1');
+    plane.setAttribute('visible', 'false');
+    target.appendChild(plane);
+    scene.appendChild(target);
+
+    scene.addEventListener('arReady', () => {
+      dbLog('🧪 Test scene arReady', 'ok');
+      status.textContent = '🔍 테스트 마커를 카메라에 비춰주세요...';
+    });
+    scene.addEventListener('arError', (e) => {
+      dbLog(`🧪 Test scene arError: ${e.detail?.error || e}`, 'err');
+      status.innerHTML = '<span style="color:#f44;">❌ AR 오류 발생</span>';
+    });
+
+    document.body.appendChild(scene);
+
+    btn.textContent = '🔄 원래 마커로 복원';
+    btn.disabled = false;
+    btn.onclick = () => { location.reload(); };
+
+  } catch (err) {
+    dbLog(`🧪 Test marker error: ${err.message}`, 'err');
+    status.innerHTML = `<span style="color:#f44;">오류: ${err.message}</span>`;
+    btn.textContent = '▶ 다시 시도';
+    btn.disabled = false;
+  }
+}
 
 dbLog('Debug system initialized', 'info');
 
