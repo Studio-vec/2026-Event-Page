@@ -130,6 +130,38 @@
     .warn-desc{font-size:13px;color:var(--text-2);line-height:1.7;}
     #warnUrl{width:100%;max-width:320px;padding:14px 16px;border-radius:12px;background:var(--surface);font-size:12px;color:var(--text-2);word-break:break-all;line-height:1.5;text-align:left;}
     .warn-btn{width:100%;max-width:320px;padding:18px;border-radius:var(--r);border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
+
+    /* 디버그 패널 */
+    #debugPanel{
+      display:none;position:fixed;top:0;right:0;z-index:100;
+      width:min(360px,85vw);max-height:100vh;overflow-y:auto;
+      background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+      color:#0f0;font-family:'Courier New',monospace;font-size:11px;
+      padding:12px;line-height:1.5;
+    }
+    #debugPanel.on{display:block;}
+    #debugPanel .db-title{color:#fff;font-size:13px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    #debugPanel .db-close{background:none;border:1px solid #555;color:#fff;border-radius:6px;padding:2px 10px;font-size:12px;cursor:pointer;}
+    #debugPanel .db-section{margin:8px 0 4px;color:#0ff;font-weight:700;font-size:11px;border-bottom:1px solid #333;padding-bottom:2px;}
+    #debugPanel .db-row{display:flex;justify-content:space-between;padding:1px 0;}
+    #debugPanel .db-key{color:#aaa;}
+    #debugPanel .db-val{color:#0f0;text-align:right;max-width:60%;word-break:break-all;}
+    #debugPanel .db-val.err{color:#f44;}
+    #debugPanel .db-val.warn{color:#fa0;}
+    #debugPanel .db-val.ok{color:#0f0;}
+    #debugLog{max-height:200px;overflow-y:auto;border:1px solid #333;padding:4px;margin-top:6px;font-size:10px;color:#ccc;}
+    #debugLog div{border-bottom:1px solid #1a1a1a;padding:1px 0;}
+    #debugLog .log-time{color:#666;margin-right:4px;}
+    #debugLog .log-err{color:#f44;}
+    #debugLog .log-warn{color:#fa0;}
+    #debugLog .log-ok{color:#0f0;}
+    #debugToggle{
+      position:fixed;top:8px;right:8px;z-index:101;
+      width:36px;height:36px;border-radius:50%;
+      background:rgba(0,0,0,.6);border:1px solid #555;
+      color:#0f0;font-size:16px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+    }
   </style>
 </head>
 <body>
@@ -165,6 +197,27 @@
       <span id="statusTxt">마커를 찾는 중...</span>
     </div>
   </div>
+</div>
+
+<!-- 디버그 토글 & 패널 -->
+<button id="debugToggle" onclick="toggleDebug()">🐛</button>
+<div id="debugPanel">
+  <div class="db-title">
+    <span>🐛 AR Debug Panel</span>
+    <button class="db-close" onclick="toggleDebug()">✕</button>
+  </div>
+  <div class="db-section">Environment</div>
+  <div id="dbEnv"></div>
+  <div class="db-section">MindAR / A-Frame</div>
+  <div id="dbMindar"></div>
+  <div class="db-section">Camera</div>
+  <div id="dbCam"></div>
+  <div class="db-section">Markers (.mind file)</div>
+  <div id="dbMarkers"></div>
+  <div class="db-section">Target Events</div>
+  <div id="dbTargets"></div>
+  <div class="db-section">Log</div>
+  <div id="debugLog"></div>
 </div>
 
 <!-- 인앱 경고 -->
@@ -509,6 +562,168 @@ async function init() {
     `;
   }
 }
+
+/* ── 디버그 시스템 ── */
+const _dbLogs = [];
+function dbLog(msg, level='info') {
+  const t = new Date().toLocaleTimeString('ko',{hour12:false});
+  _dbLogs.push({t, msg, level});
+  if (_dbLogs.length > 200) _dbLogs.shift();
+  const el = document.getElementById('debugLog');
+  if (!el) return;
+  const cls = level === 'err' ? 'log-err' : level === 'warn' ? 'log-warn' : level === 'ok' ? 'log-ok' : '';
+  el.innerHTML += `<div><span class="log-time">${t}</span><span class="${cls}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function dbRow(key, val, cls='') {
+  return `<div class="db-row"><span class="db-key">${key}</span><span class="db-val ${cls}">${val}</span></div>`;
+}
+
+function toggleDebug() {
+  const p = document.getElementById('debugPanel');
+  p.classList.toggle('on');
+  if (p.classList.contains('on')) refreshDebugInfo();
+}
+
+function refreshDebugInfo() {
+  // Environment
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  const browser = /CriOS/.test(ua) ? 'Chrome(iOS)' : /Chrome/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : /Firefox/.test(ua) ? 'Firefox' : 'Other';
+  const inApp = isInApp();
+  document.getElementById('dbEnv').innerHTML =
+    dbRow('Platform', isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') +
+    dbRow('Browser', browser) +
+    dbRow('InApp Browser', inApp ? 'YES ⚠️' : 'No', inApp ? 'err' : 'ok') +
+    dbRow('Screen', `${screen.width}×${screen.height} @${devicePixelRatio}x`) +
+    dbRow('Viewport', `${innerWidth}×${innerHeight}`) +
+    dbRow('Protocol', location.protocol, location.protocol === 'https:' ? 'ok' : 'warn') +
+    dbRow('WebGL', (() => { try { return !!document.createElement('canvas').getContext('webgl2') ? 'WebGL2 ✓' : !!document.createElement('canvas').getContext('webgl') ? 'WebGL1' : 'None ✗'; } catch(e) { return 'Error'; } })());
+
+  // MindAR / A-Frame
+  const scene = document.getElementById('arScene');
+  const aframeVer = window.AFRAME ? AFRAME.version : 'NOT LOADED';
+  const mindarLoaded = !!window.MINDAR?.IMAGE;
+  const compilerAvail = !!window.MINDAR?.IMAGE?.Compiler;
+  const sceneAttrs = scene ? scene.getAttribute('mindar-image') : 'N/A';
+  document.getElementById('dbMindar').innerHTML =
+    dbRow('A-Frame', aframeVer, aframeVer === 'NOT LOADED' ? 'err' : 'ok') +
+    dbRow('MindAR loaded', mindarLoaded ? 'Yes ✓' : 'No ✗', mindarLoaded ? 'ok' : 'err') +
+    dbRow('Compiler', compilerAvail ? 'Available' : 'N/A') +
+    dbRow('Scene exists', scene ? 'Yes' : 'No', scene ? 'ok' : 'warn') +
+    dbRow('Scene attrs', sceneAttrs ? `<div style="word-break:break-all;font-size:9px;max-width:200px">${sceneAttrs}</div>` : 'N/A');
+
+  // Camera
+  const videos = [...document.querySelectorAll('video')];
+  let camInfo = '';
+  videos.forEach((v,i) => {
+    const stream = v.srcObject;
+    const tracks = stream ? stream.getVideoTracks() : [];
+    const settings = tracks[0] ? tracks[0].getSettings() : null;
+    camInfo += dbRow(`Video[${i}] id`, v.id || '(no id)');
+    camInfo += dbRow(`  srcObject`, stream ? 'MediaStream ✓' : 'null', stream ? 'ok' : 'err');
+    camInfo += dbRow(`  readyState`, String(v.readyState), v.readyState >= 2 ? 'ok' : 'warn');
+    camInfo += dbRow(`  videoSize`, `${v.videoWidth}×${v.videoHeight}`, v.videoWidth > 0 ? 'ok' : 'err');
+    camInfo += dbRow(`  playing`, (!v.paused && !v.ended) ? 'Yes' : 'No', !v.paused ? 'ok' : 'err');
+    if (settings) {
+      camInfo += dbRow(`  resolution`, `${settings.width}×${settings.height}`);
+      camInfo += dbRow(`  facingMode`, settings.facingMode || 'N/A');
+      camInfo += dbRow(`  frameRate`, String(settings.frameRate || 'N/A'));
+    }
+    if (tracks[0]) {
+      camInfo += dbRow(`  trackState`, tracks[0].readyState, tracks[0].readyState === 'live' ? 'ok' : 'err');
+    }
+  });
+  if (!videos.length) camInfo = dbRow('Videos', 'None found', 'err');
+  document.getElementById('dbCam').innerHTML = camInfo;
+
+  // Markers / .mind file
+  checkPrecompiled().then(has => {
+    let markersInfo = dbRow('.mind precompiled', has ? 'markers_all.mind ✓' : 'Not found (runtime compile)', has ? 'ok' : 'warn');
+    HALLS_ARR.forEach((h, i) => {
+      const img = new Image();
+      img.src = h.markerImg;
+      markersInfo += dbRow(`Marker[${i}]`, `${h.name} → ${h.markerImg}`);
+    });
+    document.getElementById('dbMarkers').innerHTML = markersInfo;
+  });
+
+  // Target events
+  const targets = scene ? scene.querySelectorAll('[mindar-image-target]') : [];
+  let targetInfo = dbRow('Registered targets', String(targets.length), targets.length === 5 ? 'ok' : 'err');
+  targets.forEach((t, i) => {
+    const attr = t.getAttribute('mindar-image-target');
+    targetInfo += dbRow(`Target[${i}]`, attr || 'N/A');
+  });
+  document.getElementById('dbTargets').innerHTML = targetInfo;
+}
+
+// Intercept console.error/warn for debug log
+const _origErr = console.error;
+const _origWarn = console.warn;
+console.error = function() { dbLog([...arguments].join(' '), 'err'); _origErr.apply(console, arguments); };
+console.warn = function() { dbLog([...arguments].join(' '), 'warn'); _origWarn.apply(console, arguments); };
+
+// Auto-refresh debug panel every 2s
+setInterval(() => {
+  if (document.getElementById('debugPanel')?.classList.contains('on')) refreshDebugInfo();
+}, 2000);
+
+// Hook into startAR to log lifecycle
+const _origStartAR = startAR;
+startAR = async function(mindUrl) {
+  dbLog(`startAR called, mindUrl=${mindUrl}`, 'info');
+  dbLog(`markers_all.mind URL: ${mindUrl}`, 'info');
+
+  const result = _origStartAR(mindUrl);
+
+  // Monitor scene events
+  setTimeout(() => {
+    const scene = document.getElementById('arScene');
+    if (scene) {
+      dbLog('a-scene element created', 'ok');
+      scene.addEventListener('loaded', () => dbLog('a-scene "loaded" event fired', 'ok'));
+      scene.addEventListener('renderstart', () => dbLog('a-scene "renderstart" fired', 'ok'));
+
+      scene.addEventListener('arReady', () => dbLog('MindAR "arReady" fired', 'ok'));
+      scene.addEventListener('arError', (e) => dbLog(`MindAR "arError": ${e.detail?.error || e}`, 'err'));
+
+      const targets = scene.querySelectorAll('[mindar-image-target]');
+      targets.forEach((t, i) => {
+        t.addEventListener('targetFound', () => dbLog(`✅ Target[${i}] "${HALLS_ARR[i]?.name}" FOUND`, 'ok'));
+        t.addEventListener('targetLost',  () => dbLog(`❌ Target[${i}] "${HALLS_ARR[i]?.name}" LOST`, 'warn'));
+      });
+      dbLog(`${targets.length} target listeners attached`, 'info');
+    } else {
+      dbLog('a-scene NOT found after startAR', 'err');
+    }
+  }, 100);
+
+  return result;
+};
+
+// Verify marker images on load
+HALLS_ARR.forEach((h, i) => {
+  const img = new Image();
+  img.onload = () => dbLog(`Marker img[${i}] "${h.markerImg}" loaded (${img.naturalWidth}×${img.naturalHeight})`, 'ok');
+  img.onerror = () => dbLog(`Marker img[${i}] "${h.markerImg}" FAILED to load`, 'err');
+  img.src = h.markerImg;
+});
+
+// Check .mind file
+fetch('markers_all.mind', {method:'HEAD'}).then(r => {
+  if (r.ok) {
+    dbLog(`markers_all.mind found (${r.headers.get('content-length') || '?'} bytes)`, 'ok');
+    const ct = r.headers.get('content-type');
+    if (ct) dbLog(`.mind content-type: ${ct}`, ct.includes('octet') || ct.includes('binary') ? 'ok' : 'warn');
+  } else {
+    dbLog(`markers_all.mind NOT found (${r.status}), will runtime compile`, 'warn');
+  }
+}).catch(e => dbLog(`markers_all.mind fetch error: ${e.message}`, 'err'));
+
+dbLog('Debug system initialized', 'info');
 
 init();
 </script>
