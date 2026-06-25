@@ -109,13 +109,14 @@
     .status-pill.found .status-dot{background:#fff;animation:none;}
     @keyframes blink{0%,100%{opacity:.3;}50%{opacity:1;}}
 
-    /* A-Frame scene: 숨겨서 감지 전용으로만 사용 */
+    /* A-Frame scene: 투명 배경으로 카메라 위 오버레이 */
     #arScene{
       position:fixed !important;
       top:0 !important;left:0 !important;
       width:100vw !important;height:100vh !important;
       pointer-events:none !important;
-      z-index:1 !important;
+      z-index:11 !important;
+      background:transparent !important;
     }
 
     /* 인앱 경고 */
@@ -288,10 +289,43 @@ function drawFlameFrame(ctx, W, H, stops, t) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
-/* ── A-Frame 컴포넌트 (감지용, 렌더링은 별도) ── */
+/* ── A-Frame 컴포넌트: 마커에 붙는 불꽃 텍스처 ── */
 AFRAME.registerComponent('flame-canvas', {
-  schema: { hallIdx: {type:'string', default:''} },
-  init() {}, tick() {}
+  schema: { flameKey: {type:'string', default:'fire'} },
+  init() {
+    this._canvas = document.createElement('canvas');
+    this._canvas.width = 256;
+    this._canvas.height = 320;
+    this._ctx = this._canvas.getContext('2d');
+
+    const tex = new THREE.CanvasTexture(this._canvas);
+    tex.minFilter = THREE.LinearFilter;
+    this._tex = tex;
+
+    this.el.addEventListener('materialtextureloaded', () => {});
+    this.el.setAttribute('material', {
+      shader: 'flat',
+      transparent: true,
+      alphaTest: 0.01,
+      side: 'double'
+    });
+
+    const mesh = this.el.getObject3D('mesh');
+    if (mesh) {
+      mesh.material.map = tex;
+      mesh.material.needsUpdate = true;
+    } else {
+      this.el.addEventListener('object3dset', () => {
+        const m = this.el.getObject3D('mesh');
+        if (m) { m.material.map = this._tex; m.material.needsUpdate = true; }
+      });
+    }
+  },
+  tick() {
+    const stops = FLAME_COLS[this.data.flameKey] || FLAME_COLS.fire;
+    drawFlameFrame(this._ctx, 256, 320, stops, performance.now());
+    this._tex.needsUpdate = true;
+  }
 });
 
 /* ── 상태 ── */
@@ -383,10 +417,8 @@ function setStatus(found, hallIdx) {
     const hall = HALLS_ARR[hallIdx];
     namePill.textContent = hall.name;
     namePill.classList.add('visible');
-    showFlame2D(hall.flameKey);
   } else {
     namePill.classList.remove('visible');
-    hideFlame2D();
   }
 }
 
@@ -418,9 +450,10 @@ async function startAR(mindUrl) {
     target.addEventListener('targetFound', () => setStatus(true, idx));
     target.addEventListener('targetLost',  () => setStatus(false));
     const plane = document.createElement('a-plane');
-    plane.setAttribute('width', '0.1');
-    plane.setAttribute('height', '0.1');
-    plane.setAttribute('visible', 'false');
+    plane.setAttribute('width', '0.6');
+    plane.setAttribute('height', '0.75');
+    plane.setAttribute('position', '0 0.45 0');
+    plane.setAttribute('flame-canvas', `flameKey: ${hall.flameKey}`);
     target.appendChild(plane);
     scene.appendChild(target);
   });
@@ -456,10 +489,12 @@ async function startAR(mindUrl) {
       document.body.insertBefore(mindVideo, flameEl);
     }
 
-    // A-Frame canvas 숨기기
+    // A-Frame canvas: 투명 배경으로 카메라 위에 오버레이
     document.querySelectorAll('#arScene canvas').forEach(c => {
-      c.style.cssText = 'opacity:0!important;pointer-events:none!important;';
+      c.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:11!important;pointer-events:none!important;';
     });
+    const renderer = scene.renderer;
+    if (renderer) { renderer.setClearColor(0x000000, 0); renderer.setPixelRatio(window.devicePixelRatio); }
 
     document.getElementById('loadScreen').classList.add('hidden');
     document.getElementById('camOverlay').classList.add('active');
