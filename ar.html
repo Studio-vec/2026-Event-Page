@@ -43,16 +43,7 @@
       z-index:10;
     }
 
-    /* 불꽃 2D canvas 오버레이 */
-    #flameOverlay{
-      display:none;
-      position:fixed;inset:0;
-      z-index:12;
-      pointer-events:none;
-    }
-    #flameOverlay.active{display:block;}
-
-    /* 카메라 UI 오버레이 */
+/* 카메라 UI 오버레이 */
     #camOverlay{
       position:fixed;inset:0;z-index:20;
       display:none;flex-direction:column;
@@ -131,38 +122,6 @@
     .warn-desc{font-size:13px;color:var(--text-2);line-height:1.7;}
     #warnUrl{width:100%;max-width:320px;padding:14px 16px;border-radius:12px;background:var(--surface);font-size:12px;color:var(--text-2);word-break:break-all;line-height:1.5;text-align:left;}
     .warn-btn{width:100%;max-width:320px;padding:18px;border-radius:var(--r);border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
-
-    /* 디버그 패널 */
-    #debugPanel{
-      display:none;position:fixed;top:0;right:0;z-index:100;
-      width:min(360px,85vw);max-height:100vh;overflow-y:auto;
-      background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
-      color:#0f0;font-family:'Courier New',monospace;font-size:11px;
-      padding:12px;line-height:1.5;
-    }
-    #debugPanel.on{display:block;}
-    #debugPanel .db-title{color:#fff;font-size:13px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-    #debugPanel .db-close{background:none;border:1px solid #555;color:#fff;border-radius:6px;padding:2px 10px;font-size:12px;cursor:pointer;}
-    #debugPanel .db-section{margin:8px 0 4px;color:#0ff;font-weight:700;font-size:11px;border-bottom:1px solid #333;padding-bottom:2px;}
-    #debugPanel .db-row{display:flex;justify-content:space-between;padding:1px 0;}
-    #debugPanel .db-key{color:#aaa;}
-    #debugPanel .db-val{color:#0f0;text-align:right;max-width:60%;word-break:break-all;}
-    #debugPanel .db-val.err{color:#f44;}
-    #debugPanel .db-val.warn{color:#fa0;}
-    #debugPanel .db-val.ok{color:#0f0;}
-    #debugLog{max-height:200px;overflow-y:auto;border:1px solid #333;padding:4px;margin-top:6px;font-size:10px;color:#ccc;}
-    #debugLog div{border-bottom:1px solid #1a1a1a;padding:1px 0;}
-    #debugLog .log-time{color:#666;margin-right:4px;}
-    #debugLog .log-err{color:#f44;}
-    #debugLog .log-warn{color:#fa0;}
-    #debugLog .log-ok{color:#0f0;}
-    #debugToggle{
-      position:fixed;top:8px;right:8px;z-index:101;
-      width:36px;height:36px;border-radius:50%;
-      background:rgba(0,0,0,.6);border:1px solid #555;
-      color:#0f0;font-size:16px;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-    }
   </style>
 </head>
 <body>
@@ -178,9 +137,6 @@
 
 <!-- 카메라 영상 (MindAR video를 받아 표시) -->
 <video id="arVideo" autoplay playsinline webkit-playsinline muted></video>
-
-<!-- 불꽃 2D 오버레이 -->
-<canvas id="flameOverlay"></canvas>
 
 <!-- 카메라 UI 오버레이 -->
 <div id="camOverlay">
@@ -198,37 +154,6 @@
       <span id="statusTxt">마커를 찾는 중...</span>
     </div>
   </div>
-</div>
-
-<!-- 디버그 토글 & 패널 -->
-<button id="debugToggle" onclick="toggleDebug()">🐛</button>
-<div id="debugPanel">
-  <div class="db-title">
-    <span>🐛 AR Debug Panel</span>
-    <button class="db-close" onclick="toggleDebug()">✕</button>
-  </div>
-  <div class="db-section">Environment</div>
-  <div id="dbEnv"></div>
-  <div class="db-section">MindAR / A-Frame</div>
-  <div id="dbMindar"></div>
-  <div class="db-section">Camera</div>
-  <div id="dbCam"></div>
-  <div class="db-section">Markers (.mind file)</div>
-  <div id="dbMarkers"></div>
-  <div class="db-section">Target Events</div>
-  <div id="dbTargets"></div>
-  <div class="db-section">🧪 Test Marker</div>
-  <div id="dbTest">
-    <div style="font-size:10px;color:#aaa;margin-bottom:6px;">특징점이 풍부한 테스트 마커로 MindAR 인식 자체가 되는지 확인합니다.</div>
-    <button id="testMarkerBtn" onclick="runTestMarker()" style="width:100%;padding:8px;background:#1a6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">▶ 테스트 마커로 AR 재시작</button>
-    <div id="testMarkerStatus" style="margin-top:6px;font-size:10px;color:#aaa;"></div>
-    <canvas id="testMarkerPreview" style="display:none;margin-top:8px;width:100%;border:1px solid #333;border-radius:4px;"></canvas>
-    <div id="testMarkerHint" style="display:none;margin-top:6px;padding:8px;background:#111;border:1px solid #333;border-radius:6px;font-size:10px;color:#fa0;line-height:1.5;">
-      ⬆ 위 이미지를 다른 기기 화면에 띄우거나 캡처해서 카메라로 비춰보세요.<br>인식되면 MindAR 자체는 정상이고, 횃불 마커 이미지가 문제입니다.
-    </div>
-  </div>
-  <div class="db-section">Log</div>
-  <div id="debugLog"></div>
 </div>
 
 <!-- 인앱 경고 -->
@@ -329,7 +254,6 @@ AFRAME.registerComponent('flame-canvas', {
 });
 
 /* ── 상태 ── */
-let flameRafId = null;
 let arStarting = false;
 let arPollId = null;
 let arPollTimeoutId = null;
@@ -360,47 +284,6 @@ function loadImage(src) {
   });
 }
 
-/* ── 2D 불꽃 오버레이 ── */
-function showFlame2D(flameKey) {
-  const fc = document.getElementById('flameOverlay');
-  fc.width = window.innerWidth;
-  fc.height = window.innerHeight;
-  fc.classList.add('active');
-
-  const ctx = fc.getContext('2d');
-  const stops = FLAME_COLS[flameKey] || FLAME_COLS.fire;
-
-  const FW = Math.min(fc.width * 0.55, 280);
-  const FH = FW * 1.2;
-  const fx = (fc.width - FW) / 2;
-  const fy = fc.height - FH - 80;
-
-  const tmp = document.createElement('canvas');
-  tmp.width = FW; tmp.height = FH;
-  const tmpCtx = tmp.getContext('2d');
-
-  cancelAnimationFrame(flameRafId);
-  function animate() {
-    ctx.clearRect(0, 0, fc.width, fc.height);
-    ctx.save();
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.roundRect(fx - 16, fy - 16, FW + 32, FH + 32, 20);
-    ctx.fill();
-    ctx.restore();
-    drawFlameFrame(tmpCtx, FW, FH, stops, performance.now());
-    ctx.drawImage(tmp, fx, fy, FW, FH);
-    flameRafId = requestAnimationFrame(animate);
-  }
-  animate();
-}
-
-function hideFlame2D() {
-  cancelAnimationFrame(flameRafId);
-  flameRafId = null;
-  document.getElementById('flameOverlay').classList.remove('active');
-}
 
 /* ── 상태 UI 업데이트 ── */
 function setStatus(found, hallIdx) {
@@ -483,11 +366,7 @@ async function startAR(mindUrl) {
       'object-fit:cover!important', 'z-index:10!important'
     ].join(';');
 
-    // flameOverlay 앞에 삽입
-    const flameEl = document.getElementById('flameOverlay');
-    if (flameEl && flameEl.parentNode === document.body) {
-      document.body.insertBefore(mindVideo, flameEl);
-    }
+
 
     // A-Frame canvas: 투명 배경으로 카메라 위에 오버레이
     document.querySelectorAll('#arScene canvas').forEach(c => {
@@ -607,344 +486,6 @@ async function init() {
     `;
   }
 }
-
-/* ── 디버그 시스템 ── */
-const _dbLogs = [];
-function dbLog(msg, level='info') {
-  const t = new Date().toLocaleTimeString('ko',{hour12:false});
-  _dbLogs.push({t, msg, level});
-  if (_dbLogs.length > 200) _dbLogs.shift();
-  const el = document.getElementById('debugLog');
-  if (!el) return;
-  const cls = level === 'err' ? 'log-err' : level === 'warn' ? 'log-warn' : level === 'ok' ? 'log-ok' : '';
-  el.innerHTML += `<div><span class="log-time">${t}</span><span class="${cls}">${msg}</span></div>`;
-  el.scrollTop = el.scrollHeight;
-}
-
-function dbRow(key, val, cls='') {
-  return `<div class="db-row"><span class="db-key">${key}</span><span class="db-val ${cls}">${val}</span></div>`;
-}
-
-function toggleDebug() {
-  const p = document.getElementById('debugPanel');
-  p.classList.toggle('on');
-  if (p.classList.contains('on')) refreshDebugInfo();
-}
-
-function refreshDebugInfo() {
-  // Environment
-  const ua = navigator.userAgent;
-  const isIOS = /iPhone|iPad|iPod/.test(ua);
-  const isAndroid = /Android/.test(ua);
-  const browser = /CriOS/.test(ua) ? 'Chrome(iOS)' : /Chrome/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : /Firefox/.test(ua) ? 'Firefox' : 'Other';
-  const inApp = isInApp();
-  document.getElementById('dbEnv').innerHTML =
-    dbRow('Platform', isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop') +
-    dbRow('Browser', browser) +
-    dbRow('InApp Browser', inApp ? 'YES ⚠️' : 'No', inApp ? 'err' : 'ok') +
-    dbRow('Screen', `${screen.width}×${screen.height} @${devicePixelRatio}x`) +
-    dbRow('Viewport', `${innerWidth}×${innerHeight}`) +
-    dbRow('Protocol', location.protocol, location.protocol === 'https:' ? 'ok' : 'warn') +
-    dbRow('WebGL', (() => { try { return !!document.createElement('canvas').getContext('webgl2') ? 'WebGL2 ✓' : !!document.createElement('canvas').getContext('webgl') ? 'WebGL1' : 'None ✗'; } catch(e) { return 'Error'; } })());
-
-  // MindAR / A-Frame
-  const scene = document.getElementById('arScene');
-  const aframeVer = window.AFRAME ? AFRAME.version : 'NOT LOADED';
-  const mindarLoaded = !!window.MINDAR?.IMAGE;
-  const compilerAvail = !!window.MINDAR?.IMAGE?.Compiler;
-  const sceneAttrs = scene ? scene.getAttribute('mindar-image') : 'N/A';
-  document.getElementById('dbMindar').innerHTML =
-    dbRow('A-Frame', aframeVer, aframeVer === 'NOT LOADED' ? 'err' : 'ok') +
-    dbRow('MindAR loaded', mindarLoaded ? 'Yes ✓' : 'No ✗', mindarLoaded ? 'ok' : 'err') +
-    dbRow('Compiler', compilerAvail ? 'Available' : 'N/A') +
-    dbRow('Scene exists', scene ? 'Yes' : 'No', scene ? 'ok' : 'warn') +
-    dbRow('Scene attrs', sceneAttrs ? `<div style="word-break:break-all;font-size:9px;max-width:200px">${sceneAttrs}</div>` : 'N/A');
-
-  // Camera
-  const videos = [...document.querySelectorAll('video')];
-  let camInfo = '';
-  videos.forEach((v,i) => {
-    const stream = v.srcObject;
-    const tracks = stream ? stream.getVideoTracks() : [];
-    const settings = tracks[0] ? tracks[0].getSettings() : null;
-    camInfo += dbRow(`Video[${i}] id`, v.id || '(no id)');
-    camInfo += dbRow(`  srcObject`, stream ? 'MediaStream ✓' : 'null', stream ? 'ok' : 'err');
-    camInfo += dbRow(`  readyState`, String(v.readyState), v.readyState >= 2 ? 'ok' : 'warn');
-    camInfo += dbRow(`  videoSize`, `${v.videoWidth}×${v.videoHeight}`, v.videoWidth > 0 ? 'ok' : 'err');
-    camInfo += dbRow(`  playing`, (!v.paused && !v.ended) ? 'Yes' : 'No', !v.paused ? 'ok' : 'err');
-    if (settings) {
-      camInfo += dbRow(`  resolution`, `${settings.width}×${settings.height}`);
-      camInfo += dbRow(`  facingMode`, settings.facingMode || 'N/A');
-      camInfo += dbRow(`  frameRate`, String(settings.frameRate || 'N/A'));
-    }
-    if (tracks[0]) {
-      camInfo += dbRow(`  trackState`, tracks[0].readyState, tracks[0].readyState === 'live' ? 'ok' : 'err');
-    }
-  });
-  if (!videos.length) camInfo = dbRow('Videos', 'None found', 'err');
-  document.getElementById('dbCam').innerHTML = camInfo;
-
-  // Markers / .mind file
-  checkPrecompiled().then(has => {
-    let markersInfo = dbRow('.mind precompiled', has ? 'markers_all.mind ✓' : 'Not found (runtime compile)', has ? 'ok' : 'warn');
-    HALLS_ARR.forEach((h, i) => {
-      const img = new Image();
-      img.src = h.markerImg;
-      markersInfo += dbRow(`Marker[${i}]`, `${h.name} → ${h.markerImg}`);
-    });
-    document.getElementById('dbMarkers').innerHTML = markersInfo;
-  });
-
-  // Target events
-  const targets = scene ? scene.querySelectorAll('[mindar-image-target]') : [];
-  let targetInfo = dbRow('Registered targets', String(targets.length), targets.length === 5 ? 'ok' : 'err');
-  targets.forEach((t, i) => {
-    const attr = t.getAttribute('mindar-image-target');
-    targetInfo += dbRow(`Target[${i}]`, attr || 'N/A');
-  });
-  document.getElementById('dbTargets').innerHTML = targetInfo;
-}
-
-// Intercept console.error/warn for debug log
-const _origErr = console.error;
-const _origWarn = console.warn;
-console.error = function() { dbLog([...arguments].join(' '), 'err'); _origErr.apply(console, arguments); };
-console.warn = function() { dbLog([...arguments].join(' '), 'warn'); _origWarn.apply(console, arguments); };
-
-// Auto-refresh debug panel every 2s
-setInterval(() => {
-  if (document.getElementById('debugPanel')?.classList.contains('on')) refreshDebugInfo();
-}, 2000);
-
-// Hook into startAR to log lifecycle
-const _origStartAR = startAR;
-startAR = async function(mindUrl) {
-  dbLog(`startAR called, mindUrl=${mindUrl}`, 'info');
-  dbLog(`markers_all.mind URL: ${mindUrl}`, 'info');
-
-  const result = _origStartAR(mindUrl);
-
-  // Monitor scene events
-  setTimeout(() => {
-    const scene = document.getElementById('arScene');
-    if (scene) {
-      dbLog('a-scene element created', 'ok');
-      scene.addEventListener('loaded', () => dbLog('a-scene "loaded" event fired', 'ok'));
-      scene.addEventListener('renderstart', () => dbLog('a-scene "renderstart" fired', 'ok'));
-
-      scene.addEventListener('arReady', () => dbLog('MindAR "arReady" fired', 'ok'));
-      scene.addEventListener('arError', (e) => dbLog(`MindAR "arError": ${e.detail?.error || e}`, 'err'));
-
-      const targets = scene.querySelectorAll('[mindar-image-target]');
-      targets.forEach((t, i) => {
-        t.addEventListener('targetFound', () => dbLog(`✅ Target[${i}] "${HALLS_ARR[i]?.name}" FOUND`, 'ok'));
-        t.addEventListener('targetLost',  () => dbLog(`❌ Target[${i}] "${HALLS_ARR[i]?.name}" LOST`, 'warn'));
-      });
-      dbLog(`${targets.length} target listeners attached`, 'info');
-    } else {
-      dbLog('a-scene NOT found after startAR', 'err');
-    }
-  }, 100);
-
-  return result;
-};
-
-// Verify marker images on load
-HALLS_ARR.forEach((h, i) => {
-  const img = new Image();
-  img.onload = () => dbLog(`Marker img[${i}] "${h.markerImg}" loaded (${img.naturalWidth}×${img.naturalHeight})`, 'ok');
-  img.onerror = () => dbLog(`Marker img[${i}] "${h.markerImg}" FAILED to load`, 'err');
-  img.src = h.markerImg;
-});
-
-// Check .mind file
-fetch('markers_all.mind', {method:'HEAD'}).then(r => {
-  if (r.ok) {
-    dbLog(`markers_all.mind found (${r.headers.get('content-length') || '?'} bytes)`, 'ok');
-    const ct = r.headers.get('content-type');
-    if (ct) dbLog(`.mind content-type: ${ct}`, ct.includes('octet') || ct.includes('binary') ? 'ok' : 'warn');
-  } else {
-    dbLog(`markers_all.mind NOT found (${r.status}), will runtime compile`, 'warn');
-  }
-}).catch(e => dbLog(`markers_all.mind fetch error: ${e.message}`, 'err'));
-
-// ── 테스트 마커 기능 ──
-function generateTestMarkerImage() {
-  const c = document.createElement('canvas');
-  c.width = 512; c.height = 512;
-  const ctx = c.getContext('2d');
-
-  // 흰 배경
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, 512, 512);
-
-  // 특징점 풍부한 패턴: 체커보드 + 도형 + 텍스트
-  const gridSize = 8;
-  const cellSize = 512 / gridSize;
-  for (let y = 0; y < gridSize; y++) {
-    for (let x = 0; x < gridSize; x++) {
-      if ((x + y) % 2 === 0) {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-      }
-    }
-  }
-
-  // 비대칭 도형들 (방향 구분용)
-  ctx.fillStyle = '#dc2626';
-  ctx.beginPath();
-  ctx.arc(128, 128, 50, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#2563eb';
-  ctx.fillRect(300, 80, 100, 100);
-
-  ctx.fillStyle = '#16a34a';
-  ctx.beginPath();
-  ctx.moveTo(128, 320);
-  ctx.lineTo(188, 430);
-  ctx.lineTo(68, 430);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = '#f59e0b';
-  ctx.beginPath();
-  ctx.moveTo(384, 300);
-  ctx.lineTo(450, 340);
-  ctx.lineTo(430, 420);
-  ctx.lineTo(338, 420);
-  ctx.lineTo(318, 340);
-  ctx.closePath();
-  ctx.fill();
-
-  // 텍스트
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 28px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('TEST', 256, 265);
-  ctx.font = '16px Arial';
-  ctx.fillText('MindAR', 256, 290);
-
-  return c;
-}
-
-async function runTestMarker() {
-  const btn = document.getElementById('testMarkerBtn');
-  const status = document.getElementById('testMarkerStatus');
-  const preview = document.getElementById('testMarkerPreview');
-  const hint = document.getElementById('testMarkerHint');
-
-  btn.disabled = true;
-  btn.textContent = '⏳ 테스트 마커 컴파일 중...';
-  status.textContent = '';
-  dbLog('🧪 Test marker: generating image...', 'info');
-
-  try {
-    // 1. 테스트 패턴 이미지 생성
-    const testCanvas = generateTestMarkerImage();
-
-    // 프리뷰 표시
-    preview.width = 256; preview.height = 256;
-    preview.getContext('2d').drawImage(testCanvas, 0, 0, 256, 256);
-    preview.style.display = 'block';
-    hint.style.display = 'block';
-
-    // 2. canvas → Image 변환
-    const blob = await new Promise(r => testCanvas.toBlob(r, 'image/png'));
-    const imgUrl = URL.createObjectURL(blob);
-    const img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = imgUrl;
-    });
-    dbLog(`🧪 Test image: ${img.naturalWidth}×${img.naturalHeight}`, 'ok');
-
-    // 3. MindAR 컴파일
-    const Compiler = window.MINDAR?.IMAGE?.Compiler;
-    if (!Compiler) throw new Error('MindAR Compiler not available');
-
-    status.textContent = '컴파일 중... (10~30초 소요)';
-    dbLog('🧪 Compiling test marker...', 'info');
-
-    const compiler = new Compiler();
-    await compiler.compileImageTargets([img], p => {
-      const pct = typeof p === 'number' ? Math.round(p * 100) : '?';
-      status.textContent = `컴파일 중... ${pct}%`;
-    });
-
-    const buffer = await compiler.exportData();
-    const mindUrl = URL.createObjectURL(new Blob([buffer]));
-    dbLog(`🧪 Test .mind compiled (${buffer.byteLength} bytes)`, 'ok');
-
-    // 4. 기존 AR scene 제거
-    clearInterval(arPollId);
-    clearTimeout(arPollTimeoutId);
-    cancelAnimationFrame(flameRafId);
-    const oldScene = document.getElementById('arScene');
-    if (oldScene) oldScene.remove();
-    arStarting = false;
-
-    // 5. 테스트 마커용 scene 생성
-    status.textContent = '테스트 AR scene 시작 중...';
-    dbLog('🧪 Starting test AR scene (1 target)...', 'info');
-
-    const scene = document.createElement('a-scene');
-    scene.id = 'arScene';
-    scene.setAttribute('mindar-image',
-      `imageTargetSrc: ${mindUrl}; uiScanning: no; uiLoading: no; filterMinCF: 0.0001; filterBeta: 10000; warmupTolerance: 0; missTolerance: 5; maxTrack: 1`);
-    scene.setAttribute('embedded', '');
-    scene.setAttribute('vr-mode-ui', 'enabled: false');
-    scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-    scene.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;';
-
-    const cam = document.createElement('a-camera');
-    cam.setAttribute('position', '0 0 0');
-    cam.setAttribute('look-controls', 'enabled: false');
-    scene.appendChild(cam);
-
-    const target = document.createElement('a-entity');
-    target.setAttribute('mindar-image-target', 'targetIndex: 0');
-    target.addEventListener('targetFound', () => {
-      dbLog('🧪✅ TEST TARGET FOUND — MindAR 인식 정상!', 'ok');
-      status.innerHTML = '<span style="color:#0f0;font-weight:700;">✅ 인식 성공! MindAR 자체는 정상입니다.<br>→ 횃불 마커 이미지가 인식에 불리한 것입니다.</span>';
-      setStatus(true, 0);
-    });
-    target.addEventListener('targetLost', () => {
-      dbLog('🧪❌ TEST TARGET LOST', 'warn');
-    });
-
-    const plane = document.createElement('a-plane');
-    plane.setAttribute('width', '0.1');
-    plane.setAttribute('height', '0.1');
-    plane.setAttribute('visible', 'false');
-    target.appendChild(plane);
-    scene.appendChild(target);
-
-    scene.addEventListener('arReady', () => {
-      dbLog('🧪 Test scene arReady', 'ok');
-      status.textContent = '🔍 테스트 마커를 카메라에 비춰주세요...';
-    });
-    scene.addEventListener('arError', (e) => {
-      dbLog(`🧪 Test scene arError: ${e.detail?.error || e}`, 'err');
-      status.innerHTML = '<span style="color:#f44;">❌ AR 오류 발생</span>';
-    });
-
-    document.body.appendChild(scene);
-
-    btn.textContent = '🔄 원래 마커로 복원';
-    btn.disabled = false;
-    btn.onclick = () => { location.reload(); };
-
-  } catch (err) {
-    dbLog(`🧪 Test marker error: ${err.message}`, 'err');
-    status.innerHTML = `<span style="color:#f44;">오류: ${err.message}</span>`;
-    btn.textContent = '▶ 다시 시도';
-    btn.disabled = false;
-  }
-}
-
-dbLog('Debug system initialized', 'info');
 
 init();
 </script>
