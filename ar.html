@@ -460,10 +460,14 @@ async function startAR(mindUrl) {
   }, 20000);
 }
 
+/* ── markers_all.mind 캐시 무효화용 버전 (마커 내용 바뀔 때마다 올릴 것) ── */
+const MARKERS_VERSION = 'v2-topbottom';
+const MARKERS_URL = `markers_all.mind?v=${MARKERS_VERSION}`;
+
 /* ── markers_all.mind 존재 여부 확인 ── */
 async function checkPrecompiled() {
   try {
-    const res = await fetch('markers_all.mind', { method: 'HEAD' });
+    const res = await fetch(MARKERS_URL, { method: 'HEAD' });
     return res.ok;
   } catch(e) { return false; }
 }
@@ -515,7 +519,7 @@ async function init() {
 
     if (hasPrecompiled) {
       setLoadProgress(60, '마커 파일 로드 중...');
-      mindUrl = 'markers_all.mind';
+      mindUrl = MARKERS_URL;
       setLoadProgress(90, '카메라 시작 중...');
     } else {
       mindUrl = await compileMarkers();
