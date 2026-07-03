@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#ffffff">
   <title>AR 불꽃 | WKF 2026</title>
-  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe-v1.4.2.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe-v1.4.2.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
     :root {
       --bg:#ffffff; --surface:#f4f4f4; --border:#e8e8e8;
@@ -166,14 +166,43 @@
 </div>
 
 <script>
-/* ── 세션장 데이터 (순서 = targetIndex 0~4) ── */
+/* ── 세션장 데이터 (마커당 상/하 2개 타겟 → targetIndex = idx*2, idx*2+1) ── */
 const HALLS_ARR = [
-  { name:'다이너스티 A', en:'Dynasty Hall A', markerImg:'image/marker-1.png', flameKey:'gold' },
-  { name:'다이너스티 B', en:'Dynasty Hall B', markerImg:'image/marker-2.png', flameKey:'purple' },
-  { name:'루비',         en:'Ruby Hall',      markerImg:'image/marker-3.png', flameKey:'fire' },
-  { name:'토파즈',       en:'Topaz Hall',     markerImg:'image/marker-4.png', flameKey:'blue' },
-  { name:'에메랄드',     en:'Emerald Hall',   markerImg:'image/marker-5.png', flameKey:'green' },
+  { name:'프로메테우스', en:'Prometheus Hall', markerImg:'image/marker-01.png', flameKey:'gold' },
+  { name:'다이너스티',   en:'Dynasty Hall',    markerImg:'image/marker-02.png', flameKey:'purple' },
+  { name:'에메랄드',     en:'Emerald Hall',    markerImg:'image/marker-03.png', flameKey:'green' },
+  { name:'루비',         en:'Ruby Hall',       markerImg:'image/marker-04.png', flameKey:'fire' },
+  { name:'토파즈',       en:'Topaz Hall',      markerImg:'image/marker-05.png', flameKey:'blue' },
 ];
+
+/* 마커 상/하 분할 기준 — compile.html과 반드시 동일해야 함 */
+const TOP_FRAC = 0.16;
+const BOTTOM_FRAC = 0.78;
+/* 원본(전체 마커) 기준 불꽃 y 위치 — 기존 값 그대로 유지 */
+const FLAME_Y_FULL = 0.45;
+/* 마커 원본 종횡비 (세로/가로). marker-0N.png가 전부 동일 크기라 상수로 둠 */
+const MARKER_ASPECT = 3582 / 1009;
+
+// 크롭된 부분 타겟 기준 좌표계에서 불꽃이 위치할 y값 계산
+// (전체 마커 좌표 → 크롭 중심 기준 좌표로 변환)
+function flameYForCrop(f0, f1) {
+  const cropCenterYFull = MARKER_ASPECT * (0.5 - (f0 + f1) / 2);
+  return FLAME_Y_FULL - cropCenterYFull;
+}
+const FLAME_Y_TOP = flameYForCrop(0, TOP_FRAC);
+const FLAME_Y_BOTTOM = flameYForCrop(BOTTOM_FRAC, 1);
+
+function cropCanvas(img, f0, f1) {
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  const y0 = Math.round(h * f0);
+  const y1 = Math.round(h * f1);
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = y1 - y0;
+  c.getContext('2d').drawImage(img, 0, y0, w, y1 - y0, 0, 0, w, y1 - y0);
+  return c;
+}
 
 const BAR_PARAMS = [
   {h:30,dur:1.1, del:0,    sy1:0.68,sy2:1.06},
@@ -214,7 +243,9 @@ function drawFlameFrame(ctx, W, H, stops, t) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
-/* ── A-Frame 컴포넌트: 마커에 붙는 불꽃 텍스처 ── */
+/* ── A-Frame 컴포넌트: 마커에 붙는 불꽃 텍스처 ──
+   aframe/mindar 스크립트를 defer로 불러오므로 DOMContentLoaded 이후(로드 완료 후) 등록 */
+document.addEventListener('DOMContentLoaded', () => {
 AFRAME.registerComponent('flame-canvas', {
   schema: { flameKey: {type:'string', default:'fire'} },
   init() {
@@ -251,6 +282,7 @@ AFRAME.registerComponent('flame-canvas', {
     drawFlameFrame(this._ctx, 256, 320, stops, performance.now());
     this._tex.needsUpdate = true;
   }
+});
 });
 
 /* ── 상태 ── */
@@ -328,17 +360,27 @@ async function startAR(mindUrl) {
   scene.appendChild(cam);
 
   HALLS_ARR.forEach((hall, idx) => {
-    const target = document.createElement('a-entity');
-    target.setAttribute('mindar-image-target', `targetIndex: ${idx}`);
-    target.addEventListener('targetFound', () => setStatus(true, idx));
-    target.addEventListener('targetLost',  () => setStatus(false));
-    const plane = document.createElement('a-plane');
-    plane.setAttribute('width', '0.6');
-    plane.setAttribute('height', '0.75');
-    plane.setAttribute('position', '0 0.45 0');
-    plane.setAttribute('flame-canvas', `flameKey: ${hall.flameKey}`);
-    target.appendChild(plane);
-    scene.appendChild(target);
+    // 마커당 상단(링 패턴)/하단(장식 팁) 2개 타겟 중 하나만 인식돼도 같은 홀로 처리
+    let activeCount = 0;
+    const onFound = () => { activeCount++; setStatus(true, idx); };
+    const onLost = () => { activeCount = Math.max(0, activeCount - 1); if (activeCount === 0) setStatus(false); };
+
+    [
+      { targetIndex: idx * 2,     y: FLAME_Y_TOP },
+      { targetIndex: idx * 2 + 1, y: FLAME_Y_BOTTOM },
+    ].forEach(cfg => {
+      const target = document.createElement('a-entity');
+      target.setAttribute('mindar-image-target', `targetIndex: ${cfg.targetIndex}`);
+      target.addEventListener('targetFound', onFound);
+      target.addEventListener('targetLost', onLost);
+      const plane = document.createElement('a-plane');
+      plane.setAttribute('width', '0.6');
+      plane.setAttribute('height', '0.75');
+      plane.setAttribute('position', `0 ${cfg.y} 0`);
+      plane.setAttribute('flame-canvas', `flameKey: ${hall.flameKey}`);
+      target.appendChild(plane);
+      scene.appendChild(target);
+    });
   });
 
   document.body.appendChild(scene);
@@ -434,12 +476,19 @@ async function compileMarkers() {
   setLoadProgress(15, '마커 이미지 불러오는 중...');
   const images = await Promise.all(HALLS_ARR.map(h => loadImage(h.markerImg)));
 
+  setLoadProgress(25, '마커 상/하 분할 중...');
+  const targetImages = [];
+  images.forEach(img => {
+    targetImages.push(cropCanvas(img, 0, TOP_FRAC));
+    targetImages.push(cropCanvas(img, BOTTOM_FRAC, 1));
+  });
+
   setLoadProgress(30, '마커 분석 중...');
   const compiler = new Compiler();
 
   // MindAR progress 콜백값은 0~1이 아닐 수 있으므로 clamp 처리
   let lastNorm = 0;
-  await compiler.compileImageTargets(images, p => {
+  await compiler.compileImageTargets(targetImages, p => {
     const norm = (typeof p === 'number' && p >= 0 && p <= 1) ? p : Math.min(1, lastNorm + 0.04);
     lastNorm = norm;
     setLoadProgress(30 + norm * 60, '마커 분석 중...');
@@ -487,7 +536,7 @@ async function init() {
   }
 }
 
-init();
+document.addEventListener('DOMContentLoaded', () => init());
 </script>
 </body>
 </html>

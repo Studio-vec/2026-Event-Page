@@ -33,7 +33,7 @@
 <div class="card">
   <div>
     <h1>🔥 마커 컴파일 도구</h1>
-    <p style="margin-top:8px">5개 세션장 마커를 하나의 <strong>markers_all.mind</strong> 파일로 합칩니다.<br>생성된 파일을 프로젝트 루트에 넣고 배포하면 AR이 즉시 시작됩니다.</p>
+    <p style="margin-top:8px">5개 세션장 마커를 상단 링 패턴 / 하단 장식 팁으로 분할해 총 10개 타겟으로 컴파일합니다. 두 부분 중 하나만 인식돼도 해당 마커로 인식됩니다.<br>생성된 <strong>markers_all.mind</strong>를 프로젝트 루트에 넣고 배포하면 AR이 즉시 시작됩니다.</p>
   </div>
 
   <div>
@@ -54,12 +54,30 @@
 
 <script>
 const MARKER_IMGS = [
-  'image/marker-1.png',
-  'image/marker-2.png',
-  'image/marker-3.png',
-  'image/marker-4.png',
-  'image/marker-5.png',
+  'image/marker-01.png',
+  'image/marker-02.png',
+  'image/marker-03.png',
+  'image/marker-04.png',
+  'image/marker-05.png',
 ];
+
+/* 마커를 상/하로 분할하는 기준 (전체 높이 대비 비율)
+   상단: 0 ~ TOP_FRAC (링 패턴), 하단: BOTTOM_FRAC ~ 1 (장식 팁)
+   ar.html의 값과 반드시 동일하게 유지해야 함 */
+const TOP_FRAC = 0.16;
+const BOTTOM_FRAC = 0.78;
+
+function cropCanvas(img, f0, f1) {
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  const y0 = Math.round(h * f0);
+  const y1 = Math.round(h * f1);
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = y1 - y0;
+  c.getContext('2d').drawImage(img, 0, y0, w, y1 - y0, 0, 0, w, y1 - y0);
+  return c;
+}
 
 let compiledBuffer = null;
 
@@ -95,7 +113,16 @@ async function run() {
     setProgress(5, '마커 이미지 로드 중...');
 
     const images = await Promise.all(MARKER_IMGS.map(loadImage));
-    setProgress(15, '컴파일 시작...');
+    setProgress(12, '마커 상/하 분할 중...');
+
+    // 마커마다 [상단크롭, 하단크롭] 순서로 타겟 생성 (targetIndex = hallIdx*2 / hallIdx*2+1)
+    const targetImages = [];
+    images.forEach(img => {
+      targetImages.push(cropCanvas(img, 0, TOP_FRAC));
+      targetImages.push(cropCanvas(img, BOTTOM_FRAC, 1));
+    });
+
+    setProgress(18, '컴파일 시작...');
 
     statusEl.textContent = '컴파일 중... (시간이 걸릴 수 있습니다)';
 
@@ -103,8 +130,8 @@ async function run() {
     if (!Compiler) throw new Error('MindAR Compiler를 찾을 수 없습니다. 페이지를 새로고침하세요.');
 
     const compiler = new Compiler();
-    await compiler.compileImageTargets(images, progress => {
-      setProgress(15 + progress * 80, `컴파일 중... (${MARKER_IMGS.length}개 마커)`);
+    await compiler.compileImageTargets(targetImages, progress => {
+      setProgress(18 + progress * 77, `컴파일 중... (${targetImages.length}개 타겟)`);
     });
 
     compiledBuffer = await compiler.exportData();
