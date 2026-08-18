@@ -84,11 +84,11 @@
     /* 주요 버튼 — 현장 이벤트 안내 */
     .cta-hero {
       background:var(--primary); color:#fff;
-      border-color:var(--primary-dark);
+      border-color:var(--primary);
       box-shadow:0 8px 22px rgba(220,38,38,.3);
       padding:22px 18px;
     }
-    .cta-hero:active { background:var(--primary-dark); }
+    .cta-hero:active { background:var(--primary-dark); border-color:var(--primary-dark); }
     .cta-hero .cta-icon { background:rgba(255,255,255,.22); font-size:28px; }
     .cta-hero .cta-label { font-size:21px; }
     .cta-hero .cta-hint { opacity:.88; }
@@ -108,6 +108,44 @@
       .cta-hero:hover { background:var(--primary-dark); border-color:var(--primary-dark); }
     }
 
+
+    /* ── 모션 ─────────────────────────────────────────────
+       진입: 위에서부터 순서대로 부드럽게 떠오름.
+       animation-fill-mode를 backwards로만 두어, 애니메이션이 돌지 않는
+       환경에서도 요소가 처음부터 정상 표시됨. */
+    @keyframes rise { from { opacity:0; transform:translateY(14px); } }
+    header, .hero-block, .cta, footer {
+      animation:rise .6s cubic-bezier(.22,.9,.3,1) backwards;
+    }
+    header { animation-delay:.04s; }
+    .hero-block { animation-delay:.14s; }
+    .cta:not(.cta-hero) { animation-delay:.38s; }
+    footer { animation-delay:.5s; }
+
+    /* 강조바는 가로로 그어지듯 */
+    @keyframes draw { from { width:0; } }
+    .accent-bar { animation:draw .5s cubic-bezier(.22,.9,.3,1) .32s backwards; }
+
+    /* 주요 버튼: 4.5초 주기로 그림자가 은은하게 부풀고
+       같은 박자로 화살표가 살짝 밀림 (시선 유도) */
+    @keyframes breathe {
+      0%,100% { box-shadow:0 8px 22px rgba(220,38,38,.3); }
+      45%     { box-shadow:0 12px 30px rgba(220,38,38,.46); }
+    }
+    @keyframes nudge {
+      0%,88%,100% { transform:translateX(0); }
+      94%         { transform:translateX(3px); }
+    }
+    .cta-hero {
+      animation:rise .6s cubic-bezier(.22,.9,.3,1) .28s backwards,
+                breathe 4.5s ease-in-out 1.6s infinite;
+    }
+    .cta-hero .cta-go svg { animation:nudge 4.5s ease-in-out 1.6s infinite; }
+
+    /* 모션 최소화를 켠 사용자에게는 전부 정지 */
+    @media (prefers-reduced-motion:reduce) {
+      *, *::before, *::after { animation:none !important; transition:none !important; }
+    }
     footer {
       padding:16px 0 max(env(safe-area-inset-bottom,0px),20px);
       border-top:1px solid var(--border);
@@ -131,7 +169,7 @@
   </header>
 
   <main>
-    <div>
+    <div class="hero-block">
       <div class="accent-bar"></div>
       <h1 class="hero-title">프로메테우스의<br><span class="accent">불꽃</span>을<br>경험하세요</h1>
     </div>
