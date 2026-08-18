@@ -22,6 +22,7 @@
     html,body { min-height:100%; background:var(--bg); font-family:-apple-system,sans-serif; color:var(--text); }
 
     .page { max-width:480px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; padding:0 24px; }
+    @media (max-width:374px) { .page { padding:0 18px; } }
 
     header {
       padding-top:max(env(safe-area-inset-top,0px),20px);
@@ -47,47 +48,65 @@
     .hero-title { font-size:40px; font-weight:800; line-height:1.15; letter-spacing:-.03em; }
     .hero-title .accent { color:var(--primary); }
 
-    .cta-list { display:flex; flex-direction:column; gap:12px; }
+    .cta-list { display:flex; flex-direction:column; gap:14px; }
     /* .cta-row: AR 버튼 숨김(2026-08-18)으로 현재 미사용. 복구 시 재사용 — ar-hidden.md 참고 */
     .cta-row { display:flex; gap:12px; }
-    .cta-row .cta { flex:1; }
-    .cta {
-      display:flex; align-items:center; gap:16px;
-      padding:18px 20px; border-radius:var(--r);
-      text-decoration:none; color:var(--text);
-      background:var(--surface);
-      transition:background .18s, color .18s, transform .1s;
-    }
-    .cta:hover { background:var(--primary); color:#fff; }
-    .cta:active { background:var(--primary); color:#fff; transform:scale(.98); }
-    .cta-hero {
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:12px; padding:32px 20px; border-radius:var(--r);
-      text-decoration:none; color:#fff;
-      background:var(--primary);
-      transition:opacity .18s, transform .1s;
-    }
-    .cta-hero:active { opacity:.85; transform:scale(.98); }
-    .cta-hero .cta-icon {
-      width:56px; height:56px; border-radius:16px;
-      background:rgba(255,255,255,.2); font-size:30px;
-    }
-    .cta-hero .cta-label { font-size:22px; font-weight:800; color:#fff; }
-    .cta-hero .cta-hint { font-size:15px; opacity:.75; color:#fff; }
-    .cta-icon {
-      width:44px; height:44px; border-radius:12px; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center; font-size:22px;
-      background:rgba(220,38,38,.08);
-      transition:background .18s;
-    }
-    .cta:hover .cta-icon, .cta:active .cta-icon { background:rgba(255,255,255,.18); }
-    .cta-body { flex:1; }
-    .cta-label { font-size:17px; font-weight:700; margin-bottom:2px; }
-    .cta-hint { font-size:13px; opacity:.6; }
-    .cta-arrow { font-size:20px; opacity:.4; flex-shrink:0; }
-    .cta-row .cta { flex-direction:column; align-items:center; text-align:center; padding:20px 12px; gap:10px; }
-    .cta-row .cta-arrow { display:none; }
+    .cta-row .cta { flex:1; flex-direction:column; align-items:center; text-align:center; padding:20px 12px; gap:10px; }
+    .cta-row .cta-go { display:none; }
     .cta-row .cta-body { flex:none; }
+
+    /* 버튼 공통 — 아이콘 / 텍스트 / 화살표 3단 정렬 */
+    .cta {
+      display:flex; align-items:center; gap:14px;
+      padding:18px; border-radius:var(--r);
+      text-decoration:none; color:var(--text);
+      background:var(--surface); border:1.5px solid var(--border);
+      transition:background .18s, border-color .18s, transform .1s;
+    }
+    .cta:active { background:#e9e9e9; transform:scale(.985); }
+    .cta:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+
+    .cta-icon {
+      width:50px; height:50px; border-radius:15px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:26px;
+      background:rgba(220,38,38,.08);
+    }
+    .cta-body { flex:1; min-width:0; }
+    .cta-label { font-size:18px; font-weight:800; letter-spacing:-.01em; margin-bottom:3px; }
+    .cta-hint { font-size:14px; opacity:.62; }
+    .cta-go {
+      width:32px; height:32px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.06); color:var(--text-2);
+    }
+    .cta-go svg { width:15px; height:15px; display:block; }
+
+    /* 주요 버튼 — 현장 이벤트 안내 */
+    .cta-hero {
+      background:var(--primary); color:#fff;
+      border-color:var(--primary-dark);
+      box-shadow:0 8px 22px rgba(220,38,38,.3);
+      padding:22px 18px;
+    }
+    .cta-hero:active { background:var(--primary-dark); }
+    .cta-hero .cta-icon { background:rgba(255,255,255,.22); font-size:28px; }
+    .cta-hero .cta-label { font-size:21px; }
+    .cta-hero .cta-hint { opacity:.88; }
+    .cta-hero .cta-go { background:rgba(255,255,255,.22); color:#fff; }
+
+    /* 좁은 화면: 라벨이 두 줄로 깨지지 않도록 여백·아이콘 축소 */
+    @media (max-width:374px) {
+      .cta { gap:12px; padding:16px; }
+      .cta-icon { width:46px; height:46px; border-radius:13px; font-size:24px; }
+      .cta-go { width:30px; height:30px; }
+      .cta-hero { padding:20px 16px; }
+      .cta-hero .cta-label { font-size:19px; }
+    }
+
+    @media (hover:hover) {
+      .cta:hover { background:#ededed; border-color:#dcdcdc; }
+      .cta-hero:hover { background:var(--primary-dark); border-color:var(--primary-dark); }
+    }
 
     footer {
       padding:16px 0 max(env(safe-area-inset-bottom,0px),20px);
@@ -118,10 +137,13 @@
     </div>
 
     <div class="cta-list">
-      <a href="info.html" class="cta-hero">
+      <a href="info.html" class="cta cta-hero">
         <div class="cta-icon">🎁</div>
-        <div class="cta-label">현장 이벤트 안내</div>
-        <div class="cta-hint">경품 · 응모 방법 · 웰컴키트</div>
+        <div class="cta-body">
+          <div class="cta-label">현장 이벤트 안내</div>
+          <div class="cta-hint">경품 · 응모 방법 · 웰컴키트</div>
+        </div>
+        <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
       </a>
 
       <a href="quiz.html" class="cta">
@@ -130,7 +152,7 @@
           <div class="cta-label">나의 불꽃 유형</div>
           <div class="cta-hint">AI 유형 테스트</div>
         </div>
-        <div class="cta-arrow">›</div>
+        <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
       </a>
     </div>
   </main>
