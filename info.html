@@ -107,6 +107,13 @@
 
     /* 타임테이블 */
     .day-head{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);padding:12px 0 8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+
+    /* 경품 카테고리 */
+    .prz-nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:14px 0 4px;}
+    .prz-nav::-webkit-scrollbar{display:none;}
+    .prz-nav-btn{flex-shrink:0;padding:9px 16px;border-radius:20px;background:var(--surface);color:var(--text-2);font-size:14px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
+    .prz-nav-btn:active{opacity:.6;}
+    .prz-head{font-size:21px;font-weight:900;letter-spacing:-.02em;color:var(--text);padding:18px 0 10px;border-bottom:2px solid var(--primary);margin-bottom:10px;scroll-margin-top:130px;}
     .t-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.04);}
     .t-tag{font-size:13px;font-weight:700;color:#fff;background:var(--primary);padding:3px 9px;border-radius:6px;flex-shrink:0;margin-top:2px;min-width:50px;text-align:center;}
     .t-title{font-size:15px;font-weight:600;margin-bottom:2px;}
@@ -196,10 +203,16 @@
     <div class="sec-title">경품 라인업</div>
     <div class="sec-sub">9월 10일(목) 추첨. 3일간 이벤트 참여자 대상.</div>
 
-    <div class="day-head">참가상</div>
-    <div class="prize-row" style="margin-top:8px"><div class="prize-icon">🎁</div><div style="flex:1"><div class="prize-name">참여상</div><div class="prize-detail">WKF 2026 키비주얼 디자인 티셔츠 · 선착순 전원 증정</div></div><div class="prize-cnt">선착순</div></div>
+    <div class="prz-nav">
+      <button class="prz-nav-btn" onclick="document.getElementById('prz-gift').scrollIntoView({behavior:'smooth',block:'start'})">🎁 참가상</button>
+      <button class="prz-nav-btn" onclick="document.getElementById('prz-mkplus').scrollIntoView({behavior:'smooth',block:'start'})">📰 매경플러스</button>
+      <button class="prz-nav-btn" onclick="document.getElementById('prz-lottery').scrollIntoView({behavior:'smooth',block:'start'})">🏆 추첨 경품</button>
+    </div>
 
-    <div class="day-head" style="margin-top:12px">매경플러스</div>
+    <div class="prz-head" id="prz-gift" style="padding-top:4px">🎁 참가상</div>
+    <div class="prize-row"><div class="prize-icon">🎁</div><div style="flex:1"><div class="prize-name">참여상</div><div class="prize-detail">WKF 2026 키비주얼 디자인 티셔츠 · 선착순 전원 증정</div></div><div class="prize-cnt">선착순</div></div>
+
+    <div class="prz-head" id="prz-mkplus">📰 매경플러스</div>
     <div class="card-sm" style="margin-top:8px">
       <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:4px;">📰 매경플러스 구독 이벤트</div>
       <div style="font-size:14px;color:var(--text-2);line-height:1.7">웰컴 키트 안 매경플러스 1년 구독권을 등록하시면 선물을 드립니다. (선물 내용은 추후 공개 예정)</div>
@@ -217,8 +230,8 @@
       <div style="font-size:14px;color:#444;line-height:1.7">등록 화면을 <strong>가든 스테이지 이벤트 데스크</strong> 직원에게 보여주시면 선물을 드립니다.</div>
     </div>
 
-    <div class="day-head" style="margin-top:12px">추첨 경품</div>
-    <div class="prize-row" style="margin-top:8px"><div class="prize-icon">🥇</div><div style="flex:1"><div class="prize-name">대상 (1명)</div><div class="prize-detail">AI 기기 패키지 (최신 AI 노트북 + 스마트워치)</div></div><div class="prize-cnt">×1</div></div>
+    <div class="prz-head" id="prz-lottery">🏆 추첨 경품</div>
+    <div class="prize-row"><div class="prize-icon">🥇</div><div style="flex:1"><div class="prize-name">대상 (1명)</div><div class="prize-detail">AI 기기 패키지 (최신 AI 노트북 + 스마트워치)</div></div><div class="prize-cnt">×1</div></div>
     <div class="prize-row"><div class="prize-icon">🥈</div><div style="flex:1"><div class="prize-name">최우수상 (3명)</div><div class="prize-detail">프리미엄 무선 이어폰 + WKF 기념 패키지</div></div><div class="prize-cnt">×3</div></div>
     <div class="prize-row"><div class="prize-icon">🥉</div><div style="flex:1"><div class="prize-name">우수상 (10명)</div><div class="prize-detail">신라호텔 레스토랑 식사권 (2인)</div></div><div class="prize-cnt">×10</div></div>
     <div class="prize-row"><div class="prize-icon">🔥</div><div style="flex:1"><div class="prize-name">프로메테온 특별상</div><div class="prize-detail">SNS 공유 인증 시 추가 응모권 1매 (매일)</div></div><div class="prize-cnt">매일</div></div>
