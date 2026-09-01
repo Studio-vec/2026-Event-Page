@@ -192,6 +192,33 @@
     .home-btn:active{opacity:.6;}
 
     #exportCanvas{display:none;}
+
+    /* 공유 시트 */
+    .share-sheet-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;
+      display:none;align-items:flex-end;justify-content:center;
+    }
+    .share-sheet-backdrop.active{display:flex;}
+    .share-sheet{
+      width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;
+      padding:20px 20px max(env(safe-area-inset-bottom,0px),20px);
+      display:flex;flex-direction:column;gap:8px;
+      animation:sheetUp .25s ease;
+    }
+    @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+    .share-sheet-title{font-size:16px;font-weight:800;margin-bottom:6px;text-align:center;}
+    .share-opt{
+      display:flex;align-items:center;gap:14px;padding:14px 14px;border-radius:12px;
+      background:var(--surface);cursor:pointer;border:none;width:100%;text-align:left;
+      font-size:15px;font-weight:700;color:var(--text);transition:opacity .12s;
+    }
+    .share-opt:active{opacity:.6;}
+    .share-opt-emoji{font-size:20px;width:26px;text-align:center;flex-shrink:0;}
+    .share-opt-sub{display:block;font-size:12px;font-weight:500;color:var(--text-3);margin-top:1px;}
+    .share-sheet-close{
+      margin-top:4px;padding:14px;text-align:center;border-radius:12px;
+      background:none;border:none;color:var(--text-3);font-size:15px;font-weight:700;cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -340,6 +367,20 @@
 </div>
 
 <canvas id="exportCanvas" width="720" height="1080"></canvas>
+
+<!-- 공유 시트 -->
+<div class="share-sheet-backdrop" id="shareSheet" onclick="if(event.target===this)closeShareSheet()">
+  <div class="share-sheet">
+    <div class="share-sheet-title">어디에 공유할까요?</div>
+    <button class="share-opt" id="shareX"><span class="share-opt-emoji">✖️</span>X (트위터)</button>
+    <button class="share-opt" id="shareThreads"><span class="share-opt-emoji">🧵</span>Threads</button>
+    <button class="share-opt" id="shareKakao"><span class="share-opt-emoji">💬</span><span>카카오톡<span class="share-opt-sub">이미지 저장 후 대화방에 붙여넣기</span></span></button>
+    <button class="share-opt" id="shareInsta"><span class="share-opt-emoji">📸</span><span>인스타그램<span class="share-opt-sub">이미지 저장 후 스토리/게시물에 추가</span></span></button>
+    <button class="share-opt" id="shareSaveImg"><span class="share-opt-emoji">📥</span>이미지 저장</button>
+    <button class="share-opt" id="shareCopy"><span class="share-opt-emoji">📋</span>텍스트 복사</button>
+    <button class="share-sheet-close" onclick="closeShareSheet()">닫기</button>
+  </div>
+</div>
 
 <script>
 const A={q1:null,q2:null,q3:null};
@@ -501,7 +542,7 @@ function glowParticles(canvas,col){
   loop();
 }
 
-async function saveImg(){
+async function buildResultBlob(){
   const canvas=document.getElementById('exportCanvas');
   const ctx=canvas.getContext('2d');
   const W=720,H=1080,key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
@@ -543,14 +584,57 @@ async function saveImg(){
   ctx.fillText(line,cx,ly);
   ctx.fillStyle='#dc2626';ctx.fillRect(0,H-56,W,56);
   ctx.fillStyle='#fff';ctx.font='bold 16px -apple-system,sans-serif';ctx.fillText('2026. 09. 08–10  ·  서울 신라호텔  ·  World Knowledge Forum',cx,H-20);
-  canvas.toBlob(b=>{const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`WKF2026_${T.name}.png`;a.click();URL.revokeObjectURL(u);},'image/png');
+  return new Promise(res=>canvas.toBlob(b=>res({blob:b,name:T.name}),'image/png'));
+}
+
+function downloadBlob(blob,name){
+  const u=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=u;a.download=`WKF2026_${name}.png`;a.click();
+  URL.revokeObjectURL(u);
+}
+
+async function copyText(txt){
+  try{await navigator.clipboard.writeText(txt);}catch(e){}
+}
+
+async function saveImg(){
+  const {blob,name}=await buildResultBlob();
+  downloadBlob(blob,name);
 }
 
 async function shareRes(){
   const key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
   const txt=`WKF 2026 프로메테온 유형: "${T.name}"\n${T.en}\n\n${T.desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼`;
-  if(navigator.share){try{await navigator.share({title:`WKF 2026 | ${T.name}`,text:txt});}catch(e){}}
-  else{await navigator.clipboard.writeText(txt);alert('클립보드에 복사되었습니다!');}
+  const {blob,name}=await buildResultBlob();
+
+  if(navigator.canShare){
+    const file=new File([blob],`WKF2026_${name}.png`,{type:'image/png'});
+    if(navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:`WKF 2026 | ${T.name}`,text:txt}); return; }
+      catch(e){ if(e.name==='AbortError') return; }
+    }
+  }
+  if(navigator.share){
+    try{ await navigator.share({title:`WKF 2026 | ${T.name}`,text:txt}); return; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+  openShareSheet(txt,blob,name);
+}
+
+function openShareSheet(txt,blob,name){
+  const encoded=encodeURIComponent(txt);
+  document.getElementById('shareX').onclick=()=>window.open(`https://twitter.com/intent/tweet?text=${encoded}`,'_blank','noopener');
+  document.getElementById('shareThreads').onclick=()=>window.open(`https://www.threads.net/intent/post?text=${encoded}`,'_blank','noopener');
+  document.getElementById('shareKakao').onclick=async()=>{downloadBlob(blob,name);await copyText(txt);alert('이미지가 저장되었습니다! 카카오톡 대화방에 이미지와 함께 붙여넣어 주세요.');};
+  document.getElementById('shareInsta').onclick=async()=>{downloadBlob(blob,name);await copyText(txt);alert('이미지가 저장되었습니다! 인스타그램 스토리/게시물에 추가해 주세요.');};
+  document.getElementById('shareSaveImg').onclick=()=>downloadBlob(blob,name);
+  document.getElementById('shareCopy').onclick=async()=>{await copyText(txt);alert('클립보드에 복사되었습니다!');};
+  document.getElementById('shareSheet').classList.add('active');
+}
+
+function closeShareSheet(){
+  document.getElementById('shareSheet').classList.remove('active');
 }
 
 function retry(){
