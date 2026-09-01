@@ -385,6 +385,7 @@
 <script>
 const A={q1:null,q2:null,q3:null};
 let pAnim=null,curQ=1;
+let resultAsset=null,resultAssetPromise=null;
 
 const HANDLE={A:'image/손잡이 (1).png',B:'image/손잡이 (2).png',C:'image/손잡이 (3).png'};
 const GLOW={A:'rgba(220,38,38,.5)',B:'rgba(99,102,241,.5)',C:'rgba(234,179,8,.5)'};
@@ -516,6 +517,9 @@ function showResult(){
   const card=canvas.parentElement;
   canvas.width=card.offsetWidth;canvas.height=card.offsetHeight;
   A.q3==='A'?burstParticles(canvas,gc):glowParticles(canvas,gc);
+
+  resultAsset=null;
+  resultAssetPromise=buildResultBlob().then(v=>{resultAsset=v;return v;});
 }
 
 function burstParticles(canvas,col){
@@ -598,25 +602,40 @@ async function copyText(txt){
   try{await navigator.clipboard.writeText(txt);}catch(e){}
 }
 
+async function getResultAsset(){
+  if(resultAsset) return resultAsset;
+  if(resultAssetPromise) return resultAssetPromise;
+  return buildResultBlob();
+}
+
 async function saveImg(){
-  const {blob,name}=await buildResultBlob();
+  const {blob,name}=await getResultAsset();
   downloadBlob(blob,name);
 }
 
-async function shareRes(){
+function shareRes(){
   const key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
   const txt=`WKF 2026 프로메테온 유형: "${T.name}"\n${T.en}\n\n${T.desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼`;
-  const {blob,name}=await buildResultBlob();
 
+  // 이미 생성돼 있으면(대부분의 경우) await 없이 곧바로 호출해 클릭 제스처가 만료되지 않게 한다.
+  if(resultAsset){
+    doShare(resultAsset,txt,T.name);
+  } else {
+    getResultAsset().then(asset=>doShare(asset,txt,T.name));
+  }
+}
+
+async function doShare(asset,txt,typeName){
+  const {blob,name}=asset;
   if(navigator.canShare){
     const file=new File([blob],`WKF2026_${name}.png`,{type:'image/png'});
     if(navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file],title:`WKF 2026 | ${T.name}`,text:txt}); return; }
+      try{ await navigator.share({files:[file],title:`WKF 2026 | ${typeName}`,text:txt}); return; }
       catch(e){ if(e.name==='AbortError') return; }
     }
   }
   if(navigator.share){
-    try{ await navigator.share({title:`WKF 2026 | ${T.name}`,text:txt}); return; }
+    try{ await navigator.share({title:`WKF 2026 | ${typeName}`,text:txt}); return; }
     catch(e){ if(e.name==='AbortError') return; }
   }
   openShareSheet(txt,blob,name);
@@ -640,6 +659,7 @@ function closeShareSheet(){
 function retry(){
   if(pAnim)cancelAnimationFrame(pAnim);
   A.q1=A.q2=A.q3=null;curQ=1;
+  resultAsset=null;resultAssetPromise=null;
   document.getElementById('resultScreen').classList.remove('active');
   document.getElementById('topBar').style.display='';
   document.getElementById('slides').style.display='';
