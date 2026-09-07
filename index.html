@@ -7,15 +7,13 @@
   <title>WKF 2026</title>
   <style>
     :root {
-      --bg: #ffffff;
+      --bg: #f6f6f7;
       --surface: #f4f4f4;
       --border: #e8e8e8;
       --primary: #dc2626;
       --primary-dark: #991b1b;
       --accent: #fef08a;
       --accent-dark: #eab308;
-      --navy: #1e2a47;
-      --navy-dark: #111a30;
       --text: #111111;
       --text-2: #666666;
       --text-3: #aaaaaa;
@@ -51,7 +49,45 @@
     .hero-title { font-size:40px; font-weight:800; line-height:1.15; letter-spacing:-.03em; }
     .hero-title .accent { color:var(--primary); }
 
-    .cta-list { display:flex; flex-direction:column; gap:14px; }
+    .cta-list { display:flex; flex-direction:column; gap:10px; }
+
+    /* MISSION1 → MISSION2 → 응모, 흰 버튼 3개를 가는 선으로 이은 프로세스 */
+    .flow-card { display:flex; flex-direction:column; }
+    .flow-cap { font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-2); padding:2px 4px 10px; }
+
+    .flow-row {
+      display:flex; align-items:center; gap:12px;
+      padding:14px 16px; text-decoration:none; color:var(--text);
+      background:#fff; border:1.5px solid var(--border); border-radius:16px;
+      transition:background .15s, border-color .15s;
+    }
+    .flow-row:active { background:#f7f7f7; }
+    .flow-circ {
+      width:30px; height:30px; border-radius:50%; flex-shrink:0;
+      background:var(--primary); color:#fff; font-size:14px; font-weight:800;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .flow-circ-final { background:var(--accent-dark); font-size:15px; }
+    .flow-body { flex:1; min-width:0; }
+    .flow-title { font-size:16px; font-weight:800; letter-spacing:-.01em; margin-bottom:2px; }
+    .flow-desc { font-size:13px; color:var(--text-2); line-height:1.4; }
+    .flow-go {
+      width:26px; height:26px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.05); color:var(--text-2);
+    }
+    .flow-go svg { width:13px; height:13px; display:block; }
+
+    /* 카드 사이 여백을 채우는 가는 커넥터 선 (첫 번째 카드 아이콘 중심 x좌표에 맞춤) */
+    .flow-connector { display:flex; height:14px; }
+    .flow-connector::before { content:''; display:block; width:2px; height:100%; margin-left:31px; background:var(--border); }
+
+    .section-cap { font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-3); text-align:center; margin-top:10px; }
+
+    @media (hover:hover) {
+      .flow-row:hover { background:#fafafa; border-color:#dcdcdc; }
+    }
+
     /* .cta-row: AR 버튼 숨김(2026-08-18)으로 현재 미사용. 복구 시 재사용 — ar-hidden.md 참고 */
     .cta-row { display:flex; gap:12px; }
     .cta-row .cta { flex:1; flex-direction:column; align-items:center; text-align:center; padding:20px 12px; gap:10px; }
@@ -75,7 +111,6 @@
       background:rgba(220,38,38,.08);
     }
     .cta-body { flex:1; min-width:0; }
-    .cta-badge { font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; opacity:.68; margin-bottom:3px; }
     .cta-label { font-size:18px; font-weight:800; letter-spacing:-.01em; margin-bottom:3px; }
     .cta-hint { font-size:14px; opacity:.62; }
     .cta-go {
@@ -85,77 +120,19 @@
     }
     .cta-go svg { width:15px; height:15px; display:block; }
 
-    /* 주요 버튼 — 현장 이벤트 안내 */
-    .cta-hero {
-      background:var(--primary); color:#fff;
-      border-color:var(--primary);
-      box-shadow:0 5px 14px rgba(220,38,38,.16);
-      padding:22px 18px;
-      position:relative; overflow:hidden;
-    }
-    .cta-hero:active { background:var(--primary-dark); border-color:var(--primary-dark); }
-    .cta-hero .cta-icon { background:rgba(255,255,255,.22); font-size:28px; }
-    .cta-hero .cta-label { font-size:21px; }
-    .cta-hero .cta-hint { opacity:.88; }
-    .cta-hero .cta-go { background:rgba(255,255,255,.22); color:#fff; }
-
-    /* MISSION 2 버튼 — 딥 네이비 (프로메테안 레드와 구분) */
-    .cta-hero-alt {
-      background:var(--navy); color:#fff;
-      border-color:var(--navy);
-      box-shadow:0 5px 14px rgba(30,42,71,.2);
-    }
-    .cta-hero-alt:active { background:var(--navy-dark); border-color:var(--navy-dark); }
-    /* .cta-hero의 breathe(레드 글로우) 애니메이션을 네이비 톤으로 재정의 — 클래스 2개 결합으로 특이도를 올려 이후 규칙보다 우선 적용 */
-    @keyframes breathe-alt {
-      0%,100% { box-shadow:0 5px 14px rgba(30,42,71,.2); }
-      45%     { box-shadow:0 7px 20px rgba(30,42,71,.34); }
-    }
-    .cta-hero.cta-hero-alt {
-      animation:rise .6s cubic-bezier(.22,.9,.3,1) .3s backwards,
-                breathe-alt 4.5s ease-in-out 1.8s infinite;
-    }
-    .cta-hero-alt .cta-icon { background:rgba(255,255,255,.16); font-size:26px; }
-    .cta-hero-alt .cta-label { font-size:19px; }
-    .cta-hero-alt .cta-hint { opacity:.78; }
-    .cta-hero-alt .cta-go { background:rgba(255,255,255,.16); color:#fff; }
-
-    /* Z플립 보너스 배너 */
-    .cta-bonus {
-      background:var(--accent); border-color:var(--accent-dark);
-      padding:15px 16px;
-    }
-    .cta-bonus:active { background:#fde68a; }
-    .cta-bonus .cta-icon { width:42px; height:42px; font-size:21px; background:rgba(0,0,0,.06); }
-    .cta-bonus .cta-label { font-size:15px; }
-    .cta-bonus .cta-hint { opacity:.72; }
-    .cta-bonus .cta-go { width:28px; height:28px; background:rgba(0,0,0,.08); color:var(--text); }
-
-    /* 보조 2단 버튼 (유형 테스트 / 전체 안내) */
-    .cta-row-sec { display:flex; gap:12px; }
-    .cta-row-sec .cta { flex:1; flex-direction:column; align-items:center; text-align:center; padding:16px 10px; gap:8px; }
-    .cta-row-sec .cta-go { display:none; }
-    .cta-row-sec .cta-body { flex:none; }
-    .cta-row-sec .cta-icon { width:42px; height:42px; font-size:21px; }
-    .cta-row-sec .cta-label { font-size:14px; margin-bottom:0; }
-
-    @media (hover:hover) {
-      .cta-hero-alt:hover { background:var(--navy-dark); border-color:var(--navy-dark); }
-      .cta-bonus:hover { background:#fde68a; }
-    }
+    /* 유형 테스트 버튼 — 플로우 카드와 구분되는 담백한 보조 버튼 */
+    .cta-quiz { background:#fff; }
 
     /* 좁은 화면: 라벨이 두 줄로 깨지지 않도록 여백·아이콘 축소 */
     @media (max-width:374px) {
       .cta { gap:12px; padding:16px; }
       .cta-icon { width:46px; height:46px; border-radius:13px; font-size:24px; }
       .cta-go { width:30px; height:30px; }
-      .cta-hero { padding:20px 16px; }
-      .cta-hero .cta-label { font-size:19px; }
+      .flow-card { padding:12px; }
     }
 
     @media (hover:hover) {
       .cta:hover { background:#ededed; border-color:#dcdcdc; }
-      .cta-hero:hover { background:var(--primary-dark); border-color:var(--primary-dark); }
     }
 
 
@@ -164,52 +141,18 @@
        animation-fill-mode를 backwards로만 두어, 애니메이션이 돌지 않는
        환경에서도 요소가 처음부터 정상 표시됨. */
     @keyframes rise { from { opacity:0; transform:translateY(14px); } }
-    header, .hero-block, .cta, footer {
+    header, .hero-block, .flow-card, .cta, footer {
       animation:rise .6s cubic-bezier(.22,.9,.3,1) backwards;
     }
     header { animation-delay:.04s; }
     .hero-block { animation-delay:.14s; }
-    .cta:not(.cta-hero) { animation-delay:.38s; }
+    .flow-card { animation-delay:.28s; }
+    .cta { animation-delay:.38s; }
     footer { animation-delay:.5s; }
 
     /* 강조바는 가로로 그어지듯 */
     @keyframes draw { from { width:0; } }
     .accent-bar { animation:draw .5s cubic-bezier(.22,.9,.3,1) .32s backwards; }
-
-    /* 주요 버튼: 4.5초 주기로 그림자가 은은하게 부풀고
-       같은 박자로 화살표가 살짝 밀림 (시선 유도) */
-    @keyframes breathe {
-      0%,100% { box-shadow:0 5px 14px rgba(220,38,38,.16); }
-      45%     { box-shadow:0 7px 20px rgba(220,38,38,.26); }
-    }
-    @keyframes nudge {
-      0%,88%,100% { transform:translateX(0); }
-      94%         { transform:translateX(3px); }
-    }
-    .cta-hero {
-      animation:rise .6s cubic-bezier(.22,.9,.3,1) .28s backwards,
-                breathe 4.5s ease-in-out 1.6s infinite;
-    }
-    .cta-hero .cta-go svg { animation:nudge 4.5s ease-in-out 1.6s infinite; }
-
-    /* 버튼 표면을 유리처럼 훑고 지나가는 빛 (4.5초 주기, 약 1.2초 동안 통과) */
-    .cta-hero::after {
-      content:''; position:absolute; top:0; bottom:0; left:-60%; width:45%;
-      background:linear-gradient(90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,.34) 50%,
-        rgba(255,255,255,0) 100%);
-      transform:skewX(-16deg) translateX(0);
-      pointer-events:none;
-      animation:sheen 4.5s linear 1.6s infinite;
-    }
-    @keyframes sheen {
-      0%   { transform:skewX(-16deg) translateX(0); opacity:0; }
-      5%   { opacity:.9; }
-      24%  { opacity:.9; }
-      28%  { transform:skewX(-16deg) translateX(360%); opacity:0; }
-      100% { transform:skewX(-16deg) translateX(360%); opacity:0; }
-    }
 
     /* 모션 최소화를 켠 사용자에게는 전부 정지 */
     @media (prefers-reduced-motion:reduce) {
@@ -240,49 +183,54 @@
   <main>
     <div class="hero-block">
       <div class="accent-bar"></div>
-      <h1 class="hero-title">두 가지 미션 참여하고<br><span class="accent">Z플립</span>을<br>잡아라</h1>
+      <h1 class="hero-title">두 가지 미션 참여하고<br><span class="accent">Z플립</span>을<br>잡아라!</h1>
     </div>
 
     <div class="cta-list">
-      <a href="info.html#mission1" class="cta cta-hero">
-        <div class="cta-icon">🔥</div>
-        <div class="cta-body">
-          <div class="cta-badge">MISSION 1</div>
-          <div class="cta-label">불꽃을 찾아라</div>
-          <div class="cta-hint">세션장 불꽃 스티커 모아 기념 티셔츠 받기</div>
-        </div>
-        <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
-      </a>
+      <div class="flow-card">
+        <div class="flow-cap">🎯 참여 순서</div>
 
-      <a href="info.html#mission2" class="cta cta-hero cta-hero-alt">
-        <div class="cta-icon">📰</div>
-        <div class="cta-body">
-          <div class="cta-badge">MISSION 2</div>
-          <div class="cta-label">매경플러스 구독</div>
-          <div class="cta-hint">구독 등록 화면 인증하고 추가 상품 받기</div>
-        </div>
-        <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
-      </a>
-
-      <a href="info.html#lottery" class="cta cta-bonus">
-        <div class="cta-icon">📱</div>
-        <div class="cta-body">
-          <div class="cta-label">두 미션 모두 완료 시 Z플립 추첨!</div>
-          <div class="cta-hint">완료 인증 후 명함 제출하면 자동 응모</div>
-        </div>
-        <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
-      </a>
-
-      <div class="cta-row-sec">
-        <a href="quiz.html" class="cta">
-          <div class="cta-icon">🔥</div>
-          <div class="cta-body"><div class="cta-label">불꽃 유형 테스트</div></div>
+        <a href="info.html#mission1" class="flow-row">
+          <div class="flow-circ">1</div>
+          <div class="flow-body">
+            <div class="flow-title">🔥 불꽃을 찾아라</div>
+            <div class="flow-desc">세션장 불꽃 스티커 모아 기념 티셔츠 받기</div>
+          </div>
+          <span class="flow-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
         </a>
-        <a href="info.html" class="cta">
-          <div class="cta-icon">📋</div>
-          <div class="cta-body"><div class="cta-label">전체 안내 보기</div></div>
+
+        <div class="flow-connector" aria-hidden="true"></div>
+
+        <a href="info.html#mission2" class="flow-row">
+          <div class="flow-circ">2</div>
+          <div class="flow-body">
+            <div class="flow-title">📰 매경플러스 구독</div>
+            <div class="flow-desc">구독 등록 화면 인증하고 추가 상품 받기</div>
+          </div>
+          <span class="flow-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </a>
+
+        <div class="flow-connector" aria-hidden="true"></div>
+
+        <a href="info.html#lottery" class="flow-row flow-row-final">
+          <div class="flow-circ flow-circ-final">🎁</div>
+          <div class="flow-body">
+            <div class="flow-title">Z플립 추첨 응모</div>
+            <div class="flow-desc">두 미션 완료 인증 후 명함 제출하면 자동 응모</div>
+          </div>
+          <span class="flow-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
         </a>
       </div>
+
+      <div class="section-cap">더 알아보기</div>
+      <a href="quiz.html" class="cta cta-quiz">
+        <div class="cta-icon">🔥</div>
+        <div class="cta-body">
+          <div class="cta-label">불꽃 유형 테스트</div>
+          <div class="cta-hint">AI가 알려주는 나의 불꽃 유형</div>
+        </div>
+        <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+      </a>
     </div>
   </main>
 
