@@ -181,18 +181,68 @@
       pointer-events:none;
     }
     #particleCanvas{position:absolute;inset:0;pointer-events:none;border-radius:20px;}
-    .torch-card{cursor:pointer;}
     .torch-compose{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:140px;}
-    .result-flame-wrap{width:130px;display:block;filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));transform-origin:bottom center;}
-    .result-flame-wrap svg{width:100%;height:auto;overflow:visible;}
-    .result-flame-wrap.flare{animation:flareUp .5s ease;}
+    .result-flame-wrap{
+      width:130px;display:block;touch-action:none;cursor:grab;
+      filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));transform-origin:bottom center;
+    }
+    .result-flame-wrap svg{width:100%;height:auto;overflow:visible;pointer-events:none;}
+    .result-flame-wrap.flare{animation:flareUp .68s cubic-bezier(.25,1.4,.4,1);}
     @keyframes flareUp{
-      0%{transform:scale(1);filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
-      35%{transform:scale(1.14);filter:drop-shadow(0 0 28px var(--glow-color,rgba(220,38,38,.95)));}
-      100%{transform:scale(1);filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+      0%{transform:scale(1) rotate(0deg);filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+      28%{transform:scale(1.55) rotate(-3deg);filter:drop-shadow(0 0 46px var(--glow-color,rgba(220,38,38,1))) brightness(1.35);}
+      52%{transform:scale(1.25) rotate(2deg);filter:drop-shadow(0 0 34px var(--glow-color,rgba(220,38,38,.95)));}
+      75%{transform:scale(1.06) rotate(-1deg);filter:drop-shadow(0 0 20px var(--glow-color,rgba(220,38,38,.75)));}
+      100%{transform:scale(1) rotate(0deg);filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+    }
+    .result-flame-wrap.dragging{
+      cursor:grabbing;transition:none;
+      filter:drop-shadow(0 0 34px var(--glow-color,rgba(220,38,38,1))) drop-shadow(0 10px 18px rgba(0,0,0,.5));
     }
     .result-handle{width:72px;margin-top:-10px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.12));}
     .tap-hint{font-size:12px;font-weight:600;color:var(--text-3);text-align:center;margin-top:-2px;}
+
+    .torch-glow.flash{animation:glowFlash .68s ease;}
+    @keyframes glowFlash{
+      0%{opacity:1;}
+      28%{opacity:1.8;filter:brightness(1.6) saturate(1.3);}
+      100%{opacity:1;}
+    }
+
+    /* 태우기 인터랙션 */
+    .scorchable{transition:background-color .5s ease,color .5s ease,filter .5s ease,transform .3s ease;}
+    .scorchable.scorch{animation:scorchShake .4s ease;filter:brightness(.8) saturate(1.4);}
+    .save-btn.scorch{background:#2a1206;color:#ffb37a;}
+    .share-btn.scorch{background:#2a1206;color:#ffb37a;}
+    .retry-btn.scorch{background:#2a1206;color:#ffb37a;}
+    .trait.scorch{background:#2a1206;color:#ffb37a;border-color:#4a2410;}
+    @keyframes scorchShake{
+      0%,100%{transform:translateX(0);}
+      20%{transform:translateX(-3px) rotate(-1deg);}
+      45%{transform:translateX(3px) rotate(1deg);}
+      70%{transform:translateX(-2px);}
+      90%{transform:translateX(1px);}
+    }
+    .ember{
+      position:fixed;width:5px;height:5px;border-radius:50%;
+      background:radial-gradient(circle,#ffe3ae,#ff7a1a 55%,transparent 75%);
+      pointer-events:none;z-index:601;
+      animation:emberFloat .85s ease-out forwards;
+    }
+    @keyframes emberFloat{
+      0%{transform:translate(0,0) scale(1);opacity:1;}
+      100%{transform:translate(var(--dx,0px),-50px) scale(.2);opacity:0;}
+    }
+    .spark-trail{
+      position:fixed;width:7px;height:7px;border-radius:50%;
+      background:radial-gradient(circle,#fff 0%,var(--spark-color,#ff6b1a) 55%,transparent 75%);
+      pointer-events:none;z-index:590;
+      animation:sparkFade .7s ease-out forwards;
+    }
+    @keyframes sparkFade{
+      0%{transform:translate(0,0) scale(1);opacity:1;}
+      100%{transform:translate(var(--dx,0px),var(--dy,-30px)) scale(.25);opacity:0;}
+    }
 
     /* 설명 */
     .desc-card{border-radius:var(--r);background:var(--surface);padding:18px;}
@@ -410,7 +460,7 @@
         <div class="result-pct" id="rPct"></div>
       </div>
 
-      <div class="torch-card" onclick="flareFlame()">
+      <div class="torch-card">
         <div class="torch-glow" id="torchGlow"></div>
         <canvas id="particleCanvas"></canvas>
         <div class="torch-compose">
@@ -419,7 +469,7 @@
         </div>
 
       </div>
-      <div class="tap-hint">✦ 불꽃을 눌러보세요</div>
+      <div class="tap-hint">✦ 불꽃을 누르거나, 끌어서 버튼에 옮겨보세요</div>
 
       <div class="desc-card">
         <div class="desc-text" id="rDesc"></div>
@@ -428,10 +478,10 @@
       <div class="traits" id="rTraits"></div>
 
       <div class="action-row">
-        <button class="act-btn save-btn" onclick="saveImg()">📥 저장</button>
-        <button class="act-btn share-btn" onclick="shareRes()">🔗 공유</button>
+        <button class="act-btn save-btn scorchable" onclick="saveImg()">📥 저장</button>
+        <button class="act-btn share-btn scorchable" onclick="shareRes()">🔗 공유</button>
       </div>
-      <button class="retry-btn" onclick="retry()">↺ 다시 테스트하기</button>
+      <button class="retry-btn scorchable" onclick="retry()">↺ 다시 테스트하기</button>
     </div>
   </div>
 
@@ -483,11 +533,122 @@ document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='
 
 function flareFlame(){
   const el=document.getElementById('rFlame');
+  const glow=document.getElementById('torchGlow');
   el.classList.remove('flare');
+  glow.classList.remove('flash');
   void el.offsetWidth;
   el.classList.add('flare');
-  if(particleBoost) particleBoost();
+  glow.classList.add('flash');
+  if(particleBoost){particleBoost();setTimeout(particleBoost,90);}
 }
+
+function spawnEmbers(el,count){
+  const r=el.getBoundingClientRect();
+  for(let i=0;i<(count||6);i++){
+    const em=document.createElement('div');
+    em.className='ember';
+    em.style.left=(r.left+r.width*Math.random())+'px';
+    em.style.top=(r.top+r.height*.5)+'px';
+    em.style.setProperty('--dx',(Math.random()*44-22)+'px');
+    document.body.appendChild(em);
+    em.addEventListener('animationend',()=>em.remove());
+  }
+}
+
+function scorchElement(el){
+  el.classList.remove('scorch');
+  void el.offsetWidth;
+  el.classList.add('scorch');
+  spawnEmbers(el,7);
+  setTimeout(()=>el.classList.remove('scorch'),1300);
+}
+
+function spawnTrail(x,y,color){
+  for(let i=0;i<2;i++){
+    const t=document.createElement('div');
+    t.className='spark-trail';
+    t.style.left=(x+(Math.random()*14-7))+'px';
+    t.style.top=(y+(Math.random()*14-7))+'px';
+    t.style.setProperty('--spark-color',color);
+    t.style.setProperty('--dx',(Math.random()*36-18)+'px');
+    t.style.setProperty('--dy',(-(14+Math.random()*26))+'px');
+    document.body.appendChild(t);
+    t.addEventListener('animationend',()=>t.remove());
+  }
+}
+
+function initFlameDrag(){
+  const flame=document.getElementById('rFlame');
+  let downX=0,downY=0,origRect=null,moved=false,pid=null,scorched=null,lastTrail=0;
+
+  function checkTargets(){
+    const fr=flame.getBoundingClientRect();
+    const fx=fr.left+fr.width/2,fy=fr.top+fr.height*.35;
+    document.querySelectorAll('.scorchable').forEach(el=>{
+      if(scorched.has(el)) return;
+      const r=el.getBoundingClientRect();
+      if(fx>r.left&&fx<r.right&&fy>r.top&&fy<r.bottom){
+        scorched.add(el);
+        scorchElement(el);
+      }
+    });
+  }
+
+  function endDrag(e){
+    if(pid===null||e.pointerId!==pid) return;
+    if(moved){
+      flame.style.transition='left .5s cubic-bezier(.34,1.56,.64,1),top .5s cubic-bezier(.34,1.56,.64,1)';
+      flame.style.left=origRect.left+'px';
+      flame.style.top=origRect.top+'px';
+      setTimeout(()=>{
+        flame.classList.remove('dragging');
+        flame.style.cssText='';
+      },520);
+    } else {
+      flareFlame();
+    }
+    pid=null;moved=false;
+  }
+
+  flame.addEventListener('pointerdown',e=>{
+    if(e.button&&e.button!==0) return;
+    downX=e.clientX;downY=e.clientY;moved=false;pid=e.pointerId;
+    scorched=new Set();
+    origRect=flame.getBoundingClientRect();
+    try{flame.setPointerCapture(e.pointerId);}catch(err){}
+  });
+
+  flame.addEventListener('pointermove',e=>{
+    if(pid===null||e.pointerId!==pid) return;
+    const dx=e.clientX-downX,dy=e.clientY-downY;
+    if(!moved&&Math.hypot(dx,dy)>10){
+      moved=true;
+      flame.classList.add('dragging');
+      flame.style.position='fixed';
+      flame.style.left=origRect.left+'px';
+      flame.style.top=origRect.top+'px';
+      flame.style.width=origRect.width+'px';
+      flame.style.margin='0';
+      flame.style.zIndex='600';
+      flame.style.transition='none';
+    }
+    if(moved){
+      flame.style.left=(origRect.left+dx)+'px';
+      flame.style.top=(origRect.top+dy)+'px';
+      checkTargets();
+      const now=performance.now();
+      if(now-lastTrail>50){
+        lastTrail=now;
+        const fr=flame.getBoundingClientRect();
+        spawnTrail(fr.left+fr.width/2,fr.top+fr.height*.4,GLOW[A.q1]);
+      }
+    }
+  });
+
+  flame.addEventListener('pointerup',endDrag);
+  flame.addEventListener('pointercancel',endDrag);
+}
+initFlameDrag();
 
 // 배포한 Google Apps Script 웹앱 URL을 여기에 붙여넣으세요. (설정 전까지는 고정 비율로 표시됩니다)
 const STATS_URL='https://script.google.com/macros/s/AKfycbzBSUf5AKmqrs8l7MzUYFBDR0vv0uDAruXMOpXPJIqhiUKZog-qMTA3uBDJpiYWNcTF/exec';
@@ -648,7 +809,7 @@ function showResult(){
   rFlameEl.style.setProperty('--glow-color',gc);
   document.getElementById('rHandle').src=HANDLE[A.q2];
   document.getElementById('torchGlow').style.background=`radial-gradient(circle,${gc.replace('.5','.2')} 0%,transparent 70%)`;
-  document.getElementById('rTraits').innerHTML=T.traits.map(t=>`<div class="trait">${t}</div>`).join('');
+  document.getElementById('rTraits').innerHTML=T.traits.map(t=>`<div class="trait scorchable">${t}</div>`).join('');
 
   const canvas=document.getElementById('particleCanvas');
   const card=canvas.parentElement;
