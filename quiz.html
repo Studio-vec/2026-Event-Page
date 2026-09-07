@@ -17,6 +17,29 @@
 
     .page{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;}
 
+    /* 이름 입력 */
+    .name-screen{
+      flex:1;display:flex;flex-direction:column;justify-content:center;
+      padding:24px 28px max(env(safe-area-inset-bottom,0px),24px);
+      gap:22px;
+    }
+    .name-eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);}
+    .name-title{font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.02em;margin-top:8px;}
+    .name-sub{font-size:15px;color:var(--text-2);margin-top:8px;}
+    .name-input{
+      margin-top:14px;width:100%;padding:18px 20px;border-radius:var(--r);
+      border:2px solid var(--border);background:var(--surface);
+      font-size:18px;font-weight:700;color:var(--text);
+      -webkit-appearance:none;
+    }
+    .name-input:focus{outline:none;border-color:var(--primary);background:#fff;}
+    .name-start-btn{
+      margin-top:6px;width:100%;padding:17px;border:none;border-radius:var(--r);cursor:pointer;
+      font-size:18px;font-weight:700;background:var(--primary);color:#fff;transition:opacity .2s;
+    }
+    .name-start-btn:active{opacity:.8;}
+    .name-skip{margin-top:2px;text-align:center;font-size:13px;color:var(--text-3);font-weight:600;}
+
     /* 상단바 */
     .top-bar{
       display:flex;align-items:center;gap:12px;
@@ -128,6 +151,12 @@
     .result-eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);}
     .result-name{font-size:33px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:4px;}
     .result-en{font-size:15px;color:var(--text-2);font-weight:500;margin-top:2px;}
+    .result-pct{
+      display:inline-flex;align-items:center;gap:6px;width:fit-content;
+      font-size:13px;font-weight:700;color:var(--primary);
+      background:rgba(220,38,38,.08);padding:6px 13px;border-radius:20px;
+      margin-top:12px;
+    }
 
     /* 횃불 카드 */
     .torch-card{
@@ -142,10 +171,18 @@
       pointer-events:none;
     }
     #particleCanvas{position:absolute;inset:0;pointer-events:none;border-radius:20px;}
+    .torch-card{cursor:pointer;}
     .torch-compose{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:140px;}
-    .result-flame-wrap{width:130px;display:block;filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+    .result-flame-wrap{width:130px;display:block;filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));transform-origin:bottom center;}
     .result-flame-wrap svg{width:100%;height:auto;overflow:visible;}
+    .result-flame-wrap.flare{animation:flareUp .5s ease;}
+    @keyframes flareUp{
+      0%{transform:scale(1);filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+      35%{transform:scale(1.14);filter:drop-shadow(0 0 28px var(--glow-color,rgba(220,38,38,.95)));}
+      100%{transform:scale(1);filter:drop-shadow(0 0 14px var(--glow-color,rgba(220,38,38,.6)));}
+    }
     .result-handle{width:72px;margin-top:-10px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.12));}
+    .tap-hint{font-size:12px;font-weight:600;color:var(--text-3);text-align:center;margin-top:-2px;}
 
     /* 설명 */
     .desc-card{border-radius:var(--r);background:var(--surface);padding:18px;}
@@ -224,22 +261,32 @@
 <body>
 <div class="page">
 
+  <!-- 이름 입력 -->
+  <div class="name-screen" id="nameScreen">
+    <div class="name-eyebrow">WKF 2026 · 프로메테온 유형 테스트</div>
+    <div class="name-title">당신의 이름을<br>알려주세요</div>
+    <div class="name-sub">결과에 이름을 담아드릴게요</div>
+    <input type="text" id="nameInput" class="name-input" placeholder="이름" maxlength="12">
+    <button class="name-start-btn" id="nameStartBtn">시작하기 →</button>
+    <div class="name-skip" id="nameSkip">건너뛰기</div>
+  </div>
+
   <!-- 상단바 -->
-  <div class="top-bar" id="topBar">
+  <div class="top-bar" id="topBar" style="display:none">
     <a href="index.html" class="back">‹</a>
     <div class="bar-title">프로메테온 유형 테스트</div>
     <div class="step-pill" id="stepPill">1 / 3</div>
   </div>
 
   <!-- 진행 도트 -->
-  <div class="progress-dots" id="progressDots">
+  <div class="progress-dots" id="progressDots" style="display:none">
     <div class="dot active" id="d1"></div>
     <div class="dot" id="d2"></div>
     <div class="dot" id="d3"></div>
   </div>
 
   <!-- 슬라이드 영역 -->
-  <div class="slides" id="slides">
+  <div class="slides" id="slides" style="display:none">
 
     <!-- Q1 -->
     <div class="slide active" id="q1">
@@ -315,14 +362,14 @@
     <div class="slide enter-right" id="loadingScreen">
       <div class="loading-inner">
         <div class="dots-row"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
-        <div class="loading-label">당신만의 프로메테온 불꽃을<br>완성하고 있습니다…</div>
+        <div class="loading-label" id="loadingLabel">당신만의 프로메테온 불꽃을<br>완성하고 있습니다…</div>
       </div>
     </div>
 
   </div><!-- /slides -->
 
   <!-- 다음 버튼 -->
-  <div class="next-wrap" id="nextWrap">
+  <div class="next-wrap" id="nextWrap" style="display:none">
     <button class="next-btn" id="nextBtn">다음</button>
   </div>
 
@@ -330,12 +377,13 @@
   <div id="resultScreen">
     <div class="result-scroll">
       <div>
-        <div class="result-eyebrow">나의 프로메테온 유형</div>
+        <div class="result-eyebrow" id="rEyebrow">나의 프로메테온 유형</div>
         <div class="result-name" id="rName"></div>
         <div class="result-en" id="rEn"></div>
+        <div class="result-pct" id="rPct"></div>
       </div>
 
-      <div class="torch-card">
+      <div class="torch-card" onclick="flareFlame()">
         <div class="torch-glow" id="torchGlow"></div>
         <canvas id="particleCanvas"></canvas>
         <div class="torch-compose">
@@ -344,6 +392,7 @@
         </div>
 
       </div>
+      <div class="tap-hint">✦ 불꽃을 눌러보세요</div>
 
       <div class="desc-card">
         <div class="desc-text" id="rDesc"></div>
@@ -386,6 +435,45 @@
 const A={q1:null,q2:null,q3:null};
 let pAnim=null,curQ=1;
 let resultAsset=null,resultAssetPromise=null;
+let currentPct=null;
+let userName='';
+let particleBoost=null;
+
+function startQuiz(){
+  const val=document.getElementById('nameInput').value.trim();
+  userName=val.slice(0,12);
+  document.getElementById('nameScreen').style.display='none';
+  document.getElementById('topBar').style.display='';
+  document.getElementById('progressDots').style.display='';
+  document.getElementById('slides').style.display='';
+  document.getElementById('nextWrap').style.display='';
+}
+document.getElementById('nameStartBtn').addEventListener('click',startQuiz);
+document.getElementById('nameSkip').addEventListener('click',startQuiz);
+document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')startQuiz();});
+
+function flareFlame(){
+  const el=document.getElementById('rFlame');
+  el.classList.remove('flare');
+  void el.offsetWidth;
+  el.classList.add('flare');
+  if(particleBoost) particleBoost();
+}
+
+// 배포한 Google Apps Script 웹앱 URL을 여기에 붙여넣으세요. (설정 전까지는 고정 비율로 표시됩니다)
+const STATS_URL='https://script.google.com/macros/s/AKfycbzBSUf5AKmqrs8l7MzUYFBDR0vv0uDAruXMOpXPJIqhiUKZog-qMTA3uBDJpiYWNcTF/exec';
+
+async function recordAndGetPct(key){
+  if(!STATS_URL) return null;
+  try{
+    const res=await fetch(`${STATS_URL}?action=vote&type=${key}`);
+    const data=await res.json();
+    if(data && data.total>0 && data.counts && data.counts[key]!=null){
+      return Math.max(1,Math.round(data.counts[key]/data.total*100));
+    }
+  }catch(e){}
+  return null;
+}
 
 const HANDLE={A:'image/손잡이 (1).png',B:'image/손잡이 (2).png',C:'image/손잡이 (3).png'};
 const GLOW={A:'rgba(220,38,38,.5)',B:'rgba(99,102,241,.5)',C:'rgba(234,179,8,.5)'};
@@ -421,24 +509,24 @@ function buildFlame(q1){
 }
 
 const TYPES={
-  AAA:{name:'열정의 선구자',en:'Passionate Pioneer',badge:'🔥 선구자형',traits:['즉각적 행동','카리스마','변화 주도'],desc:'새로운 기술을 두려움 없이 받아들이고, 강력한 리더십으로 팀을 이끄는 타입. 역동적인 에너지로 AI 시대를 가장 먼저 만들어갑니다.'},
-  AAB:{name:'열정의 수호자',en:'Passionate Guardian',badge:'🔥 수호자형',traits:['실행력','안정 추구','집중력'],desc:'강한 실행력과 흔들리지 않는 중심을 동시에 가진 타입. 빠른 적응력으로 팀의 든든한 버팀목이 됩니다.'},
-  ABA:{name:'열정의 건축가',en:'Passionate Architect',badge:'🔥 건축가형',traits:['협력','실행력','구조 설계'],desc:'팀워크를 기반으로 빠른 실행력을 발휘하는 타입. 소통으로 최적의 AI 활용 전략을 구현합니다.'},
-  ABB:{name:'열정의 조율자',en:'Passionate Harmonizer',badge:'🔥 조율자형',traits:['공감력','유연성','균형'],desc:'빠른 실행과 세심한 소통을 동시에 갖춘 타입. 팀 내 갈등을 해소하며 창의적 합의를 이끌어냅니다.'},
-  ACA:{name:'열정의 혁신가',en:'Passionate Innovator',badge:'🔥 혁신가형',traits:['창의력','도전정신','돌파력'],desc:'전통의 틀을 깨고 새로운 방식을 만드는 타입. 열정과 창의의 조합으로 AI 시대의 판도를 바꿉니다.'},
-  ACB:{name:'열정의 몽상가',en:'Passionate Dreamer',badge:'🔥 몽상가형',traits:['상상력','열정','고요한 집중'],desc:'화려한 비전을 꿈꾸지만 차분하게 실현해나가는 타입. 혁신과 실용이 공존합니다.'},
-  BAA:{name:'이성의 분석가',en:'Rational Analyst',badge:'🧠 분석가형',traits:['논리력','체계성','리더십'],desc:'원리를 먼저 이해하고 명확한 근거로 팀을 이끄는 타입. 데이터 기반으로 AI 도구를 최적화합니다.'},
-  BAB:{name:'이성의 전략가',en:'Rational Strategist',badge:'🧠 전략가형',traits:['통찰력','냉철함','지속성'],desc:'치밀한 분석으로 장기 전략을 수립하는 타입. AI 시대의 흐름을 정확히 읽어냅니다.'},
-  BBA:{name:'이성의 설계자',en:'Rational Designer',badge:'🧠 설계자형',traits:['시스템 사고','소통','정밀함'],desc:'논리와 협력을 결합한 정밀한 설계자. 복잡한 AI 시스템을 체계적으로 구축합니다.'},
-  BBB:{name:'이성의 균형자',en:'Rational Balancer',badge:'🧠 균형자형',traits:['안정성','분석력','공감'],desc:'논리와 공감을 모두 갖춘 이상적 협업자. 데이터로 말하면서도 사람의 마음을 놓치지 않습니다.'},
-  BCA:{name:'이성의 발명가',en:'Rational Inventor',badge:'🧠 발명가형',traits:['독창성','논리','탐구심'],desc:'깊은 분석에서 전혀 새로운 아이디어를 이끌어내는 타입. AI 기술의 새로운 응용을 창조합니다.'},
-  BCB:{name:'이성의 탐구자',en:'Rational Explorer',badge:'🧠 탐구자형',traits:['호기심','인내','정확성'],desc:'끊임없이 배우고 이해의 깊이를 더해가는 타입. 고요한 지식의 빛으로 주변을 밝힙니다.'},
-  CAA:{name:'조화의 개척자',en:'Harmony Pioneer',badge:'🌿 개척자형',traits:['공존','추진력','포용력'],desc:'모두를 아우르며 앞장서는 타입. AI와 인간의 공존을 가장 중요한 가치로 여깁니다.'},
-  CAB:{name:'조화의 안내자',en:'Harmony Guide',badge:'🌿 안내자형',traits:['배려','신중함','통합력'],desc:'모든 구성원이 함께 성장하도록 이끄는 타입. 따뜻한 리더십으로 공존지능 시대를 안내합니다.'},
-  CBA:{name:'조화의 연결자',en:'Harmony Connector',badge:'🌿 연결자형',traits:['네트워킹','균형','소통'],desc:'사람과 기술, 아이디어를 연결하는 허브. 다양한 관점을 통합해 AI 시대의 시너지를 만듭니다.'},
-  CBB:{name:'조화의 수호자',en:'Harmony Protector',badge:'🌿 수호자형',traits:['안정','신뢰','지속가능성'],desc:'느리지만 확실하게 지속 가능한 미래를 만드는 타입. AI와 인간이 공존하는 세상의 수호자입니다.'},
-  CCA:{name:'조화의 혁신가',en:'Harmony Innovator',badge:'🌿 혁신가형',traits:['창의','포용','실험정신'],desc:'기존의 틀을 바꾸되 모든 구성원을 함께 데려가는 타입. 포용적 혁신으로 공존지능 세계를 설계합니다.'},
-  CCB:{name:'조화의 명상가',en:'Harmony Meditator',badge:'🌿 명상가형',traits:['깊은 사색','공감','성숙함'],desc:'고요한 지혜로 공존의 길을 비추는 타입. 빠른 변화 속에서도 본질을 놓치지 않는 균형감을 지닙니다.'},
+  AAA:{name:'열정의 선구자',en:'Passionate Pioneer',badge:'🔥 선구자형',pct:7,traits:['즉각적 행동','카리스마','변화 주도'],desc:'새로운 기술을 두려움 없이 받아들이고, 강력한 리더십으로 팀을 이끄는 타입. 역동적인 에너지로 AI 시대를 가장 먼저 만들어갑니다.'},
+  AAB:{name:'열정의 수호자',en:'Passionate Guardian',badge:'🔥 수호자형',pct:6,traits:['실행력','안정 추구','집중력'],desc:'강한 실행력과 흔들리지 않는 중심을 동시에 가진 타입. 빠른 적응력으로 팀의 든든한 버팀목이 됩니다.'},
+  ABA:{name:'열정의 건축가',en:'Passionate Architect',badge:'🔥 건축가형',pct:5,traits:['협력','실행력','구조 설계'],desc:'팀워크를 기반으로 빠른 실행력을 발휘하는 타입. 소통으로 최적의 AI 활용 전략을 구현합니다.'},
+  ABB:{name:'열정의 조율자',en:'Passionate Harmonizer',badge:'🔥 조율자형',pct:6,traits:['공감력','유연성','균형'],desc:'빠른 실행과 세심한 소통을 동시에 갖춘 타입. 팀 내 갈등을 해소하며 창의적 합의를 이끌어냅니다.'},
+  ACA:{name:'열정의 혁신가',en:'Passionate Innovator',badge:'🔥 혁신가형',pct:4,traits:['창의력','도전정신','돌파력'],desc:'전통의 틀을 깨고 새로운 방식을 만드는 타입. 열정과 창의의 조합으로 AI 시대의 판도를 바꿉니다.'},
+  ACB:{name:'열정의 몽상가',en:'Passionate Dreamer',badge:'🔥 몽상가형',pct:3,traits:['상상력','열정','고요한 집중'],desc:'화려한 비전을 꿈꾸지만 차분하게 실현해나가는 타입. 혁신과 실용이 공존합니다.'},
+  BAA:{name:'이성의 분석가',en:'Rational Analyst',badge:'🧠 분석가형',pct:7,traits:['논리력','체계성','리더십'],desc:'원리를 먼저 이해하고 명확한 근거로 팀을 이끄는 타입. 데이터 기반으로 AI 도구를 최적화합니다.'},
+  BAB:{name:'이성의 전략가',en:'Rational Strategist',badge:'🧠 전략가형',pct:6,traits:['통찰력','냉철함','지속성'],desc:'치밀한 분석으로 장기 전략을 수립하는 타입. AI 시대의 흐름을 정확히 읽어냅니다.'},
+  BBA:{name:'이성의 설계자',en:'Rational Designer',badge:'🧠 설계자형',pct:5,traits:['시스템 사고','소통','정밀함'],desc:'논리와 협력을 결합한 정밀한 설계자. 복잡한 AI 시스템을 체계적으로 구축합니다.'},
+  BBB:{name:'이성의 균형자',en:'Rational Balancer',badge:'🧠 균형자형',pct:8,traits:['안정성','분석력','공감'],desc:'논리와 공감을 모두 갖춘 이상적 협업자. 데이터로 말하면서도 사람의 마음을 놓치지 않습니다.'},
+  BCA:{name:'이성의 발명가',en:'Rational Inventor',badge:'🧠 발명가형',pct:4,traits:['독창성','논리','탐구심'],desc:'깊은 분석에서 전혀 새로운 아이디어를 이끌어내는 타입. AI 기술의 새로운 응용을 창조합니다.'},
+  BCB:{name:'이성의 탐구자',en:'Rational Explorer',badge:'🧠 탐구자형',pct:5,traits:['호기심','인내','정확성'],desc:'끊임없이 배우고 이해의 깊이를 더해가는 타입. 고요한 지식의 빛으로 주변을 밝힙니다.'},
+  CAA:{name:'조화의 개척자',en:'Harmony Pioneer',badge:'🌿 개척자형',pct:6,traits:['공존','추진력','포용력'],desc:'모두를 아우르며 앞장서는 타입. AI와 인간의 공존을 가장 중요한 가치로 여깁니다.'},
+  CAB:{name:'조화의 안내자',en:'Harmony Guide',badge:'🌿 안내자형',pct:7,traits:['배려','신중함','통합력'],desc:'모든 구성원이 함께 성장하도록 이끄는 타입. 따뜻한 리더십으로 공존지능 시대를 안내합니다.'},
+  CBA:{name:'조화의 연결자',en:'Harmony Connector',badge:'🌿 연결자형',pct:6,traits:['네트워킹','균형','소통'],desc:'사람과 기술, 아이디어를 연결하는 허브. 다양한 관점을 통합해 AI 시대의 시너지를 만듭니다.'},
+  CBB:{name:'조화의 수호자',en:'Harmony Protector',badge:'🌿 수호자형',pct:5,traits:['안정','신뢰','지속가능성'],desc:'느리지만 확실하게 지속 가능한 미래를 만드는 타입. AI와 인간이 공존하는 세상의 수호자입니다.'},
+  CCA:{name:'조화의 혁신가',en:'Harmony Innovator',badge:'🌿 혁신가형',pct:4,traits:['창의','포용','실험정신'],desc:'기존의 틀을 바꾸되 모든 구성원을 함께 데려가는 타입. 포용적 혁신으로 공존지능 세계를 설계합니다.'},
+  CCB:{name:'조화의 명상가',en:'Harmony Meditator',badge:'🌿 명상가형',pct:6,traits:['깊은 사색','공감','성숙함'],desc:'고요한 지혜로 공존의 길을 비추는 타입. 빠른 변화 속에서도 본질을 놓치지 않는 균형감을 지닙니다.'},
 };
 
 function pick(q,ans,el){
@@ -487,6 +575,10 @@ function startGenerate(){
   const gh=document.getElementById('genHandle');
   if(gf) gf.innerHTML=buildFlame(A.q1);
   if(gh) gh.src=HANDLE[A.q2];
+  const label=document.getElementById('loadingLabel');
+  const namePart=userName?`${userName}님`:'당신';
+  label.innerHTML=`${namePart}이 AI라는 불꽃을 어떻게 다루는지<br>분석하고 있어요…`;
+  setTimeout(()=>{label.innerHTML=`${namePart}만의 프로메테온 유형을<br>완성하고 있습니다…`;},1100);
   setTimeout(showResult,2200);
 }
 
@@ -501,10 +593,20 @@ function showResult(){
   const T=TYPES[key]||TYPES['CAB'];
   const gc=GLOW[A.q1];
 
-  document.getElementById('rName').textContent=T.name;
+  document.getElementById('rEyebrow').textContent=userName?`${userName}님은`:'나의 프로메테온 유형';
+  document.getElementById('rName').textContent=userName?`${T.name} 타입`:T.name;
   document.getElementById('rEn').textContent=T.en;
 
   document.getElementById('rDesc').textContent=T.desc;
+  currentPct=T.pct;
+  document.getElementById('rPct').textContent=`🔥 전체 참가자 중 ${T.pct}%가 선택한 유형`;
+  recordAndGetPct(key).then(live=>{
+    if(live==null||A.q1+A.q2+A.q3!==key) return;
+    currentPct=live;
+    document.getElementById('rPct').textContent=`🔥 전체 참가자 중 ${live}%가 선택한 유형 (실시간)`;
+    resultAsset=null;
+    resultAssetPromise=buildResultBlob().then(v=>{resultAsset=v;return v;});
+  });
 
   const rFlameEl=document.getElementById('rFlame');
   rFlameEl.innerHTML=buildFlame(A.q1);
@@ -516,7 +618,9 @@ function showResult(){
   const canvas=document.getElementById('particleCanvas');
   const card=canvas.parentElement;
   canvas.width=card.offsetWidth;canvas.height=card.offsetHeight;
+  particleBoost=null;
   A.q3==='A'?burstParticles(canvas,gc):glowParticles(canvas,gc);
+  setTimeout(()=>flareFlame(),150);
 
   resultAsset=null;
   resultAssetPromise=buildResultBlob().then(v=>{resultAsset=v;return v;});
@@ -525,31 +629,33 @@ function showResult(){
 function burstParticles(canvas,col){
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height,ps=[],cx=W/2,cy=H*.4;
-  function sp(){ps.push({x:cx+(Math.random()-.5)*30,y:cy,vx:(Math.random()-.5)*1.5,vy:-(1+Math.random()*2),life:1,decay:.013+Math.random()*.008,size:2+Math.random()*4});}
+  function sp(spread){ps.push({x:cx+(Math.random()-.5)*(spread||30),y:cy,vx:(Math.random()-.5)*(spread?3:1.5),vy:-(1+Math.random()*2.4),life:1,decay:.013+Math.random()*.008,size:2+Math.random()*4});}
   function loop(){ctx.clearRect(0,0,W,H);if(Math.random()<.7)sp();
     ps.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.04;p.life-=p.decay;if(p.life<=0){ps.splice(i,1);return;}
     ctx.globalAlpha=p.life*.7;ctx.fillStyle=col.replace('.5','1');ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();});
     ctx.globalAlpha=1;pAnim=requestAnimationFrame(loop);}
   loop();
+  particleBoost=()=>{for(let i=0;i<16;i++)sp(70);};
 }
 
 function glowParticles(canvas,col){
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height,ps=[],cx=W/2,cy=H*.42;
-  function sp(){ps.push({x:cx+(Math.random()-.5)*50,y:cy+Math.random()*20,vy:-(0.2+Math.random()*.5),life:1,decay:.006+Math.random()*.005,size:3+Math.random()*5});}
+  function sp(spread){ps.push({x:cx+(Math.random()-.5)*(spread||50),y:cy+Math.random()*20,vy:-(0.2+Math.random()*(spread?1.6:.5)),life:1,decay:.006+Math.random()*.005,size:3+Math.random()*5});}
   function loop(){ctx.clearRect(0,0,W,H);if(Math.random()<.4)sp();
     ps.forEach((p,i)=>{p.x+=(Math.random()-.5)*.4;p.y+=p.vy;p.life-=p.decay;if(p.life<=0){ps.splice(i,1);return;}
     const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*3);
-    g.addColorStop(0,col.replace('.5','cc'));g.addColorStop(1,'rgba(0,0,0,0)');
+    g.addColorStop(0,col.replace('.5','.8'));g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.globalAlpha=p.life*.5;ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);ctx.fill();});
     ctx.globalAlpha=1;pAnim=requestAnimationFrame(loop);}
   loop();
+  particleBoost=()=>{for(let i=0;i<10;i++)sp(90);};
 }
 
 async function buildResultBlob(){
   const canvas=document.getElementById('exportCanvas');
   const ctx=canvas.getContext('2d');
-  const W=720,H=1080,key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
+  const W=720,H=1080,key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'],pct=currentPct!=null?currentPct:T.pct;
   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#f4f4f4';ctx.fillRect(40,40,W-80,H-80);
   const li=s=>new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s;});
@@ -579,11 +685,12 @@ async function buildResultBlob(){
   if(hI)ctx.drawImage(hI,cx-hW/2,handleY,hW,hH);
   const bY=handleY+hH+30;
   ctx.textAlign='center';
-  ctx.fillStyle='#dc2626';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText('나의 프로메테온 유형',cx,bY+40);
-  ctx.fillStyle='#111111';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(T.name,cx,bY+96);
+  ctx.fillStyle='#dc2626';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(userName?`${userName}님은`:'나의 프로메테온 유형',cx,bY+40);
+  ctx.fillStyle='#111111';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(userName?`${T.name} 타입`:T.name,cx,bY+96);
   ctx.fillStyle='#666666';ctx.font='20px -apple-system,sans-serif';ctx.fillText(T.en,cx,bY+130);
+  ctx.fillStyle='#dc2626';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(`전체 참가자 중 ${pct}%가 선택한 유형`,cx,bY+156);
   ctx.fillStyle='#aaaaaa';ctx.font='14px -apple-system,sans-serif';
-  const words=T.desc;let line='',ly=bY+174;
+  const words=T.desc;let line='',ly=bY+190;
   for(const ch of words){const t=line+ch;if(ctx.measureText(t).width>W-160){ctx.fillText(line,cx,ly);line=ch;ly+=24;}else line=t;}
   ctx.fillText(line,cx,ly);
   ctx.fillStyle='#dc2626';ctx.fillRect(0,H-56,W,56);
@@ -614,8 +721,9 @@ async function saveImg(){
 }
 
 function shareRes(){
-  const key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'];
-  const txt=`WKF 2026 프로메테온 유형: "${T.name}"\n${T.en}\n\n${T.desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼`;
+  const key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'],pct=currentPct!=null?currentPct:T.pct;
+  const who=userName?`${userName}님은 `:'';
+  const txt=`WKF 2026 프로메테온 유형: ${who}"${T.name}" 타입\n${T.en} · 전체 참가자 중 ${pct}%\n\n${T.desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼`;
 
   // 이미 생성돼 있으면(대부분의 경우) await 없이 곧바로 호출해 클릭 제스처가 만료되지 않게 한다.
   if(resultAsset){
@@ -658,7 +766,7 @@ function closeShareSheet(){
 
 function retry(){
   if(pAnim)cancelAnimationFrame(pAnim);
-  A.q1=A.q2=A.q3=null;curQ=1;
+  A.q1=A.q2=A.q3=null;curQ=1;currentPct=null;
   resultAsset=null;resultAssetPromise=null;
   document.getElementById('resultScreen').classList.remove('active');
   document.getElementById('topBar').style.display='';
