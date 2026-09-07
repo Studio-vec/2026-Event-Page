@@ -11,9 +11,16 @@
       --primary:#dc2626; --primary-dark:#991b1b;
       --accent:#fef08a; --accent-dark:#eab308;
       --text:#111111; --text-2:#666666; --text-3:#aaaaaa; --r:16px;
+      --dbg:#0a0a0f; --dsurface:#17171f; --dsurface2:#1e1e28; --dborder:#2a2a35;
+      --dtext:#f5f5f7; --dtext-2:#a5a5b2; --dtext-3:#63636f;
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{height:100%;background:var(--bg);font-family:-apple-system,sans-serif;color:var(--text);overflow-x:hidden;}
+    html,body{height:100%;background:var(--bg);font-family:-apple-system,sans-serif;color:var(--text);overflow-x:hidden;transition:background-color .4s ease;}
+    body.dark-result{background:var(--dbg);}
+
+    #blackout{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .5s cubic-bezier(.4,0,.2,1);z-index:500;}
+    #blackout.dim{opacity:.5;}
+    #blackout.show{opacity:1;}
 
     .page{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;}
 
@@ -143,8 +150,11 @@
     @keyframes ld{0%,100%{opacity:.25;transform:translateY(0);}50%{opacity:1;transform:translateY(-6px);}}
 
     /* 결과 */
-    #resultScreen{display:none;flex-direction:column;overflow-y:auto;}
+    #resultScreen{display:none;flex-direction:column;overflow-y:auto;flex:1;}
     #resultScreen.active{display:flex;}
+    body.dark-result #resultScreen{
+      background:radial-gradient(circle at 50% 18%,#1c0d0f 0%,var(--dbg) 55%);
+    }
 
     .result-scroll{padding:24px 24px max(env(safe-area-inset-bottom,0px),90px);display:flex;flex-direction:column;gap:14px;}
 
@@ -210,6 +220,23 @@
       font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;
     }
     .retry-btn:active{opacity:.7;}
+
+    /* 결과 화면 다크 테마 */
+    body.dark-result .result-eyebrow{color:#fca5a5;}
+    body.dark-result .result-name{color:var(--dtext);}
+    body.dark-result .result-en{color:var(--dtext-2);}
+    body.dark-result .result-pct{background:rgba(220,38,38,.18);color:#fca5a5;}
+    body.dark-result .torch-card{background:var(--dsurface);}
+    body.dark-result .torch-glow{width:230px;height:230px;top:-45px;}
+    body.dark-result .result-flame-wrap{width:150px;}
+    body.dark-result .desc-card{background:var(--dsurface);}
+    body.dark-result .desc-text{color:var(--dtext-2);}
+    body.dark-result .trait{background:var(--dsurface2);color:var(--dtext-2);border-color:var(--dborder);}
+    body.dark-result .share-btn{background:var(--dsurface2);color:var(--dtext);}
+    body.dark-result .retry-btn{background:var(--dsurface2);color:var(--dtext-3);}
+    body.dark-result .tap-hint{color:var(--dtext-3);}
+    body.dark-result .home-bar{background:rgba(10,10,15,.9);border-top-color:var(--dborder);}
+    body.dark-result .home-btn{background:var(--dsurface2);color:var(--dtext-2);}
 
     /* 홈 바 */
     .home-bar{
@@ -410,6 +437,8 @@
 
 </div><!-- /page -->
 
+<div id="blackout"></div>
+
 <!-- 홈 바 -->
 <div class="home-bar" id="homeBar">
   <a href="index.html" class="home-btn">← 메인 메뉴</a>
@@ -579,6 +608,9 @@ function startGenerate(){
   const namePart=userName?`${userName}님`:'당신';
   label.innerHTML=`${namePart}이 AI라는 불꽃을 어떻게 다루는지<br>분석하고 있어요…`;
   setTimeout(()=>{label.innerHTML=`${namePart}만의 프로메테온 유형을<br>완성하고 있습니다…`;},1100);
+  const bo=document.getElementById('blackout');
+  setTimeout(()=>{bo.classList.add('dim');},1300);
+  setTimeout(()=>{bo.classList.remove('dim');bo.classList.add('show');},1750);
   setTimeout(showResult,2200);
 }
 
@@ -586,8 +618,11 @@ function showResult(){
   document.getElementById('topBar').style.display='none';
   document.getElementById('slides').style.display='none';
   document.getElementById('progressDots').style.display='none';
+  document.body.classList.add('dark-result');
   const rs=document.getElementById('resultScreen');
   rs.classList.add('active');
+  const bo=document.getElementById('blackout');
+  setTimeout(()=>{bo.classList.remove('show');bo.classList.remove('dim');},120);
 
   const key=A.q1+A.q2+A.q3;
   const T=TYPES[key]||TYPES['CAB'];
@@ -656,8 +691,11 @@ async function buildResultBlob(){
   const canvas=document.getElementById('exportCanvas');
   const ctx=canvas.getContext('2d');
   const W=720,H=1080,key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'],pct=currentPct!=null?currentPct:T.pct;
-  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#f4f4f4';ctx.fillRect(40,40,W-80,H-80);
+  ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,W,H);
+  const bgGlow=ctx.createRadialGradient(W/2,220,0,W/2,220,420);
+  bgGlow.addColorStop(0,'#1c0d0f');bgGlow.addColorStop(1,'#0a0a0f');
+  ctx.fillStyle=bgGlow;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#17171f';ctx.fillRect(40,40,W-80,H-80);
   const li=s=>new Promise(r=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s;});
   const hI=await li(HANDLE[A.q2]);
   const hW=160,hR=hI?hI.naturalHeight/hI.naturalWidth:2.5,hH=Math.round(hW*hR);
@@ -675,8 +713,8 @@ async function buildResultBlob(){
     ctx.fillRect(bx,by,bw-2,bh-br);
   });
   // 불꽃 글로우
-  const glowGrad=ctx.createRadialGradient(cx,fY+fH*.5,0,cx,fY+fH*.5,fW*.7);
-  glowGrad.addColorStop(0,GLOW[A.q1].replace('.5','.15'));
+  const glowGrad=ctx.createRadialGradient(cx,fY+fH*.5,0,cx,fY+fH*.5,fW*.85);
+  glowGrad.addColorStop(0,GLOW[A.q1].replace('.5','.35'));
   glowGrad.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=glowGrad;ctx.fillRect(cx-fW,fY-20,fW*2,fH+40);
 
@@ -685,11 +723,11 @@ async function buildResultBlob(){
   if(hI)ctx.drawImage(hI,cx-hW/2,handleY,hW,hH);
   const bY=handleY+hH+30;
   ctx.textAlign='center';
-  ctx.fillStyle='#dc2626';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(userName?`${userName}님은`:'나의 프로메테온 유형',cx,bY+40);
-  ctx.fillStyle='#111111';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(userName?`${T.name} 타입`:T.name,cx,bY+96);
-  ctx.fillStyle='#666666';ctx.font='20px -apple-system,sans-serif';ctx.fillText(T.en,cx,bY+130);
-  ctx.fillStyle='#dc2626';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(`전체 참가자 중 ${pct}%가 선택한 유형`,cx,bY+156);
-  ctx.fillStyle='#aaaaaa';ctx.font='14px -apple-system,sans-serif';
+  ctx.fillStyle='#f87171';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(userName?`${userName}님은`:'나의 프로메테온 유형',cx,bY+40);
+  ctx.fillStyle='#f5f5f7';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(userName?`${T.name} 타입`:T.name,cx,bY+96);
+  ctx.fillStyle='#a5a5b2';ctx.font='20px -apple-system,sans-serif';ctx.fillText(T.en,cx,bY+130);
+  ctx.fillStyle='#f87171';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(`전체 참가자 중 ${pct}%가 선택한 유형`,cx,bY+156);
+  ctx.fillStyle='#8a8a96';ctx.font='14px -apple-system,sans-serif';
   const words=T.desc;let line='',ly=bY+190;
   for(const ch of words){const t=line+ch;if(ctx.measureText(t).width>W-160){ctx.fillText(line,cx,ly);line=ch;ly+=24;}else line=t;}
   ctx.fillText(line,cx,ly);
@@ -768,6 +806,8 @@ function retry(){
   if(pAnim)cancelAnimationFrame(pAnim);
   A.q1=A.q2=A.q3=null;curQ=1;currentPct=null;
   resultAsset=null;resultAssetPromise=null;
+  document.body.classList.remove('dark-result');
+  document.getElementById('blackout').classList.remove('show','dim');
   document.getElementById('resultScreen').classList.remove('active');
   document.getElementById('topBar').style.display='';
   document.getElementById('slides').style.display='';
