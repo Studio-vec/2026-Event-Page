@@ -42,6 +42,13 @@
       font-size:14px; font-weight:800; color:var(--primary);
       border:1.5px solid var(--primary); padding:4px 10px; border-radius:20px;
     }
+    .header-right { display:flex; align-items:center; gap:8px; }
+    .lang-toggle {
+      font-size:12px; font-weight:800; color:var(--text-2);
+      border:1.5px solid var(--border); padding:5px 10px; border-radius:20px;
+      background:#fff; cursor:pointer; transition:opacity .12s;
+    }
+    .lang-toggle:active { opacity:.6; }
 
     main { flex:1; display:flex; flex-direction:column; justify-content:center; gap:36px; padding:8px 0 24px; }
 
@@ -171,24 +178,27 @@
         <div class="logo-bot">The Promethean Moment</div>
       </div>
     </div>
-    <div class="year-tag">2026</div>
+    <div class="header-right">
+      <div class="year-tag">2026</div>
+      <button type="button" class="lang-toggle" onclick="toggleLang()">EN</button>
+    </div>
   </header>
 
   <main>
     <div class="hero-block">
       <div class="accent-bar"></div>
-      <h1 class="hero-title">프로메테우스의<br><span class="accent">불꽃</span>을 잡아라!</h1>
+      <h1 class="hero-title" data-i18n-html="hero_title">프로메테우스의<br><span class="accent">불꽃</span>을 잡아라!</h1>
     </div>
 
     <div class="cta-list">
       <div class="flow-card">
-        <div class="flow-cap">🎯 참여 순서</div>
+        <div class="flow-cap" data-i18n="flow_cap">🎯 참여 순서</div>
 
         <a href="info.html#mission1" class="flow-row">
           <div class="flow-circ">1</div>
           <div class="flow-body">
-            <div class="flow-title">🔥 불꽃을 찾아라</div>
-            <div class="flow-desc">세션장 불꽃 스티커 모아 기념 티셔츠 받기</div>
+            <div class="flow-title" data-i18n="step1_title">🔥 불꽃을 찾아라</div>
+            <div class="flow-desc" data-i18n="step1_desc">세션장 불꽃 스티커 모아 기념 티셔츠 받기</div>
           </div>
           <span class="flow-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
         </a>
@@ -198,8 +208,8 @@
         <a href="info.html#mission2" class="flow-row">
           <div class="flow-circ">2</div>
           <div class="flow-body">
-            <div class="flow-title">📰 매경플러스 구독</div>
-            <div class="flow-desc">구독 등록 화면 인증하고 추가 상품 받기</div>
+            <div class="flow-title" data-i18n="step2_title">📰 매경플러스 구독</div>
+            <div class="flow-desc" data-i18n="step2_desc">구독 등록 화면 인증하고 추가 상품 받기</div>
           </div>
           <span class="flow-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
         </a>
@@ -209,19 +219,19 @@
         <a href="info.html#lottery" class="flow-row flow-row-final">
           <div class="flow-circ flow-circ-final">🎁</div>
           <div class="flow-body">
-            <div class="flow-title">Z플립 추첨 응모</div>
-            <div class="flow-desc">두 미션 완료 인증 후 명함 제출하면 자동 응모</div>
+            <div class="flow-title" data-i18n="step3_title">Z플립 추첨 응모</div>
+            <div class="flow-desc" data-i18n="step3_desc">두 미션 완료 인증 후 명함 제출하면 자동 응모</div>
           </div>
           <span class="flow-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
         </a>
       </div>
 
-      <div class="section-cap">더 알아보기</div>
+      <div class="section-cap" data-i18n="section_cap">더 알아보기</div>
       <a href="quiz.html" class="cta cta-quiz">
         <div class="cta-icon">🔥</div>
         <div class="cta-body">
-          <div class="cta-label">불꽃 유형 테스트</div>
-          <div class="cta-hint">AI가 알려주는 나의 불꽃 유형</div>
+          <div class="cta-label" data-i18n="quiz_label">불꽃 유형 테스트</div>
+          <div class="cta-hint" data-i18n="quiz_hint">AI가 알려주는 나의 불꽃 유형</div>
         </div>
         <span class="cta-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
       </a>
@@ -231,10 +241,43 @@
   <footer>
     <div>
       <div class="footer-date">2026. 09. 08 – 09. 10</div>
-      <div class="footer-place">📍 서울 신라호텔</div>
+      <div class="footer-place" data-i18n="footer_place">📍 서울 신라호텔</div>
     </div>
     <div class="footer-wkf">WORLD<br>KNOWLEDGE<br>FORUM</div>
   </footer>
 </div>
+<script>
+const I18N = {
+  hero_title: { ko:'프로메테우스의<br><span class="accent">불꽃</span>을 잡아라!', en:'Catch Prometheus\'<br><span class="accent">Flame</span>!' },
+  flow_cap: { ko:'🎯 참여 순서', en:'🎯 How to Join' },
+  step1_title: { ko:'🔥 불꽃을 찾아라', en:'🔥 Find the Flame' },
+  step1_desc: { ko:'세션장 불꽃 스티커 모아 기념 티셔츠 받기', en:'Collect flame stickers from session halls for a free t-shirt' },
+  step2_title: { ko:'📰 매경플러스 구독', en:'📰 Subscribe to MK Plus' },
+  step2_desc: { ko:'구독 등록 화면 인증하고 추가 상품 받기', en:'Show your subscription confirmation for a bonus gift' },
+  step3_title: { ko:'Z플립 추첨 응모', en:'Enter the Z Flip Raffle' },
+  step3_desc: { ko:'두 미션 완료 인증 후 명함 제출하면 자동 응모', en:'Finish both missions and submit your business card to enter' },
+  section_cap: { ko:'더 알아보기', en:'Learn More' },
+  quiz_label: { ko:'불꽃 유형 테스트', en:'Flame Type Quiz' },
+  quiz_hint: { ko:'AI가 알려주는 나의 불꽃 유형', en:'Discover your flame type with AI' },
+  footer_place: { ko:'📍 서울 신라호텔', en:'📍 The Shilla Seoul' },
+};
+function getLang(){
+  const stored=localStorage.getItem('wkf_lang');
+  if(stored) return stored;
+  return (navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+}
+function applyLang(){
+  const lang=getLang();
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const d=I18N[el.dataset.i18n]; if(d) el.textContent=d[lang]; });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const d=I18N[el.dataset.i18nHtml]; if(d) el.innerHTML=d[lang]; });
+  document.querySelectorAll('.lang-toggle').forEach(b=>{ b.textContent = lang==='ko' ? 'EN' : '한국어'; });
+}
+function toggleLang(){
+  localStorage.setItem('wkf_lang', getLang()==='ko' ? 'en' : 'ko');
+  applyLang();
+}
+applyLang();
+</script>
 </body>
 </html>

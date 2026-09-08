@@ -66,6 +66,13 @@
       font-size:14px;font-weight:700;color:var(--primary);
       background:rgba(220,38,38,.08);padding:5px 12px;border-radius:20px;
     }
+    .lang-toggle{
+      font-size:12px;font-weight:800;color:var(--text-2);
+      border:1.5px solid var(--border);padding:5px 10px;border-radius:20px;
+      background:#fff;cursor:pointer;transition:opacity .12s;flex-shrink:0;
+    }
+    .lang-toggle:active{opacity:.6;}
+    .name-lang-row{display:flex;justify-content:flex-end;margin-bottom:-6px;}
 
     /* 진행 도트 */
     .progress-dots{display:flex;justify-content:center;gap:8px;padding:16px 0;}
@@ -340,19 +347,21 @@
 
   <!-- 이름 입력 -->
   <div class="name-screen" id="nameScreen">
-    <div class="name-eyebrow">WKF 2026 · 프로메테온 유형 테스트</div>
-    <div class="name-title">당신의 이름을<br>알려주세요</div>
-    <div class="name-sub">결과에 이름을 담아드릴게요</div>
+    <div class="name-lang-row"><button type="button" class="lang-toggle" onclick="toggleLang()">EN</button></div>
+    <div class="name-eyebrow" data-i18n="name_eyebrow">WKF 2026 · 프로메테온 유형 테스트</div>
+    <div class="name-title" data-i18n-html="name_title">당신의 이름을<br>알려주세요</div>
+    <div class="name-sub" data-i18n="name_sub">결과에 이름을 담아드릴게요</div>
     <input type="text" id="nameInput" class="name-input" placeholder="이름" maxlength="12">
-    <button class="name-start-btn" id="nameStartBtn">시작하기 →</button>
-    <div class="name-skip" id="nameSkip">건너뛰기</div>
+    <button class="name-start-btn" id="nameStartBtn" data-i18n="name_start_btn">시작하기 →</button>
+    <div class="name-skip" id="nameSkip" data-i18n="name_skip">건너뛰기</div>
   </div>
 
   <!-- 상단바 -->
   <div class="top-bar" id="topBar" style="display:none">
     <a href="index.html" class="back">‹</a>
-    <div class="bar-title">프로메테온 유형 테스트</div>
+    <div class="bar-title" data-i18n="quiz_bar_title">프로메테온 유형 테스트</div>
     <div class="step-pill" id="stepPill">1 / 3</div>
+    <button type="button" class="lang-toggle" onclick="toggleLang()">EN</button>
   </div>
 
   <!-- 진행 도트 -->
@@ -368,23 +377,23 @@
     <!-- Q1 -->
     <div class="slide active" id="q1">
       <div>
-        <div class="q-num">Q1 · 성향</div>
-        <div class="q-text">AI 툴을 처음 접했을 때<br>당신의 행동은?</div>
+        <div class="q-num" data-i18n="q1_num">Q1 · 성향</div>
+        <div class="q-text" data-i18n-html="q1_text">AI 툴을 처음 접했을 때<br>당신의 행동은?</div>
       </div>
       <div class="choices">
         <div class="choice" onclick="pick(1,'A',this)">
           <div class="choice-letter">A</div>
-          <div class="choice-text">바로 사용해본다</div>
+          <div class="choice-text" data-i18n="q1a">바로 사용해본다</div>
           <div class="choice-check">✓</div>
         </div>
         <div class="choice" onclick="pick(1,'B',this)">
           <div class="choice-letter">B</div>
-          <div class="choice-text">원리부터 파악한다</div>
+          <div class="choice-text" data-i18n="q1b">원리부터 파악한다</div>
           <div class="choice-check">✓</div>
         </div>
         <div class="choice" onclick="pick(1,'C',this)">
           <div class="choice-letter">C</div>
-          <div class="choice-text">트렌드를 지켜본다</div>
+          <div class="choice-text" data-i18n="q1c">트렌드를 지켜본다</div>
           <div class="choice-check">✓</div>
         </div>
       </div>
@@ -393,23 +402,23 @@
     <!-- Q2 -->
     <div class="slide enter-right" id="q2">
       <div>
-        <div class="q-num">Q2 · 가치관</div>
-        <div class="q-text">협업할 때 가장 중요하게<br>생각하는 것은?</div>
+        <div class="q-num" data-i18n="q2_num">Q2 · 가치관</div>
+        <div class="q-text" data-i18n-html="q2_text">협업할 때 가장 중요하게<br>생각하는 것은?</div>
       </div>
       <div class="choices">
         <div class="choice" onclick="pick(2,'A',this)">
           <div class="choice-letter">A</div>
-          <div class="choice-text">강력한 리더십</div>
+          <div class="choice-text" data-i18n="q2a">강력한 리더십</div>
           <div class="choice-check">✓</div>
         </div>
         <div class="choice" onclick="pick(2,'B',this)">
           <div class="choice-letter">B</div>
-          <div class="choice-text">유연한 소통</div>
+          <div class="choice-text" data-i18n="q2b">유연한 소통</div>
           <div class="choice-check">✓</div>
         </div>
         <div class="choice" onclick="pick(2,'C',this)">
           <div class="choice-letter">C</div>
-          <div class="choice-text">창의적 혁신</div>
+          <div class="choice-text" data-i18n="q2c">창의적 혁신</div>
           <div class="choice-check">✓</div>
         </div>
       </div>
@@ -418,18 +427,18 @@
     <!-- Q3 -->
     <div class="slide enter-right" id="q3">
       <div>
-        <div class="q-num">Q3 · 미래관</div>
-        <div class="q-text">당신이 꿈꾸는<br>공존지능의 미래는?</div>
+        <div class="q-num" data-i18n="q3_num">Q3 · 미래관</div>
+        <div class="q-text" data-i18n-html="q3_text">당신이 꿈꾸는<br>공존지능의 미래는?</div>
       </div>
       <div class="choices">
         <div class="choice" onclick="pick(3,'A',this)">
           <div class="choice-letter">A</div>
-          <div class="choice-text">화려하고 역동적인 변화</div>
+          <div class="choice-text" data-i18n="q3a">화려하고 역동적인 변화</div>
           <div class="choice-check">✓</div>
         </div>
         <div class="choice" onclick="pick(3,'B',this)">
           <div class="choice-letter">B</div>
-          <div class="choice-text">은은하고 안정적인 발전</div>
+          <div class="choice-text" data-i18n="q3b">은은하고 안정적인 발전</div>
           <div class="choice-check">✓</div>
         </div>
       </div>
@@ -439,7 +448,7 @@
     <div class="slide enter-right" id="loadingScreen">
       <div class="loading-inner">
         <div class="dots-row"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
-        <div class="loading-label" id="loadingLabel">당신만의 프로메테온 불꽃을<br>완성하고 있습니다…</div>
+        <div class="loading-label" id="loadingLabel" data-i18n-html="loading_label_default">당신만의 프로메테온 불꽃을<br>완성하고 있습니다…</div>
       </div>
     </div>
 
@@ -469,7 +478,7 @@
         </div>
 
       </div>
-      <div class="tap-hint">✦ 불꽃을 누르거나, 끌어서 버튼에 옮겨보세요</div>
+      <div class="tap-hint" data-i18n="tap_hint">✦ 불꽃을 누르거나, 끌어서 버튼에 옮겨보세요</div>
 
       <div class="desc-card">
         <div class="desc-text" id="rDesc"></div>
@@ -478,10 +487,10 @@
       <div class="traits" id="rTraits"></div>
 
       <div class="action-row">
-        <button class="act-btn save-btn scorchable" onclick="saveImg()">📥 저장</button>
-        <button class="act-btn share-btn scorchable" onclick="shareRes()">🔗 공유</button>
+        <button class="act-btn save-btn scorchable" onclick="saveImg()" data-i18n="save_btn">📥 저장</button>
+        <button class="act-btn share-btn scorchable" onclick="shareRes()" data-i18n="share_btn">🔗 공유</button>
       </div>
-      <button class="retry-btn scorchable" onclick="retry()">↺ 다시 테스트하기</button>
+      <button class="retry-btn scorchable" onclick="retry()" data-i18n="retry_btn">↺ 다시 테스트하기</button>
     </div>
   </div>
 
@@ -491,7 +500,7 @@
 
 <!-- 홈 바 -->
 <div class="home-bar" id="homeBar">
-  <a href="index.html" class="home-btn">← 메인 메뉴</a>
+  <a href="index.html" class="home-btn" data-i18n="home_btn">← 메인 메뉴</a>
 </div>
 
 <canvas id="exportCanvas" width="720" height="1080"></canvas>
@@ -499,14 +508,14 @@
 <!-- 공유 시트 -->
 <div class="share-sheet-backdrop" id="shareSheet" onclick="if(event.target===this)closeShareSheet()">
   <div class="share-sheet">
-    <div class="share-sheet-title">어디에 공유할까요?</div>
-    <button class="share-opt" id="shareX"><span class="share-opt-emoji">✖️</span>X (트위터)</button>
+    <div class="share-sheet-title" data-i18n="share_sheet_title">어디에 공유할까요?</div>
+    <button class="share-opt" id="shareX"><span class="share-opt-emoji">✖️</span>X (Twitter)</button>
     <button class="share-opt" id="shareThreads"><span class="share-opt-emoji">🧵</span>Threads</button>
-    <button class="share-opt" id="shareKakao"><span class="share-opt-emoji">💬</span><span>카카오톡<span class="share-opt-sub">이미지 저장 후 대화방에 붙여넣기</span></span></button>
-    <button class="share-opt" id="shareInsta"><span class="share-opt-emoji">📸</span><span>인스타그램<span class="share-opt-sub">이미지 저장 후 스토리/게시물에 추가</span></span></button>
-    <button class="share-opt" id="shareSaveImg"><span class="share-opt-emoji">📥</span>이미지 저장</button>
-    <button class="share-opt" id="shareCopy"><span class="share-opt-emoji">📋</span>텍스트 복사</button>
-    <button class="share-sheet-close" onclick="closeShareSheet()">닫기</button>
+    <button class="share-opt" id="shareKakao"><span class="share-opt-emoji">💬</span><span><span data-i18n="share_kakao">카카오톡</span><span class="share-opt-sub" data-i18n="share_kakao_sub">이미지 저장 후 대화방에 붙여넣기</span></span></button>
+    <button class="share-opt" id="shareInsta"><span class="share-opt-emoji">📸</span><span><span data-i18n="share_insta">인스타그램</span><span class="share-opt-sub" data-i18n="share_insta_sub">이미지 저장 후 스토리/게시물에 추가</span></span></button>
+    <button class="share-opt" id="shareSaveImg"><span class="share-opt-emoji">📥</span><span data-i18n="share_save_img">이미지 저장</span></button>
+    <button class="share-opt" id="shareCopy"><span class="share-opt-emoji">📋</span><span data-i18n="share_copy_text">텍스트 복사</span></button>
+    <button class="share-sheet-close" onclick="closeShareSheet()" data-i18n="share_close">닫기</button>
   </div>
 </div>
 
@@ -515,8 +524,97 @@ const A={q1:null,q2:null,q3:null};
 let pAnim=null,curQ=1;
 let resultAsset=null,resultAssetPromise=null;
 let currentPct=null;
+let pctIsLive=false;
 let userName='';
 let particleBoost=null;
+
+const I18N = {
+  name_eyebrow: { ko:'WKF 2026 · 프로메테온 유형 테스트', en:'WKF 2026 · Promethean Type Quiz' },
+  name_title: { ko:'당신의 이름을<br>알려주세요', en:'What\'s Your<br>Name?' },
+  name_sub: { ko:'결과에 이름을 담아드릴게요', en:'We\'ll personalize your result with it' },
+  name_input_ph: { ko:'이름', en:'Name' },
+  name_start_btn: { ko:'시작하기 →', en:'Start →' },
+  name_skip: { ko:'건너뛰기', en:'Skip' },
+  quiz_bar_title: { ko:'프로메테온 유형 테스트', en:'Promethean Type Quiz' },
+  q1_num: { ko:'Q1 · 성향', en:'Q1 · Style' },
+  q1_text: { ko:'AI 툴을 처음 접했을 때<br>당신의 행동은?', en:'When you first try<br>an AI tool, what do you do?' },
+  q1a: { ko:'바로 사용해본다', en:'Jump right in and try it' },
+  q1b: { ko:'원리부터 파악한다', en:'Understand how it works first' },
+  q1c: { ko:'트렌드를 지켜본다', en:'Wait and watch the trend' },
+  q2_num: { ko:'Q2 · 가치관', en:'Q2 · Values' },
+  q2_text: { ko:'협업할 때 가장 중요하게<br>생각하는 것은?', en:'What matters most<br>to you when collaborating?' },
+  q2a: { ko:'강력한 리더십', en:'Strong leadership' },
+  q2b: { ko:'유연한 소통', en:'Flexible communication' },
+  q2c: { ko:'창의적 혁신', en:'Creative innovation' },
+  q3_num: { ko:'Q3 · 미래관', en:'Q3 · Outlook' },
+  q3_text: { ko:'당신이 꿈꾸는<br>공존지능의 미래는?', en:'What future of co-intelligence<br>do you dream of?' },
+  q3a: { ko:'화려하고 역동적인 변화', en:'Bold, dynamic change' },
+  q3b: { ko:'은은하고 안정적인 발전', en:'Quiet, steady progress' },
+  loading_label_default: { ko:'당신만의 프로메테온 불꽃을<br>완성하고 있습니다…', en:'Completing your own<br>Promethean flame…' },
+  tap_hint: { ko:'✦ 불꽃을 누르거나, 끌어서 버튼에 옮겨보세요', en:'✦ Tap the flame, or drag it onto a button' },
+  save_btn: { ko:'📥 저장', en:'📥 Save' },
+  share_btn: { ko:'🔗 공유', en:'🔗 Share' },
+  retry_btn: { ko:'↺ 다시 테스트하기', en:'↺ Retake Quiz' },
+  home_btn: { ko:'← 메인 메뉴', en:'← Main Menu' },
+  share_sheet_title: { ko:'어디에 공유할까요?', en:'Share to...' },
+  share_kakao: { ko:'카카오톡', en:'KakaoTalk' },
+  share_kakao_sub: { ko:'이미지 저장 후 대화방에 붙여넣기', en:'Save the image, then paste it into the chat' },
+  share_insta: { ko:'인스타그램', en:'Instagram' },
+  share_insta_sub: { ko:'이미지 저장 후 스토리/게시물에 추가', en:'Save the image, then add it to your story/post' },
+  share_save_img: { ko:'이미지 저장', en:'Save Image' },
+  share_copy_text: { ko:'텍스트 복사', en:'Copy Text' },
+  share_close: { ko:'닫기', en:'Close' },
+  next_btn: { ko:'다음', en:'Next' },
+  see_result_btn: { ko:'결과 확인 →', en:'See Result →' },
+  step_done: { ko:'완성!', en:'Done!' },
+  result_eyebrow_default: { ko:'나의 프로메테온 유형', en:'My Promethean Type' },
+  result_eyebrow_named: { ko:'{name}님은', en:'{name} is a' },
+  pct_default: { ko:'🔥 전체 참가자 중 {pct}%가 선택한 유형', en:'🔥 Chosen by {pct}% of all participants' },
+  pct_live: { ko:'🔥 전체 참가자 중 {pct}%가 선택한 유형 (실시간)', en:'🔥 Chosen by {pct}% of all participants (live)' },
+  loading_step1: { ko:'{name}이 AI라는 불꽃을 어떻게 다루는지<br>분석하고 있어요…', en:'Analyzing {name} approach to<br>the flame of AI…' },
+  loading_step2: { ko:'{name}만의 프로메테온 유형을<br>완성하고 있습니다…', en:'Finalizing {name} own<br>Promethean type…' },
+  who_named: { ko:'{name}님은 ', en:'{name} is ' },
+  share_text_template: {
+    ko:'WKF 2026 프로메테온 유형: {who}"{name}" 타입\n{nameOther} · 전체 참가자 중 {pct}%\n\n{desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼',
+    en:'WKF 2026 Promethean Type: {who}"{name}"\n{pct}% of all participants\n\n{desc}\n\n#WKF2026 #ThePrometheanMoment #WorldKnowledgeForum'
+  },
+  alert_kakao: { ko:'이미지가 저장되었습니다! 카카오톡 대화방에 이미지와 함께 붙여넣어 주세요.', en:'Image saved! Paste it into your KakaoTalk chat along with the text.' },
+  alert_insta: { ko:'이미지가 저장되었습니다! 인스타그램 스토리/게시물에 추가해 주세요.', en:'Image saved! Add it to your Instagram story or post.' },
+  alert_copy: { ko:'클립보드에 복사되었습니다!', en:'Copied to clipboard!' },
+  canvas_footer: { ko:'2026. 09. 08–10  ·  서울 신라호텔  ·  World Knowledge Forum', en:'Sep 8–10, 2026  ·  The Shilla Seoul  ·  World Knowledge Forum' },
+};
+function getLang(){
+  const stored=localStorage.getItem('wkf_lang');
+  if(stored) return stored;
+  return (navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+}
+function t(key,vars){
+  const lang=getLang();
+  const entry=I18N[key];
+  let s=entry?(entry[lang]||entry.ko):key;
+  if(vars) Object.keys(vars).forEach(k=>{ s=s.split('{'+k+'}').join(vars[k]); });
+  return s;
+}
+function applyLang(){
+  const lang=getLang();
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const d=I18N[el.dataset.i18n]; if(d) el.textContent=d[lang]; });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const d=I18N[el.dataset.i18nHtml]; if(d) el.innerHTML=d[lang]; });
+  document.querySelectorAll('.lang-toggle').forEach(b=>{ b.textContent = lang==='ko' ? 'EN' : '한국어'; });
+  const ni=document.getElementById('nameInput'); if(ni) ni.placeholder=t('name_input_ph');
+  refreshDynamicText();
+}
+function toggleLang(){
+  localStorage.setItem('wkf_lang', getLang()==='ko' ? 'en' : 'ko');
+  applyLang();
+}
+function refreshDynamicText(){
+  const nextBtn=document.getElementById('nextBtn');
+  if(nextBtn) nextBtn.textContent = curQ===3 ? t('see_result_btn') : t('next_btn');
+  const stepPill=document.getElementById('stepPill');
+  if(stepPill && !document.getElementById('loadingScreen').classList.contains('active')) stepPill.textContent=curQ+' / 3';
+  if(document.getElementById('resultScreen').classList.contains('active')) renderResultText();
+}
 
 function startQuiz(){
   const val=document.getElementById('nameInput').value.trim();
@@ -704,24 +802,24 @@ function buildFlame(q1){
 }
 
 const TYPES={
-  AAA:{name:'열정의 선구자',en:'Passionate Pioneer',badge:'🔥 선구자형',pct:7,traits:['즉각적 행동','카리스마','변화 주도'],desc:'새로운 기술을 두려움 없이 받아들이고, 강력한 리더십으로 팀을 이끄는 타입. 역동적인 에너지로 AI 시대를 가장 먼저 만들어갑니다.'},
-  AAB:{name:'열정의 수호자',en:'Passionate Guardian',badge:'🔥 수호자형',pct:6,traits:['실행력','안정 추구','집중력'],desc:'강한 실행력과 흔들리지 않는 중심을 동시에 가진 타입. 빠른 적응력으로 팀의 든든한 버팀목이 됩니다.'},
-  ABA:{name:'열정의 건축가',en:'Passionate Architect',badge:'🔥 건축가형',pct:5,traits:['협력','실행력','구조 설계'],desc:'팀워크를 기반으로 빠른 실행력을 발휘하는 타입. 소통으로 최적의 AI 활용 전략을 구현합니다.'},
-  ABB:{name:'열정의 조율자',en:'Passionate Harmonizer',badge:'🔥 조율자형',pct:6,traits:['공감력','유연성','균형'],desc:'빠른 실행과 세심한 소통을 동시에 갖춘 타입. 팀 내 갈등을 해소하며 창의적 합의를 이끌어냅니다.'},
-  ACA:{name:'열정의 혁신가',en:'Passionate Innovator',badge:'🔥 혁신가형',pct:4,traits:['창의력','도전정신','돌파력'],desc:'전통의 틀을 깨고 새로운 방식을 만드는 타입. 열정과 창의의 조합으로 AI 시대의 판도를 바꿉니다.'},
-  ACB:{name:'열정의 몽상가',en:'Passionate Dreamer',badge:'🔥 몽상가형',pct:3,traits:['상상력','열정','고요한 집중'],desc:'화려한 비전을 꿈꾸지만 차분하게 실현해나가는 타입. 혁신과 실용이 공존합니다.'},
-  BAA:{name:'이성의 분석가',en:'Rational Analyst',badge:'🧠 분석가형',pct:7,traits:['논리력','체계성','리더십'],desc:'원리를 먼저 이해하고 명확한 근거로 팀을 이끄는 타입. 데이터 기반으로 AI 도구를 최적화합니다.'},
-  BAB:{name:'이성의 전략가',en:'Rational Strategist',badge:'🧠 전략가형',pct:6,traits:['통찰력','냉철함','지속성'],desc:'치밀한 분석으로 장기 전략을 수립하는 타입. AI 시대의 흐름을 정확히 읽어냅니다.'},
-  BBA:{name:'이성의 설계자',en:'Rational Designer',badge:'🧠 설계자형',pct:5,traits:['시스템 사고','소통','정밀함'],desc:'논리와 협력을 결합한 정밀한 설계자. 복잡한 AI 시스템을 체계적으로 구축합니다.'},
-  BBB:{name:'이성의 균형자',en:'Rational Balancer',badge:'🧠 균형자형',pct:8,traits:['안정성','분석력','공감'],desc:'논리와 공감을 모두 갖춘 이상적 협업자. 데이터로 말하면서도 사람의 마음을 놓치지 않습니다.'},
-  BCA:{name:'이성의 발명가',en:'Rational Inventor',badge:'🧠 발명가형',pct:4,traits:['독창성','논리','탐구심'],desc:'깊은 분석에서 전혀 새로운 아이디어를 이끌어내는 타입. AI 기술의 새로운 응용을 창조합니다.'},
-  BCB:{name:'이성의 탐구자',en:'Rational Explorer',badge:'🧠 탐구자형',pct:5,traits:['호기심','인내','정확성'],desc:'끊임없이 배우고 이해의 깊이를 더해가는 타입. 고요한 지식의 빛으로 주변을 밝힙니다.'},
-  CAA:{name:'조화의 개척자',en:'Harmony Pioneer',badge:'🌿 개척자형',pct:6,traits:['공존','추진력','포용력'],desc:'모두를 아우르며 앞장서는 타입. AI와 인간의 공존을 가장 중요한 가치로 여깁니다.'},
-  CAB:{name:'조화의 안내자',en:'Harmony Guide',badge:'🌿 안내자형',pct:7,traits:['배려','신중함','통합력'],desc:'모든 구성원이 함께 성장하도록 이끄는 타입. 따뜻한 리더십으로 공존지능 시대를 안내합니다.'},
-  CBA:{name:'조화의 연결자',en:'Harmony Connector',badge:'🌿 연결자형',pct:6,traits:['네트워킹','균형','소통'],desc:'사람과 기술, 아이디어를 연결하는 허브. 다양한 관점을 통합해 AI 시대의 시너지를 만듭니다.'},
-  CBB:{name:'조화의 수호자',en:'Harmony Protector',badge:'🌿 수호자형',pct:5,traits:['안정','신뢰','지속가능성'],desc:'느리지만 확실하게 지속 가능한 미래를 만드는 타입. AI와 인간이 공존하는 세상의 수호자입니다.'},
-  CCA:{name:'조화의 혁신가',en:'Harmony Innovator',badge:'🌿 혁신가형',pct:4,traits:['창의','포용','실험정신'],desc:'기존의 틀을 바꾸되 모든 구성원을 함께 데려가는 타입. 포용적 혁신으로 공존지능 세계를 설계합니다.'},
-  CCB:{name:'조화의 명상가',en:'Harmony Meditator',badge:'🌿 명상가형',pct:6,traits:['깊은 사색','공감','성숙함'],desc:'고요한 지혜로 공존의 길을 비추는 타입. 빠른 변화 속에서도 본질을 놓치지 않는 균형감을 지닙니다.'},
+  AAA:{name:{ko:'열정의 선구자',en:'Passionate Pioneer'},badge:{ko:'🔥 선구자형',en:'🔥 Pioneer'},pct:7,traits:{ko:['즉각적 행동','카리스마','변화 주도'],en:['Instant Action','Charisma','Leading Change']},desc:{ko:'새로운 기술을 두려움 없이 받아들이고, 강력한 리더십으로 팀을 이끄는 타입. 역동적인 에너지로 AI 시대를 가장 먼저 만들어갑니다.',en:'Fearlessly embraces new technology and leads the team with strong leadership. Shapes the AI era first, with dynamic energy.'}},
+  AAB:{name:{ko:'열정의 수호자',en:'Passionate Guardian'},badge:{ko:'🔥 수호자형',en:'🔥 Guardian'},pct:6,traits:{ko:['실행력','안정 추구','집중력'],en:['Execution','Seeks Stability','Focus']},desc:{ko:'강한 실행력과 흔들리지 않는 중심을 동시에 가진 타입. 빠른 적응력으로 팀의 든든한 버팀목이 됩니다.',en:'Combines strong execution with an unshakable center. Adapts quickly to become the team\'s reliable anchor.'}},
+  ABA:{name:{ko:'열정의 건축가',en:'Passionate Architect'},badge:{ko:'🔥 건축가형',en:'🔥 Architect'},pct:5,traits:{ko:['협력','실행력','구조 설계'],en:['Collaboration','Execution','Structural Design']},desc:{ko:'팀워크를 기반으로 빠른 실행력을 발휘하는 타입. 소통으로 최적의 AI 활용 전략을 구현합니다.',en:'Delivers fast execution built on teamwork. Uses communication to build the optimal AI strategy.'}},
+  ABB:{name:{ko:'열정의 조율자',en:'Passionate Harmonizer'},badge:{ko:'🔥 조율자형',en:'🔥 Harmonizer'},pct:6,traits:{ko:['공감력','유연성','균형'],en:['Empathy','Flexibility','Balance']},desc:{ko:'빠른 실행과 세심한 소통을 동시에 갖춘 타입. 팀 내 갈등을 해소하며 창의적 합의를 이끌어냅니다.',en:'Pairs fast execution with attentive communication. Resolves team conflict and drives creative consensus.'}},
+  ACA:{name:{ko:'열정의 혁신가',en:'Passionate Innovator'},badge:{ko:'🔥 혁신가형',en:'🔥 Innovator'},pct:4,traits:{ko:['창의력','도전정신','돌파력'],en:['Creativity','Boldness','Breakthrough Drive']},desc:{ko:'전통의 틀을 깨고 새로운 방식을 만드는 타입. 열정과 창의의 조합으로 AI 시대의 판도를 바꿉니다.',en:'Breaks with tradition to create new approaches. Combines passion and creativity to reshape the AI era.'}},
+  ACB:{name:{ko:'열정의 몽상가',en:'Passionate Dreamer'},badge:{ko:'🔥 몽상가형',en:'🔥 Dreamer'},pct:3,traits:{ko:['상상력','열정','고요한 집중'],en:['Imagination','Passion','Quiet Focus']},desc:{ko:'화려한 비전을 꿈꾸지만 차분하게 실현해나가는 타입. 혁신과 실용이 공존합니다.',en:'Dreams up bold visions and realizes them calmly. Innovation and practicality coexist.'}},
+  BAA:{name:{ko:'이성의 분석가',en:'Rational Analyst'},badge:{ko:'🧠 분석가형',en:'🧠 Analyst'},pct:7,traits:{ko:['논리력','체계성','리더십'],en:['Logic','Structure','Leadership']},desc:{ko:'원리를 먼저 이해하고 명확한 근거로 팀을 이끄는 타입. 데이터 기반으로 AI 도구를 최적화합니다.',en:'Understands principles first and leads with clear evidence. Optimizes AI tools through data.'}},
+  BAB:{name:{ko:'이성의 전략가',en:'Rational Strategist'},badge:{ko:'🧠 전략가형',en:'🧠 Strategist'},pct:6,traits:{ko:['통찰력','냉철함','지속성'],en:['Insight','Composure','Persistence']},desc:{ko:'치밀한 분석으로 장기 전략을 수립하는 타입. AI 시대의 흐름을 정확히 읽어냅니다.',en:'Builds long-term strategy through meticulous analysis. Reads the direction of the AI era with precision.'}},
+  BBA:{name:{ko:'이성의 설계자',en:'Rational Designer'},badge:{ko:'🧠 설계자형',en:'🧠 Designer'},pct:5,traits:{ko:['시스템 사고','소통','정밀함'],en:['Systems Thinking','Communication','Precision']},desc:{ko:'논리와 협력을 결합한 정밀한 설계자. 복잡한 AI 시스템을 체계적으로 구축합니다.',en:'A precise designer who blends logic with collaboration. Builds complex AI systems methodically.'}},
+  BBB:{name:{ko:'이성의 균형자',en:'Rational Balancer'},badge:{ko:'🧠 균형자형',en:'🧠 Balancer'},pct:8,traits:{ko:['안정성','분석력','공감'],en:['Stability','Analysis','Empathy']},desc:{ko:'논리와 공감을 모두 갖춘 이상적 협업자. 데이터로 말하면서도 사람의 마음을 놓치지 않습니다.',en:'An ideal collaborator with both logic and empathy. Speaks in data without losing sight of people.'}},
+  BCA:{name:{ko:'이성의 발명가',en:'Rational Inventor'},badge:{ko:'🧠 발명가형',en:'🧠 Inventor'},pct:4,traits:{ko:['독창성','논리','탐구심'],en:['Originality','Logic','Curiosity']},desc:{ko:'깊은 분석에서 전혀 새로운 아이디어를 이끌어내는 타입. AI 기술의 새로운 응용을 창조합니다.',en:'Draws entirely new ideas from deep analysis. Creates novel applications of AI technology.'}},
+  BCB:{name:{ko:'이성의 탐구자',en:'Rational Explorer'},badge:{ko:'🧠 탐구자형',en:'🧠 Explorer'},pct:5,traits:{ko:['호기심','인내','정확성'],en:['Curiosity','Patience','Accuracy']},desc:{ko:'끊임없이 배우고 이해의 깊이를 더해가는 타입. 고요한 지식의 빛으로 주변을 밝힙니다.',en:'Learns constantly and deepens understanding over time. Lights the way with a quiet glow of knowledge.'}},
+  CAA:{name:{ko:'조화의 개척자',en:'Harmony Pioneer'},badge:{ko:'🌿 개척자형',en:'🌿 Pioneer'},pct:6,traits:{ko:['공존','추진력','포용력'],en:['Coexistence','Drive','Inclusiveness']},desc:{ko:'모두를 아우르며 앞장서는 타입. AI와 인간의 공존을 가장 중요한 가치로 여깁니다.',en:'Leads from the front while bringing everyone along. Values the coexistence of AI and people above all.'}},
+  CAB:{name:{ko:'조화의 안내자',en:'Harmony Guide'},badge:{ko:'🌿 안내자형',en:'🌿 Guide'},pct:7,traits:{ko:['배려','신중함','통합력'],en:['Consideration','Prudence','Integration']},desc:{ko:'모든 구성원이 함께 성장하도록 이끄는 타입. 따뜻한 리더십으로 공존지능 시대를 안내합니다.',en:'Leads so that every member grows together. Guides the co-intelligence era with warm leadership.'}},
+  CBA:{name:{ko:'조화의 연결자',en:'Harmony Connector'},badge:{ko:'🌿 연결자형',en:'🌿 Connector'},pct:6,traits:{ko:['네트워킹','균형','소통'],en:['Networking','Balance','Communication']},desc:{ko:'사람과 기술, 아이디어를 연결하는 허브. 다양한 관점을 통합해 AI 시대의 시너지를 만듭니다.',en:'A hub connecting people, technology, and ideas. Integrates diverse perspectives into AI-era synergy.'}},
+  CBB:{name:{ko:'조화의 수호자',en:'Harmony Protector'},badge:{ko:'🌿 수호자형',en:'🌿 Protector'},pct:5,traits:{ko:['안정','신뢰','지속가능성'],en:['Stability','Trust','Sustainability']},desc:{ko:'느리지만 확실하게 지속 가능한 미래를 만드는 타입. AI와 인간이 공존하는 세상의 수호자입니다.',en:'Builds a sustainable future slowly but surely. A protector of a world where AI and people coexist.'}},
+  CCA:{name:{ko:'조화의 혁신가',en:'Harmony Innovator'},badge:{ko:'🌿 혁신가형',en:'🌿 Innovator'},pct:4,traits:{ko:['창의','포용','실험정신'],en:['Creativity','Inclusiveness','Experimentation']},desc:{ko:'기존의 틀을 바꾸되 모든 구성원을 함께 데려가는 타입. 포용적 혁신으로 공존지능 세계를 설계합니다.',en:'Changes the existing framework while bringing everyone along. Designs a co-intelligence world through inclusive innovation.'}},
+  CCB:{name:{ko:'조화의 명상가',en:'Harmony Meditator'},badge:{ko:'🌿 명상가형',en:'🌿 Meditator'},pct:6,traits:{ko:['깊은 사색','공감','성숙함'],en:['Deep Reflection','Empathy','Maturity']},desc:{ko:'고요한 지혜로 공존의 길을 비추는 타입. 빠른 변화 속에서도 본질을 놓치지 않는 균형감을 지닙니다.',en:'Lights the path of coexistence with quiet wisdom. Keeps sight of what matters even amid rapid change.'}},
 };
 
 function pick(q,ans,el){
@@ -742,7 +840,7 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
     curQ++;
     updateDots();
     document.getElementById('stepPill').textContent=curQ+' / 3';
-    document.getElementById('nextBtn').textContent=curQ===3?'결과 확인 →':'다음';
+    document.getElementById('nextBtn').textContent=curQ===3?t('see_result_btn'):t('next_btn');
     document.getElementById('nextBtn').classList.remove('visible');
     if(A['q'+curQ]) document.getElementById('nextBtn').classList.add('visible');
   } else {
@@ -765,15 +863,16 @@ function startGenerate(){
   ls.classList.add('active');
   document.getElementById('nextWrap').style.display='none';
   document.getElementById('progressDots').style.display='none';
-  document.getElementById('stepPill').textContent='완성!';
+  document.getElementById('stepPill').textContent=t('step_done');
   const gf=document.getElementById('genFlame');
   const gh=document.getElementById('genHandle');
   if(gf) gf.innerHTML=buildFlame(A.q1);
   if(gh) gh.src=HANDLE[A.q2];
   const label=document.getElementById('loadingLabel');
-  const namePart=userName?`${userName}님`:'당신';
-  label.innerHTML=`${namePart}이 AI라는 불꽃을 어떻게 다루는지<br>분석하고 있어요…`;
-  setTimeout(()=>{label.innerHTML=`${namePart}만의 프로메테온 유형을<br>완성하고 있습니다…`;},1100);
+  const lang=getLang();
+  const namePart = lang==='ko' ? (userName?`${userName}님`:'당신') : (userName?`${userName}'s`:'your');
+  label.innerHTML=t('loading_step1',{name:namePart});
+  setTimeout(()=>{label.innerHTML=t('loading_step2',{name:namePart});},1100);
   const bo=document.getElementById('blackout');
   setTimeout(()=>{bo.classList.add('dim');},1300);
   setTimeout(()=>{bo.classList.remove('dim');bo.classList.add('show');},1750);
@@ -794,17 +893,14 @@ function showResult(){
   const T=TYPES[key]||TYPES['CAB'];
   const gc=GLOW[A.q1];
 
-  document.getElementById('rEyebrow').textContent=userName?`${userName}님은`:'나의 프로메테온 유형';
-  document.getElementById('rName').textContent=userName?`${T.name} 타입`:T.name;
-  document.getElementById('rEn').textContent=T.en;
-
-  document.getElementById('rDesc').textContent=T.desc;
   currentPct=T.pct;
-  document.getElementById('rPct').textContent=`🔥 전체 참가자 중 ${T.pct}%가 선택한 유형`;
+  pctIsLive=false;
+  renderResultText();
   recordAndGetPct(key).then(live=>{
     if(live==null||A.q1+A.q2+A.q3!==key) return;
     currentPct=live;
-    document.getElementById('rPct').textContent=`🔥 전체 참가자 중 ${live}%가 선택한 유형 (실시간)`;
+    pctIsLive=true;
+    renderResultText();
     resultAsset=null;
     resultAssetPromise=buildResultBlob().then(v=>{resultAsset=v;return v;});
   });
@@ -814,7 +910,6 @@ function showResult(){
   rFlameEl.style.setProperty('--glow-color',gc);
   document.getElementById('rHandle').src=HANDLE[A.q2];
   document.getElementById('torchGlow').style.background=`radial-gradient(circle,${gc.replace('.5','.2')} 0%,transparent 70%)`;
-  document.getElementById('rTraits').innerHTML=T.traits.map(t=>`<div class="trait scorchable">${t}</div>`).join('');
 
   const canvas=document.getElementById('particleCanvas');
   const card=canvas.parentElement;
@@ -825,6 +920,19 @@ function showResult(){
 
   resultAsset=null;
   resultAssetPromise=buildResultBlob().then(v=>{resultAsset=v;return v;});
+}
+
+function renderResultText(){
+  const lang=getLang();
+  const key=A.q1+A.q2+A.q3;
+  const T=TYPES[key]||TYPES['CAB'];
+  const pct=currentPct!=null?currentPct:T.pct;
+  document.getElementById('rEyebrow').textContent = userName ? t('result_eyebrow_named',{name:userName}) : t('result_eyebrow_default');
+  document.getElementById('rName').textContent = lang==='ko' ? `${T.name.ko} 타입` : `${T.name.en} Type`;
+  document.getElementById('rEn').textContent = lang==='ko' ? T.name.en : T.name.ko;
+  document.getElementById('rDesc').textContent = T.desc[lang];
+  document.getElementById('rPct').textContent = t(pctIsLive?'pct_live':'pct_default',{pct});
+  document.getElementById('rTraits').innerHTML = T.traits[lang].map(tr=>`<div class="trait scorchable">${tr}</div>`).join('');
 }
 
 function burstParticles(canvas,col){
@@ -856,6 +964,7 @@ function glowParticles(canvas,col){
 async function buildResultBlob(){
   const canvas=document.getElementById('exportCanvas');
   const ctx=canvas.getContext('2d');
+  const lang=getLang();
   const W=720,H=1080,key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'],pct=currentPct!=null?currentPct:T.pct;
   ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,W,H);
   const bgGlow=ctx.createRadialGradient(W/2,220,0,W/2,220,420);
@@ -889,17 +998,17 @@ async function buildResultBlob(){
   if(hI)ctx.drawImage(hI,cx-hW/2,handleY,hW,hH);
   const bY=handleY+hH+30;
   ctx.textAlign='center';
-  ctx.fillStyle='#f87171';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(userName?`${userName}님은`:'나의 프로메테온 유형',cx,bY+40);
-  ctx.fillStyle='#f5f5f7';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(userName?`${T.name} 타입`:T.name,cx,bY+96);
-  ctx.fillStyle='#a5a5b2';ctx.font='20px -apple-system,sans-serif';ctx.fillText(T.en,cx,bY+130);
-  ctx.fillStyle='#f87171';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(`전체 참가자 중 ${pct}%가 선택한 유형`,cx,bY+156);
+  ctx.fillStyle='#f87171';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(userName?t('result_eyebrow_named',{name:userName}):t('result_eyebrow_default'),cx,bY+40);
+  ctx.fillStyle='#f5f5f7';ctx.font='bold 44px -apple-system,sans-serif';ctx.fillText(lang==='ko'?`${T.name.ko} 타입`:`${T.name.en} Type`,cx,bY+96);
+  ctx.fillStyle='#a5a5b2';ctx.font='20px -apple-system,sans-serif';ctx.fillText(lang==='ko'?T.name.en:T.name.ko,cx,bY+130);
+  ctx.fillStyle='#f87171';ctx.font='bold 14px -apple-system,sans-serif';ctx.fillText(t(pctIsLive?'pct_live':'pct_default',{pct}).replace(/^🔥\s*/,''),cx,bY+156);
   ctx.fillStyle='#8a8a96';ctx.font='14px -apple-system,sans-serif';
-  const words=T.desc;let line='',ly=bY+190;
-  for(const ch of words){const t=line+ch;if(ctx.measureText(t).width>W-160){ctx.fillText(line,cx,ly);line=ch;ly+=24;}else line=t;}
+  const words=T.desc[lang];let line='',ly=bY+190;
+  for(const ch of words){const tLine=line+ch;if(ctx.measureText(tLine).width>W-160){ctx.fillText(line,cx,ly);line=ch;ly+=24;}else line=tLine;}
   ctx.fillText(line,cx,ly);
   ctx.fillStyle='#dc2626';ctx.fillRect(0,H-56,W,56);
-  ctx.fillStyle='#fff';ctx.font='bold 16px -apple-system,sans-serif';ctx.fillText('2026. 09. 08–10  ·  서울 신라호텔  ·  World Knowledge Forum',cx,H-20);
-  return new Promise(res=>canvas.toBlob(b=>res({blob:b,name:T.name}),'image/png'));
+  ctx.fillStyle='#fff';ctx.font='bold 16px -apple-system,sans-serif';ctx.fillText(t('canvas_footer'),cx,H-20);
+  return new Promise(res=>canvas.toBlob(b=>res({blob:b,name:T.name[lang]}),'image/png'));
 }
 
 function downloadBlob(blob,name){
@@ -925,15 +1034,17 @@ async function saveImg(){
 }
 
 function shareRes(){
+  const lang=getLang();
   const key=A.q1+A.q2+A.q3,T=TYPES[key]||TYPES['CAB'],pct=currentPct!=null?currentPct:T.pct;
-  const who=userName?`${userName}님은 `:'';
-  const txt=`WKF 2026 프로메테온 유형: ${who}"${T.name}" 타입\n${T.en} · 전체 참가자 중 ${pct}%\n\n${T.desc}\n\n#WKF2026 #프로메테우스의순간 #세계지식포럼`;
+  const who=userName?t('who_named',{name:userName}):'';
+  const typeName=T.name[lang];
+  const txt=t('share_text_template',{who,name:typeName,nameOther:lang==='ko'?T.name.en:T.name.ko,pct,desc:T.desc[lang]});
 
   // 이미 생성돼 있으면(대부분의 경우) await 없이 곧바로 호출해 클릭 제스처가 만료되지 않게 한다.
   if(resultAsset){
-    doShare(resultAsset,txt,T.name);
+    doShare(resultAsset,txt,typeName);
   } else {
-    getResultAsset().then(asset=>doShare(asset,txt,T.name));
+    getResultAsset().then(asset=>doShare(asset,txt,typeName));
   }
 }
 
@@ -957,10 +1068,10 @@ function openShareSheet(txt,blob,name){
   const encoded=encodeURIComponent(txt);
   document.getElementById('shareX').onclick=()=>window.open(`https://twitter.com/intent/tweet?text=${encoded}`,'_blank','noopener');
   document.getElementById('shareThreads').onclick=()=>window.open(`https://www.threads.net/intent/post?text=${encoded}`,'_blank','noopener');
-  document.getElementById('shareKakao').onclick=async()=>{downloadBlob(blob,name);await copyText(txt);alert('이미지가 저장되었습니다! 카카오톡 대화방에 이미지와 함께 붙여넣어 주세요.');};
-  document.getElementById('shareInsta').onclick=async()=>{downloadBlob(blob,name);await copyText(txt);alert('이미지가 저장되었습니다! 인스타그램 스토리/게시물에 추가해 주세요.');};
+  document.getElementById('shareKakao').onclick=async()=>{downloadBlob(blob,name);await copyText(txt);alert(t('alert_kakao'));};
+  document.getElementById('shareInsta').onclick=async()=>{downloadBlob(blob,name);await copyText(txt);alert(t('alert_insta'));};
   document.getElementById('shareSaveImg').onclick=()=>downloadBlob(blob,name);
-  document.getElementById('shareCopy').onclick=async()=>{await copyText(txt);alert('클립보드에 복사되었습니다!');};
+  document.getElementById('shareCopy').onclick=async()=>{await copyText(txt);alert(t('alert_copy'));};
   document.getElementById('shareSheet').classList.add('active');
 }
 
@@ -970,7 +1081,7 @@ function closeShareSheet(){
 
 function retry(){
   if(pAnim)cancelAnimationFrame(pAnim);
-  A.q1=A.q2=A.q3=null;curQ=1;currentPct=null;
+  A.q1=A.q2=A.q3=null;curQ=1;currentPct=null;pctIsLive=false;
   resultAsset=null;resultAssetPromise=null;
   document.body.classList.remove('dark-result');
   document.getElementById('blackout').classList.remove('show','dim');
@@ -980,13 +1091,15 @@ function retry(){
   document.getElementById('progressDots').style.display='';
   document.getElementById('nextWrap').style.display='';
   document.getElementById('stepPill').textContent='1 / 3';
-  document.getElementById('nextBtn').textContent='다음';
+  document.getElementById('nextBtn').textContent=t('next_btn');
   document.querySelectorAll('.slide').forEach((s,i)=>{s.className='slide'+(i===0?' active':' enter-right');});
   document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
   document.getElementById('nextBtn').classList.remove('visible');
   updateDots();
   window.scrollTo(0,0);
 }
+
+applyLang();
 </script>
 </body>
 </html>

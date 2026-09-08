@@ -31,6 +31,12 @@
     }
     .back:active{opacity:.6;}
     .bar-title{flex:1;font-size:16px;font-weight:700;}
+    .lang-toggle{
+      font-size:12px;font-weight:800;color:var(--text-2);
+      border:1.5px solid var(--border);padding:5px 10px;border-radius:20px;
+      background:#fff;cursor:pointer;transition:opacity .12s;flex-shrink:0;
+    }
+    .lang-toggle:active{opacity:.6;}
 
     /* 탭 */
     .tab-row{
@@ -177,53 +183,54 @@
 <div class="page">
   <div class="top-bar">
     <a href="index.html" class="back">‹</a>
-    <div class="bar-title">현장 이벤트 안내</div>
+    <div class="bar-title" data-i18n="bar_title">현장 이벤트 안내</div>
+    <button type="button" class="lang-toggle" onclick="toggleLang()">EN</button>
   </div>
   <div class="tab-row">
-    <button class="tab-btn on" onclick="tab('how',this)">📋 응모 방법</button>
-    <button class="tab-btn" onclick="tab('faq',this)">❓ FAQ</button>
+    <button class="tab-btn on" onclick="tab('how',this)" data-i18n="tab_how">📋 응모 방법</button>
+    <button class="tab-btn" onclick="tab('faq',this)" data-i18n="tab_faq">❓ FAQ</button>
   </div>
 
   <!-- 응모 방법 -->
   <div class="tab-pane on" id="tab-how">
     <div class="sec-label">How to Enter</div>
-    <div class="sec-title">경품 응모 방법</div>
-    <div class="sec-sub">9/8(화)·9/9(수) 오전 11시~오후 6시, 두 가지 미션에 모두 참여하고 Z플립까지 노려보세요!</div>
+    <div class="sec-title" data-i18n="how_title">경품 응모 방법</div>
+    <div class="sec-sub" data-i18n="how_sub">9/8(화)·9/9(수) 오전 11시~오후 6시, 두 가지 미션에 모두 참여하고 Z플립까지 노려보세요!</div>
 
     <div class="card-accent" style="margin-bottom:14px">
-      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:6px">🔥 불꽃 위치 안내</div>
-      <div style="font-size:14px;color:#444;line-height:1.7">세션 종료 후 화면에 해당 세션장의 불꽃 색깔이 <strong>10분간</strong> 공개됩니다. 이 시간 내에 꼭 확인해 주세요!<br>혹시 못 보셨다면 <strong>행사장 내부</strong>에도 작게 표시되어 있으니 찾아보세요!</div>
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:6px" data-i18n="flame_guide_title">🔥 불꽃 위치 안내</div>
+      <div style="font-size:14px;color:#444;line-height:1.7" data-i18n-html="flame_guide_body">세션 종료 후 화면에 해당 세션장의 불꽃 색깔이 <strong>10분간</strong> 공개됩니다. 이 시간 내에 꼭 확인해 주세요!<br>혹시 못 보셨다면 <strong>행사장 내부</strong>에도 작게 표시되어 있으니 찾아보세요!</div>
     </div>
 
-    <div id="mission1" class="step-tag" style="background:var(--primary);color:#fff;margin-bottom:14px;scroll-margin-top:130px">MISSION 1 · 프로메테우스의 '불꽃'을 찾아라!</div>
+    <div id="mission1" class="step-tag" style="background:var(--primary);color:#fff;margin-bottom:14px;scroll-margin-top:130px" data-i18n="mission1_tag">MISSION 1 · 프로메테우스의 '불꽃'을 찾아라!</div>
     <img src="image/Mission1.jpg" alt="MISSION 1" style="width:100%;border-radius:var(--r);margin-bottom:6px;display:block">
     <div class="card" style="padding:4px 18px 4px">
       <div class="steps">
-        <div class="step-row"><div class="step-circ">1</div><div class="step-body"><div class="step-title">세션장 불꽃 찾기</div><div class="step-desc">세션 종료 후 화면 공개(10분간) · 또는 행사장 내 부착된 불꽃 확인</div><span class="step-tag">→ 세션 종료 후 공개</span></div></div>
-        <div class="step-row"><div class="step-circ">2</div><div class="step-body"><div class="step-title">스티커 붙이기</div><div class="step-desc">웰컴키트 정답 카드의 해당 세션장 칸에 알맞은 스티커를 붙이세요</div><span class="step-tag">→ 키트 안 스티커 사용</span></div></div>
-        <div class="step-row"><div class="step-circ">3</div><div class="step-body"><div class="step-title">가든 스테이지 제출</div><div class="step-desc">완성된 정답 카드를 가든 스테이지에 제출하면 기념 티셔츠 증정!</div><span class="step-tag">🎁 선착순 증정</span></div></div>
+        <div class="step-row"><div class="step-circ">1</div><div class="step-body"><div class="step-title" data-i18n="m1s1_title">세션장 불꽃 찾기</div><div class="step-desc" data-i18n="m1s1_desc">세션 종료 후 화면 공개(10분간) · 또는 행사장 내 부착된 불꽃 확인</div><span class="step-tag" data-i18n="m1s1_tag">→ 세션 종료 후 공개</span></div></div>
+        <div class="step-row"><div class="step-circ">2</div><div class="step-body"><div class="step-title" data-i18n="m1s2_title">스티커 붙이기</div><div class="step-desc" data-i18n="m1s2_desc">웰컴키트 정답 카드의 해당 세션장 칸에 알맞은 스티커를 붙이세요</div><span class="step-tag" data-i18n="m1s2_tag">→ 키트 안 스티커 사용</span></div></div>
+        <div class="step-row"><div class="step-circ">3</div><div class="step-body"><div class="step-title" data-i18n="m1s3_title">가든 스테이지 제출</div><div class="step-desc" data-i18n="m1s3_desc">완성된 정답 카드를 가든 스테이지에 제출하면 기념 티셔츠 증정!</div><span class="step-tag" data-i18n="m1s3_tag">🎁 선착순 증정</span></div></div>
       </div>
     </div>
 
-    <div id="mission2" class="step-tag" style="background:var(--primary);color:#fff;margin:16px 0 14px;scroll-margin-top:130px">MISSION 2 · 매경플러스 구독하고 경품 타자!</div>
+    <div id="mission2" class="step-tag" style="background:var(--primary);color:#fff;margin:16px 0 14px;scroll-margin-top:130px" data-i18n="mission2_tag">MISSION 2 · 매경플러스 구독하고 경품 타자!</div>
     <img src="image/Mission2.jpg" alt="MISSION 2" style="width:100%;border-radius:var(--r);margin-bottom:6px;display:block">
     <div class="card" style="padding:4px 18px 4px">
       <div class="steps">
-        <div class="step-row"><div class="step-circ">1</div><div class="step-body"><div class="step-title">매경플러스 1년 구독 등록</div><div class="step-desc">웰컴 키트 안 구독권으로 매경플러스 홈페이지에서 등록</div></div></div>
-        <div class="step-row"><div class="step-circ">2</div><div class="step-body"><div class="step-title">이벤트 부스에서 인증</div><div class="step-desc">가든 스테이지 이벤트 부스에서 구독 등록 화면을 보여주면 추가 상품 증정!</div><span class="step-tag">🎁 선착순 증정</span></div></div>
+        <div class="step-row"><div class="step-circ">1</div><div class="step-body"><div class="step-title" data-i18n="m2s1_title">매경플러스 1년 구독 등록</div><div class="step-desc" data-i18n="m2s1_desc">웰컴 키트 안 구독권으로 매경플러스 홈페이지에서 등록</div></div></div>
+        <div class="step-row"><div class="step-circ">2</div><div class="step-body"><div class="step-title" data-i18n="m2s2_title">이벤트 부스에서 인증</div><div class="step-desc" data-i18n="m2s2_desc">가든 스테이지 이벤트 부스에서 구독 등록 화면을 보여주면 추가 상품 증정!</div><span class="step-tag" data-i18n="m2s2_tag">🎁 선착순 증정</span></div></div>
       </div>
     </div>
 
-    <div id="lottery" class="step-tag" style="background:var(--primary);color:#fff;margin:16px 0 14px;scroll-margin-top:130px">BONUS EVENT · Z플립 추첨에 도전하세요!</div>
+    <div id="lottery" class="step-tag" style="background:var(--primary);color:#fff;margin:16px 0 14px;scroll-margin-top:130px" data-i18n="lottery_tag">BONUS EVENT · Z플립 추첨에 도전하세요!</div>
     <img src="image/Event.jpg" alt="Z플립 추첨" style="width:100%;border-radius:var(--r);margin-bottom:6px;display:block">
     <div class="card-accent">
-      <div style="font-size:14px;font-weight:800;color:#333;margin-bottom:6px">❉ 두 가지 미션 모두 참여하고, Z플립까지!</div>
-      <div style="font-size:14px;color:#444;line-height:1.7">두 미션을 모두 완료 인증한 후 <strong>현장 스태프에게 명함을 제출</strong>하면 Z플립 추첨에 자동 응모됩니다. (당첨자에게는 개별 연락드립니다)</div>
+      <div style="font-size:14px;font-weight:800;color:#333;margin-bottom:6px" data-i18n="lottery_box_title">❉ 두 가지 미션 모두 참여하고, Z플립까지!</div>
+      <div style="font-size:14px;color:#444;line-height:1.7" data-i18n-html="lottery_box_body">두 미션을 모두 완료 인증한 후 <strong>현장 스태프에게 명함을 제출</strong>하면 Z플립 추첨에 자동 응모됩니다. (당첨자에게는 개별 연락드립니다)</div>
     </div>
 
     <div class="card-accent" style="margin-top:10px">
-      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:6px">⚠ 유의사항</div>
-      <div style="font-size:14px;color:#444;line-height:1.7">• 이벤트 부스 운영: 9/8(화)·9/9(수) 오전 11시~오후 6시<br>• 등록 참가자만 응모 가능 (기간 중 1회)<br>• 기념 티셔츠·매경플러스 상품은 선착순 증정 (수량 소진 시 조기 마감 가능)<br>• Z플립 응모 시 명함 제출 필수<br>• 자세한 내용은 QR 코드를 통해서도 확인하실 수 있습니다</div>
+      <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:6px" data-i18n="caution_title">⚠ 유의사항</div>
+      <div style="font-size:14px;color:#444;line-height:1.7" data-i18n-html="caution_body">• 이벤트 부스 운영: 9/8(화)·9/9(수) 오전 11시~오후 6시<br>• 등록 참가자만 응모 가능 (기간 중 1회)<br>• 기념 티셔츠·매경플러스 상품은 선착순 증정 (수량 소진 시 조기 마감 가능)<br>• Z플립 응모 시 명함 제출 필수<br>• 자세한 내용은 QR 코드를 통해서도 확인하실 수 있습니다</div>
     </div>
   </div>
 
@@ -299,22 +306,22 @@
   <!-- FAQ -->
   <div class="tab-pane" id="tab-faq">
     <div class="sec-label">FAQ</div>
-    <div class="sec-title">자주 묻는 질문</div>
-    <div class="sec-sub">이벤트 참여 전 확인해주세요.</div>
-    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>미션은 어떻게 구성되나요?</span><span class="acc-arrow">›</span></div><div class="acc-body"><strong>MISSION1</strong> 세션장의 불꽃을 찾아 정답 카드를 가든 스테이지에 제출하면 기념 티셔츠를 드립니다.<br><strong>MISSION2</strong> 매경플러스 구독을 등록하고 이벤트 부스에서 인증하면 추가 상품을 드립니다.<br>두 미션을 모두 완료하고 명함을 제출하면 <strong>Z플립 추첨</strong>에도 응모됩니다.</div></div>
-    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>미션 참여는 언제까지 가능한가요?</span><span class="acc-arrow">›</span></div><div class="acc-body">참여 및 제출 시간은 <strong>9/8(화)·9/9(수) 오전 11시~오후 6시</strong>입니다.<br>가든 스테이지 이벤트 부스에서 진행해주세요.</div></div>
-    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>경품 수령은 어떻게 하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body"><strong>기념 티셔츠·매경플러스 추가 상품</strong>은 9/8(화)·9/9(수) 오전 11시~오후 6시 가든 스테이지 이벤트 부스에서 선착순으로 바로 수령 가능합니다.<br><strong>Z플립</strong>은 두 미션을 모두 완료하고 명함을 제출한 분들 중 추첨하며, 행사 종료 후 당첨자에게 제출한 명함 정보로 개별 연락드립니다.</div></div>
-    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>매경플러스 구독권은 어디서 받나요?</span><span class="acc-arrow">›</span></div><div class="acc-body">웰컴 키트 안에 매경플러스 1년 구독권이 동봉되어 있습니다.<br>구독권을 등록하시면 별도의 상품을 드립니다.</div></div>
-    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>매경플러스는 어떻게 등록하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body">① 매경플러스 홈페이지 접속 → ② 로그인 또는 회원가입 → ③ [마이페이지]-[매경플러스]-[혜택관리] → ④ 쿠폰 코드 입력 후 [쿠폰 등록하기] 클릭.<br>등록 화면을 <strong>가든 스테이지 이벤트 부스</strong> 직원에게 보여주시면 추가 상품을 드립니다. 자세한 내용은 응모 방법 탭의 MISSION2 항목을 확인해주세요.</div></div>
-    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span>Z플립 응모는 어떻게 하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body">MISSION1·MISSION2를 <strong>모두</strong> 완료 인증한 뒤 현장 스태프에게 <strong>명함을 제출</strong>하면 자동으로 응모됩니다. 기간 중 1인 1회만 응모 가능합니다.</div></div>
-    <div style="text-align:center;padding:20px 0 8px;font-size:14px;color:var(--text-3)">기타 문의사항은 QR 코드를 통해 확인해주세요</div>
+    <div class="sec-title" data-i18n="faq_title">자주 묻는 질문</div>
+    <div class="sec-sub" data-i18n="faq_sub">이벤트 참여 전 확인해주세요.</div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span data-i18n="faq1_q">미션은 어떻게 구성되나요?</span><span class="acc-arrow">›</span></div><div class="acc-body" data-i18n-html="faq1_a"><strong>MISSION1</strong> 세션장의 불꽃을 찾아 정답 카드를 가든 스테이지에 제출하면 기념 티셔츠를 드립니다.<br><strong>MISSION2</strong> 매경플러스 구독을 등록하고 이벤트 부스에서 인증하면 추가 상품을 드립니다.<br>두 미션을 모두 완료하고 명함을 제출하면 <strong>Z플립 추첨</strong>에도 응모됩니다.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span data-i18n="faq2_q">미션 참여는 언제까지 가능한가요?</span><span class="acc-arrow">›</span></div><div class="acc-body" data-i18n-html="faq2_a">참여 및 제출 시간은 <strong>9/8(화)·9/9(수) 오전 11시~오후 6시</strong>입니다.<br>가든 스테이지 이벤트 부스에서 진행해주세요.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span data-i18n="faq3_q">경품 수령은 어떻게 하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body" data-i18n-html="faq3_a"><strong>기념 티셔츠·매경플러스 추가 상품</strong>은 9/8(화)·9/9(수) 오전 11시~오후 6시 가든 스테이지 이벤트 부스에서 선착순으로 바로 수령 가능합니다.<br><strong>Z플립</strong>은 두 미션을 모두 완료하고 명함을 제출한 분들 중 추첨하며, 행사 종료 후 당첨자에게 제출한 명함 정보로 개별 연락드립니다.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span data-i18n="faq4_q">매경플러스 구독권은 어디서 받나요?</span><span class="acc-arrow">›</span></div><div class="acc-body" data-i18n-html="faq4_a">웰컴 키트 안에 매경플러스 1년 구독권이 동봉되어 있습니다.<br>구독권을 등록하시면 별도의 상품을 드립니다.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span data-i18n="faq5_q">매경플러스는 어떻게 등록하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body" data-i18n-html="faq5_a">① 매경플러스 홈페이지 접속 → ② 로그인 또는 회원가입 → ③ [마이페이지]-[매경플러스]-[혜택관리] → ④ 쿠폰 코드 입력 후 [쿠폰 등록하기] 클릭.<br>등록 화면을 <strong>가든 스테이지 이벤트 부스</strong> 직원에게 보여주시면 추가 상품을 드립니다. 자세한 내용은 응모 방법 탭의 MISSION2 항목을 확인해주세요.</div></div>
+    <div class="acc-item"><div class="acc-head" onclick="acc(this)"><span data-i18n="faq6_q">Z플립 응모는 어떻게 하나요?</span><span class="acc-arrow">›</span></div><div class="acc-body" data-i18n-html="faq6_a">MISSION1·MISSION2를 <strong>모두</strong> 완료 인증한 뒤 현장 스태프에게 <strong>명함을 제출</strong>하면 자동으로 응모됩니다. 기간 중 1인 1회만 응모 가능합니다.</div></div>
+    <div style="text-align:center;padding:20px 0 8px;font-size:14px;color:var(--text-3)" data-i18n="faq_footer">기타 문의사항은 QR 코드를 통해 확인해주세요</div>
   </div>
 </div>
 
 <!-- 하단 내비 -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-lnk home"><span class="nav-icon">🏠</span><span>메인 메뉴</span></a>
-  <a href="quiz.html" class="nav-lnk"><span class="nav-icon">🔥</span><span>유형 테스트</span></a>
+  <a href="index.html" class="nav-lnk home"><span class="nav-icon">🏠</span><span data-i18n="nav_home">메인 메뉴</span></a>
+  <a href="quiz.html" class="nav-lnk"><span class="nav-icon">🔥</span><span data-i18n="nav_quiz">유형 테스트</span></a>
 </div>
 
 <script>
@@ -326,6 +333,71 @@ function tab(id,btn){
   btn.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
 }
 function acc(head){head.parentElement.classList.toggle('open');}
+
+const I18N = {
+  bar_title: { ko:'현장 이벤트 안내', en:'On-site Event Guide' },
+  tab_how: { ko:'📋 응모 방법', en:'📋 How to Enter' },
+  tab_faq: { ko:'❓ FAQ', en:'❓ FAQ' },
+  how_title: { ko:'경품 응모 방법', en:'How to Enter the Raffle' },
+  how_sub: { ko:'9/8(화)·9/9(수) 오전 11시~오후 6시, 두 가지 미션에 모두 참여하고 Z플립까지 노려보세요!', en:'Tue 9/8 & Wed 9/9, 11:00 AM–6:00 PM — complete both missions and go for the Z Flip!' },
+  flame_guide_title: { ko:'🔥 불꽃 위치 안내', en:'🔥 Flame Location Guide' },
+  flame_guide_body: { ko:'세션 종료 후 화면에 해당 세션장의 불꽃 색깔이 <strong>10분간</strong> 공개됩니다. 이 시간 내에 꼭 확인해 주세요!<br>혹시 못 보셨다면 <strong>행사장 내부</strong>에도 작게 표시되어 있으니 찾아보세요!', en:'After each session ends, that hall\'s flame color is shown on screen for <strong>10 minutes</strong> — be sure to check within that window!<br>If you miss it, look for a small flame marker <strong>inside the venue</strong> too!' },
+  mission1_tag: { ko:'MISSION 1 · 프로메테우스의 \'불꽃\'을 찾아라!', en:'MISSION 1 · Find Prometheus\' "Flame"!' },
+  m1s1_title: { ko:'세션장 불꽃 찾기', en:'Find the Flame in a Session Hall' },
+  m1s1_desc: { ko:'세션 종료 후 화면 공개(10분간) · 또는 행사장 내 부착된 불꽃 확인', en:'Revealed on screen for 10 min after each session ends, or check the flame marker in the venue' },
+  m1s1_tag: { ko:'→ 세션 종료 후 공개', en:'→ Revealed after session ends' },
+  m1s2_title: { ko:'스티커 붙이기', en:'Add the Sticker' },
+  m1s2_desc: { ko:'웰컴키트 정답 카드의 해당 세션장 칸에 알맞은 스티커를 붙이세요', en:'Place the matching sticker on that hall\'s slot on your welcome-kit answer card' },
+  m1s2_tag: { ko:'→ 키트 안 스티커 사용', en:'→ Use the stickers in your kit' },
+  m1s3_title: { ko:'가든 스테이지 제출', en:'Submit at Garden Stage' },
+  m1s3_desc: { ko:'완성된 정답 카드를 가든 스테이지에 제출하면 기념 티셔츠 증정!', en:'Turn in your completed answer card at Garden Stage for a free t-shirt!' },
+  m1s3_tag: { ko:'🎁 선착순 증정', en:'🎁 While supplies last' },
+  mission2_tag: { ko:'MISSION 2 · 매경플러스 구독하고 경품 타자!', en:'MISSION 2 · Subscribe to MK Plus for a Prize!' },
+  m2s1_title: { ko:'매경플러스 1년 구독 등록', en:'Register a 1-Year MK Plus Subscription' },
+  m2s1_desc: { ko:'웰컴 키트 안 구독권으로 매경플러스 홈페이지에서 등록', en:'Use the voucher in your welcome kit to register on the MK Plus website' },
+  m2s2_title: { ko:'이벤트 부스에서 인증', en:'Verify at the Event Booth' },
+  m2s2_desc: { ko:'가든 스테이지 이벤트 부스에서 구독 등록 화면을 보여주면 추가 상품 증정!', en:'Show your registration screen at the Garden Stage booth for a bonus gift!' },
+  m2s2_tag: { ko:'🎁 선착순 증정', en:'🎁 While supplies last' },
+  lottery_tag: { ko:'BONUS EVENT · Z플립 추첨에 도전하세요!', en:'BONUS EVENT · Enter the Z Flip Raffle!' },
+  lottery_box_title: { ko:'❉ 두 가지 미션 모두 참여하고, Z플립까지!', en:'❉ Complete Both Missions for a Chance at the Z Flip!' },
+  lottery_box_body: { ko:'두 미션을 모두 완료 인증한 후 <strong>현장 스태프에게 명함을 제출</strong>하면 Z플립 추첨에 자동 응모됩니다. (당첨자에게는 개별 연락드립니다)', en:'After verifying both missions, <strong>hand your business card to on-site staff</strong> to be automatically entered into the Z Flip raffle. (Winners will be contacted individually.)' },
+  caution_title: { ko:'⚠ 유의사항', en:'⚠ Notes' },
+  caution_body: { ko:'• 이벤트 부스 운영: 9/8(화)·9/9(수) 오전 11시~오후 6시<br>• 등록 참가자만 응모 가능 (기간 중 1회)<br>• 기념 티셔츠·매경플러스 상품은 선착순 증정 (수량 소진 시 조기 마감 가능)<br>• Z플립 응모 시 명함 제출 필수<br>• 자세한 내용은 QR 코드를 통해서도 확인하실 수 있습니다', en:'• Event booth hours: Tue 9/8 & Wed 9/9, 11:00 AM–6:00 PM<br>• Only registered attendees may enter (once per person during the event)<br>• T-shirts and MK Plus gifts are given while supplies last (may close early)<br>• A business card is required to enter the Z Flip raffle<br>• More details are also available via the QR code' },
+  faq_title: { ko:'자주 묻는 질문', en:'Frequently Asked Questions' },
+  faq_sub: { ko:'이벤트 참여 전 확인해주세요.', en:'Please review before joining the event.' },
+  faq1_q: { ko:'미션은 어떻게 구성되나요?', en:'What do the missions involve?' },
+  faq1_a: { ko:'<strong>MISSION1</strong> 세션장의 불꽃을 찾아 정답 카드를 가든 스테이지에 제출하면 기념 티셔츠를 드립니다.<br><strong>MISSION2</strong> 매경플러스 구독을 등록하고 이벤트 부스에서 인증하면 추가 상품을 드립니다.<br>두 미션을 모두 완료하고 명함을 제출하면 <strong>Z플립 추첨</strong>에도 응모됩니다.', en:'<strong>MISSION1</strong> Find the flame in a session hall and submit your answer card at Garden Stage for a free t-shirt.<br><strong>MISSION2</strong> Register an MK Plus subscription and verify it at the event booth for a bonus gift.<br>Complete both and submit a business card to also enter the <strong>Z Flip raffle</strong>.' },
+  faq2_q: { ko:'미션 참여는 언제까지 가능한가요?', en:'Until when can I take part in the missions?' },
+  faq2_a: { ko:'참여 및 제출 시간은 <strong>9/8(화)·9/9(수) 오전 11시~오후 6시</strong>입니다.<br>가든 스테이지 이벤트 부스에서 진행해주세요.', en:'Participation and submission run <strong>Tue 9/8 & Wed 9/9, 11:00 AM–6:00 PM</strong>.<br>Please visit the Garden Stage event booth.' },
+  faq3_q: { ko:'경품 수령은 어떻게 하나요?', en:'How do I receive prizes?' },
+  faq3_a: { ko:'<strong>기념 티셔츠·매경플러스 추가 상품</strong>은 9/8(화)·9/9(수) 오전 11시~오후 6시 가든 스테이지 이벤트 부스에서 선착순으로 바로 수령 가능합니다.<br><strong>Z플립</strong>은 두 미션을 모두 완료하고 명함을 제출한 분들 중 추첨하며, 행사 종료 후 당첨자에게 제출한 명함 정보로 개별 연락드립니다.', en:'<strong>T-shirts and MK Plus gifts</strong> can be picked up on the spot at the Garden Stage booth, Tue 9/8 & Wed 9/9, 11:00 AM–6:00 PM, while supplies last.<br>The <strong>Z Flip</strong> is raffled among everyone who completed both missions and submitted a business card; winners are contacted individually after the event using the card they submitted.' },
+  faq4_q: { ko:'매경플러스 구독권은 어디서 받나요?', en:'Where do I get the MK Plus subscription voucher?' },
+  faq4_a: { ko:'웰컴 키트 안에 매경플러스 1년 구독권이 동봉되어 있습니다.<br>구독권을 등록하시면 별도의 상품을 드립니다.', en:'A 1-year MK Plus subscription voucher is included in your welcome kit.<br>Register it to receive a separate gift.' },
+  faq5_q: { ko:'매경플러스는 어떻게 등록하나요?', en:'How do I register for MK Plus?' },
+  faq5_a: { ko:'① 매경플러스 홈페이지 접속 → ② 로그인 또는 회원가입 → ③ [마이페이지]-[매경플러스]-[혜택관리] → ④ 쿠폰 코드 입력 후 [쿠폰 등록하기] 클릭.<br>등록 화면을 <strong>가든 스테이지 이벤트 부스</strong> 직원에게 보여주시면 추가 상품을 드립니다. 자세한 내용은 응모 방법 탭의 MISSION2 항목을 확인해주세요.', en:'① Go to the MK Plus website → ② Log in or sign up → ③ [My Page]-[MK Plus]-[Manage Benefits] → ④ Enter the coupon code and click [Register Coupon].<br>Show the registration screen to staff at the <strong>Garden Stage event booth</strong> for a bonus gift. See the MISSION2 section under "How to Enter" for details.' },
+  faq6_q: { ko:'Z플립 응모는 어떻게 하나요?', en:'How do I enter the Z Flip raffle?' },
+  faq6_a: { ko:'MISSION1·MISSION2를 <strong>모두</strong> 완료 인증한 뒤 현장 스태프에게 <strong>명함을 제출</strong>하면 자동으로 응모됩니다. 기간 중 1인 1회만 응모 가능합니다.', en:'After verifying <strong>both</strong> MISSION1 and MISSION2, <strong>hand a business card to on-site staff</strong> to be automatically entered. Each person may enter only once during the event.' },
+  faq_footer: { ko:'기타 문의사항은 QR 코드를 통해 확인해주세요', en:'For other questions, please check the QR code' },
+  nav_home: { ko:'메인 메뉴', en:'Main Menu' },
+  nav_quiz: { ko:'유형 테스트', en:'Type Quiz' },
+};
+function getLang(){
+  const stored=localStorage.getItem('wkf_lang');
+  if(stored) return stored;
+  return (navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+}
+function applyLang(){
+  const lang=getLang();
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const d=I18N[el.dataset.i18n]; if(d) el.textContent=d[lang]; });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const d=I18N[el.dataset.i18nHtml]; if(d) el.innerHTML=d[lang]; });
+  document.querySelectorAll('.lang-toggle').forEach(b=>{ b.textContent = lang==='ko' ? 'EN' : '한국어'; });
+}
+function toggleLang(){
+  localStorage.setItem('wkf_lang', getLang()==='ko' ? 'en' : 'ko');
+  applyLang();
+}
+applyLang();
 </script>
 </body>
 </html>
