@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>미션 1 · 불꽃을 찾아라 | WKF 2026</title>
+  <style>
+    :root{
+      --bg:#ffffff; --surface:#f4f4f4; --border:#e8e8e8;
+      --primary:#dc2626; --primary-dark:#991b1b;
+      --accent:#fef08a; --accent-dark:#eab308;
+      --text:#111111; --text-2:#666666; --text-3:#aaaaaa; --r:16px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{min-height:100%;background:var(--bg);font-family:-apple-system,sans-serif;color:var(--text);}
+    .page{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;}
+
+    /* 상단바 */
+    .top-bar{
+      position:sticky;top:0;z-index:50;
+      background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+      display:flex;align-items:center;gap:12px;
+      padding:max(env(safe-area-inset-top,0px),16px) 20px 16px;
+      border-bottom:1px solid var(--border);
+    }
+    .back{
+      width:38px;height:38px;border-radius:10px;background:var(--surface);
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;color:var(--text-2);text-decoration:none;transition:opacity .12s;flex-shrink:0;
+    }
+    .back:active{opacity:.6;}
+    .bar-title{flex:1;font-size:16px;font-weight:700;}
+    .lang-toggle{
+      font-size:12px;font-weight:800;color:var(--text-2);
+      border:1.5px solid var(--border);padding:5px 10px;border-radius:20px;
+      background:#fff;cursor:pointer;transition:opacity .12s;flex-shrink:0;
+    }
+    .lang-toggle:active{opacity:.6;}
+
+    main{flex:1;padding:20px 20px 120px;}
+
+    .sec-label{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:6px;}
+    .sec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1.25;margin-bottom:8px;}
+    .sec-sub{font-size:15px;color:var(--text-2);line-height:1.6;margin-bottom:16px;}
+
+    .card-accent{background:var(--surface);border-radius:var(--r);padding:14px;margin-bottom:16px;}
+    .card-accent-title{font-size:14px;font-weight:700;color:#333;margin-bottom:6px;}
+    .card-accent-body{font-size:14px;color:#444;line-height:1.7;}
+
+    /* 정답 카드 보드 */
+    .board-wrap{
+      position:relative;width:100%;aspect-ratio:567.83/260.94;
+      border-radius:var(--r);overflow:hidden;background:#0a0a0f;
+      box-shadow:0 8px 24px rgba(0,0,0,.18);
+    }
+    .board-img{width:100%;height:100%;display:block;object-fit:cover;pointer-events:none;user-select:none;}
+    .slot-btn{
+      position:absolute;border:none;background:transparent;padding:0;cursor:pointer;
+      display:flex;align-items:flex-end;justify-content:center;
+    }
+    .slot-hint{
+      width:38%;height:38%;margin-bottom:6%;border-radius:50%;
+      border:2px dashed rgba(255,255,255,.6);color:#fff;
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;font-weight:800;line-height:1;
+      animation:pulseHint 1.7s ease-in-out infinite;
+    }
+    @keyframes pulseHint{0%,100%{opacity:.55;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
+    .slot-flame{width:82%;height:96%;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.55));animation:slotPop .3s cubic-bezier(.34,1.56,.64,1);}
+    @keyframes slotPop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+    /* 불꽃이 슬롯에 연결되는 순간의 약한 발화 모션 */
+    .slot-flame.flare{animation:slotIgnite .6s cubic-bezier(.25,1.15,.4,1);}
+    @keyframes slotIgnite{
+      0%{transform:scale(.55);opacity:0;filter:drop-shadow(0 4px 10px rgba(0,0,0,.55)) brightness(1);}
+      45%{transform:scale(1.16);opacity:1;filter:drop-shadow(0 6px 18px rgba(255,140,20,.75)) brightness(1.3) saturate(1.3);}
+      100%{transform:scale(1);opacity:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.55)) brightness(1) saturate(1);}
+    }
+    .slot-check{
+      position:absolute;top:2px;right:8%;width:18px;height:18px;border-radius:50%;
+      background:var(--primary);color:#fff;font-size:11px;font-weight:800;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .slot-btn.drop-hover{filter:drop-shadow(0 0 14px rgba(255,160,50,.9));}
+    .slot-btn.drop-hover .slot-hint{border-color:#fff;background:rgba(255,255,255,.18);transform:scale(1.15);}
+
+    /* 불꽃 팔레트 (드래그 소스) */
+    .palette-card{background:var(--surface);border-radius:var(--r);padding:14px;margin-top:16px;}
+    .palette-label{font-size:13px;font-weight:700;color:var(--text-2);text-align:center;margin-bottom:10px;}
+    .palette-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+    .palette-item{
+      aspect-ratio:1;border-radius:14px;background:#fff;border:1.5px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      touch-action:none;cursor:grab;transition:transform .12s,opacity .15s;
+    }
+    .palette-item img{width:60%;height:74%;object-fit:contain;pointer-events:none;}
+    .palette-item:active{transform:scale(.94);}
+    .palette-item.dragging-source{opacity:.35;}
+
+    .drag-ghost{
+      position:fixed;pointer-events:none;z-index:400;width:64px;height:64px;
+      display:flex;align-items:center;justify-content:center;transition:transform .1s;
+    }
+    .drag-ghost img{width:70%;height:82%;object-fit:contain;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4));}
+    .drag-ghost.over{transform:scale(1.2);}
+    .drag-ghost.over img{filter:drop-shadow(0 8px 20px rgba(255,150,40,.8));}
+
+    .progress-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;}
+    .progress-text{font-size:14px;font-weight:700;color:var(--text-2);}
+    .progress-dots{display:flex;gap:6px;}
+    .p-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s;}
+    .p-dot.on{background:var(--primary);}
+
+    .tap-hint{text-align:center;font-size:13px;color:var(--text-3);margin-top:10px;}
+
+    .submit-btn{
+      display:block;width:100%;padding:17px;border-radius:var(--r);border:none;cursor:pointer;
+      background:var(--primary);color:#fff;font-size:17px;font-weight:700;text-align:center;
+      margin-top:20px;transition:opacity .15s,background .2s;
+    }
+    .submit-btn:disabled{background:var(--border);color:var(--text-3);cursor:not-allowed;}
+    .submit-btn:not(:disabled):active{opacity:.8;}
+
+    /* 하단 시트 */
+    .sheet-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;
+      display:none;align-items:flex-end;justify-content:center;
+    }
+    .sheet-backdrop.active{display:flex;}
+    .sheet{
+      width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;
+      padding:20px 20px max(env(safe-area-inset-bottom,0px),20px);
+      animation:sheetUp .25s ease;
+    }
+    @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+    .sheet-title{font-size:16px;font-weight:800;text-align:center;margin-bottom:4px;}
+    .sheet-sub{font-size:13px;color:var(--text-3);text-align:center;margin-bottom:16px;}
+    .swatch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+    .swatch{
+      aspect-ratio:1;border-radius:14px;background:var(--surface);border:2px solid transparent;
+      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;
+    }
+    .swatch:active{transform:scale(.94);}
+    .swatch img{width:58%;height:70%;object-fit:contain;}
+    .sheet-close{
+      display:block;width:100%;margin-top:16px;padding:14px;border-radius:12px;border:none;
+      background:none;color:var(--text-3);font-size:15px;font-weight:700;cursor:pointer;
+    }
+
+    /* 완료 화면 */
+    #doneView{display:none;flex:1;flex-direction:column;padding:20px 20px 120px;text-align:center;}
+    #doneView.active{display:flex;}
+    .done-badge{
+      width:72px;height:72px;border-radius:50%;background:rgba(220,38,38,.08);color:var(--primary);
+      display:flex;align-items:center;justify-content:center;font-size:34px;margin:8px auto 18px;
+    }
+    .done-eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);}
+    .done-title{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:6px;margin-bottom:10px;}
+    .done-sub{font-size:15px;color:var(--text-2);line-height:1.7;margin-bottom:18px;}
+    #doneView .board-wrap{margin-bottom:16px;}
+    .redo-btn{
+      display:block;width:100%;padding:14px;border-radius:var(--r);border:none;cursor:pointer;
+      background:var(--surface);color:var(--text-2);font-size:15px;font-weight:600;margin-top:10px;
+      transition:opacity .15s;
+    }
+    .redo-btn:active{opacity:.7;}
+    .info-link{
+      display:block;margin-top:16px;text-align:center;color:var(--primary);font-size:14px;font-weight:700;
+      text-decoration:none;
+    }
+
+    /* 하단 내비 */
+    .bottom-nav{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:480px;
+      background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+      border-top:1px solid var(--border);
+      display:flex;gap:8px;padding:10px 16px;
+      padding-bottom:max(env(safe-area-inset-bottom,0px),10px);
+      z-index:100;
+    }
+    .nav-lnk{
+      flex:1;padding:10px 8px;border-radius:12px;border:none;
+      background:var(--surface);color:var(--text-2);
+      font-size:13px;font-weight:700;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      text-decoration:none;transition:opacity .12s;
+    }
+    .nav-lnk.home{background:var(--primary);color:#fff;}
+    .nav-lnk:active{opacity:.7;}
+    .nav-icon{font-size:20px;}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="top-bar">
+    <a href="index.html" class="back">‹</a>
+    <div class="bar-title" data-i18n="bar_title">불꽃을 찾아라</div>
+    <button type="button" class="lang-toggle" onclick="toggleLang()">EN</button>
+  </div>
+
+  <main id="missionView">
+    <div class="sec-label">MISSION 1</div>
+    <div class="sec-title" data-i18n="hero_title">프로메테우스의 불꽃을 찾아라</div>
+    <div class="sec-sub" data-i18n="hero_sub">각 세션 종료 후 화면에 공개되는 불꽃 색을 기억해뒀다가, 나만의 정답 카드를 완성해보세요!</div>
+
+    <div class="card-accent">
+      <div class="card-accent-title" data-i18n="hint_title">🔥 불꽃 위치 안내</div>
+      <div class="card-accent-body" data-i18n-html="hint_body">세션 종료 후 화면에 해당 세션장의 불꽃 색깔이 <strong>10분간</strong> 공개됩니다. 놓치셨다면 <strong>행사장 입구</strong>에 작게 표시된 불꽃도 확인해보세요!</div>
+    </div>
+
+    <div class="board-wrap" id="board1">
+      <img class="board-img" src="image/Event-M_Board.svg" alt="정답 카드">
+    </div>
+
+    <div class="palette-card">
+      <div class="palette-label" data-i18n="palette_label">불꽃 색상</div>
+      <div class="palette-row" id="paletteRow"></div>
+    </div>
+
+    <div class="tap-hint" data-i18n="tap_hint">👆 불꽃을 카드 빈 칸으로 끌어다 놓아보세요 (눌러서 선택도 가능해요)</div>
+
+    <div class="progress-row">
+      <div class="progress-dots" id="progressDots"></div>
+      <div class="progress-text" id="progressText">0 / 5</div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" disabled data-i18n="submit_locked">5칸을 모두 채워주세요</button>
+  </main>
+
+  <div id="doneView">
+    <div class="done-badge">🎉</div>
+    <div class="done-eyebrow" data-i18n="done_eyebrow">제출 완료</div>
+    <div class="done-title" data-i18n="done_title">나의 정답 카드가 완성됐어요!</div>
+    <div class="done-sub" data-i18n-html="done_sub">이 화면을 <strong>가든 스테이지 이벤트 부스</strong>에 보여주시면 기념 티셔츠를 드립니다.</div>
+
+    <div class="board-wrap" id="board2">
+      <img class="board-img" src="image/Event-M_Board.svg" alt="정답 카드">
+    </div>
+
+    <div class="card-accent" style="text-align:left">
+      <div class="card-accent-body" data-i18n-html="done_note">⚠ 티셔츠는 선착순 증정으로, 수량 소진 시 조기 마감될 수 있습니다.<br>부스 운영: 9/8(화)·9/9(수) 오전 11시~오후 6시</div>
+    </div>
+
+    <button class="redo-btn" onclick="redo()" data-i18n="redo_btn">↺ 다시 고르기</button>
+    <a href="info.html#mission1" class="info-link" data-i18n="info_link">현장 이벤트 안내 자세히 보기 →</a>
+  </div>
+</div>
+
+<!-- 색 선택 시트 -->
+<div class="sheet-backdrop" id="sheet" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet">
+    <div class="sheet-title" data-i18n="picker_title">이 세션장에서 본 불꽃은?</div>
+    <div class="sheet-sub" data-i18n="picker_sub">기억나는 색을 골라주세요</div>
+    <div class="swatch-grid" id="swatchGrid"></div>
+    <button class="sheet-close" onclick="closeSheet()" data-i18n="sheet_close">닫기</button>
+  </div>
+</div>
+
+<!-- 하단 내비 -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-lnk home"><span class="nav-icon">🏠</span><span data-i18n="nav_home">메인 메뉴</span></a>
+  <a href="info.html" class="nav-lnk"><span class="nav-icon">📋</span><span data-i18n="nav_info">이벤트 안내</span></a>
+</div>
+
+<script>
+const I18N = {
+  bar_title: { ko:'불꽃을 찾아라', en:'Find the Flame' },
+  hero_title: { ko:'프로메테우스의 불꽃을 찾아라', en:"Find Prometheus' Flame" },
+  hero_sub: { ko:'각 세션 종료 후 화면에 공개되는 불꽃 색을 기억해뒀다가, 나만의 정답 카드를 완성해보세요!', en:'Remember the flame color revealed on screen after each session, then complete your own answer card!' },
+  hint_title: { ko:'🔥 불꽃 위치 안내', en:'🔥 Flame Location Guide' },
+  hint_body: { ko:'세션 종료 후 화면에 해당 세션장의 불꽃 색깔이 <strong>10분간</strong> 공개됩니다. 놓치셨다면 <strong>행사장 입구</strong>에 작게 표시된 불꽃도 확인해보세요!', en:"After each session ends, that hall's flame color is shown on screen for <strong>10 minutes</strong>. If you miss it, look for a small flame marker <strong>at the venue entrance</strong> too!" },
+  palette_label: { ko:'불꽃 색상', en:'Flame Colors' },
+  tap_hint: { ko:'👆 불꽃을 카드 빈 칸으로 끌어다 놓아보세요 (눌러서 선택도 가능해요)', en:'👆 Drag a flame onto an empty slot on the card (or tap the slot to pick)' },
+  submit_locked: { ko:'5칸을 모두 채워주세요', en:'Fill all 5 slots to continue' },
+  submit_btn: { ko:'정답 카드 제출하기', en:'Submit My Card' },
+  picker_title: { ko:'이 세션장에서 본 불꽃은?', en:'Which flame did you see here?' },
+  picker_sub: { ko:'기억나는 색을 골라주세요', en:'Pick the color you remember' },
+  sheet_close: { ko:'닫기', en:'Close' },
+  done_eyebrow: { ko:'제출 완료', en:'Submitted' },
+  done_title: { ko:'나의 정답 카드가 완성됐어요!', en:'Your answer card is complete!' },
+  done_sub: { ko:'이 화면을 <strong>가든 스테이지 이벤트 부스</strong>에 보여주시면 기념 티셔츠를 드립니다.', en:'Show this screen at the <strong>Garden Stage event booth</strong> for a free t-shirt.' },
+  done_note: { ko:'⚠ 티셔츠는 선착순 증정으로, 수량 소진 시 조기 마감될 수 있습니다.<br>부스 운영: 9/8(화)·9/9(수) 오전 11시~오후 6시', en:'⚠ T-shirts are given while supplies last and may close early.<br>Booth hours: Tue 9/8 & Wed 9/9, 11:00 AM–6:00 PM' },
+  redo_btn: { ko:'↺ 다시 고르기', en:'↺ Choose Again' },
+  info_link: { ko:'현장 이벤트 안내 자세히 보기 →', en:'See full event guide →' },
+  nav_home: { ko:'메인 메뉴', en:'Main Menu' },
+  nav_info: { ko:'이벤트 안내', en:'Event Guide' },
+};
+function getLang(){
+  const stored=localStorage.getItem('wkf_lang');
+  if(stored) return stored;
+  return (navigator.language||'').toLowerCase().startsWith('ko') ? 'ko' : 'en';
+}
+function applyLang(){
+  const lang=getLang();
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const d=I18N[el.dataset.i18n]; if(d) el.textContent=d[lang]; });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const d=I18N[el.dataset.i18nHtml]; if(d) el.innerHTML=d[lang]; });
+  document.querySelectorAll('.lang-toggle').forEach(b=>{ b.textContent = lang==='ko' ? 'EN' : '한국어'; });
+  updateSubmitBtnLabel();
+}
+function toggleLang(){
+  localStorage.setItem('wkf_lang', getLang()==='ko' ? 'en' : 'ko');
+  applyLang();
+}
+
+const SLOTS=[
+  {id:'promi',   left:7.08,  top:19.91, width:14.35, height:35.77},
+  {id:'dynasty', left:25.12, top:8.03,  width:14.35, height:35.77},
+  {id:'emerald', left:43.15, top:19.91, width:14.35, height:35.77},
+  {id:'ruby',    left:61.18, top:8.03,  width:14.35, height:35.77},
+  {id:'topaz',   left:79.21, top:19.91, width:14.35, height:35.77},
+];
+const FLAME_LETTERS=['A','B','C','D','E','F','G','H'];
+
+const STORE_KEY='wkf_mission1_choices';
+const SUBMIT_KEY='wkf_mission1_submitted';
+let chosen={};
+let activeSlot=null;
+
+function loadState(){
+  try{ chosen=JSON.parse(localStorage.getItem(STORE_KEY))||{}; }catch(e){ chosen={}; }
+}
+function saveState(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(chosen));
+}
+
+function buildBoard(boardEl){
+  SLOTS.forEach(slot=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='slot-btn';
+    btn.style.left=slot.left+'%';
+    btn.style.top=slot.top+'%';
+    btn.style.width=slot.width+'%';
+    btn.style.height=slot.height+'%';
+    btn.dataset.slotId=slot.id;
+    if(boardEl.id==='board1'){
+      btn.addEventListener('click',()=>openSheet(slot.id));
+    }
+    boardEl.appendChild(btn);
+  });
+}
+
+function setSlotContent(boardEl, slotId, letter, animate){
+  const btn=boardEl.querySelector('.slot-btn[data-slot-id="'+slotId+'"]');
+  if(!btn) return;
+  btn.innerHTML='';
+  if(letter){
+    const img=document.createElement('img');
+    img.className='slot-flame'+(animate?' flare':'');
+    img.src='image/Event-M_'+letter+'.svg';
+    img.alt='';
+    btn.appendChild(img);
+    if(boardEl.id==='board1'){
+      const check=document.createElement('div');
+      check.className='slot-check';
+      check.textContent='✓';
+      btn.appendChild(check);
+    }
+  } else {
+    const hint=document.createElement('div');
+    hint.className='slot-hint';
+    hint.textContent='+';
+    btn.appendChild(hint);
+  }
+}
+
+function renderAll(justFilledId){
+  const board1=document.getElementById('board1');
+  const board2=document.getElementById('board2');
+  SLOTS.forEach(slot=>{
+    const letter=chosen[slot.id];
+    const animate = !!letter && slot.id===justFilledId;
+    setSlotContent(board1, slot.id, letter, animate);
+    setSlotContent(board2, slot.id, letter, animate);
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const count=Object.keys(chosen).length;
+  document.getElementById('progressText').textContent=count+' / 5';
+  const dots=document.getElementById('progressDots');
+  dots.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');
+    d.className='p-dot'+(i<count?' on':'');
+    dots.appendChild(d);
+  }
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=count<5;
+  updateSubmitBtnLabel();
+}
+function updateSubmitBtnLabel(){
+  const btn=document.getElementById('submitBtn');
+  btn.textContent = btn.disabled ? I18N.submit_locked[getLang()] : I18N.submit_btn[getLang()];
+}
+
+function buildSheetGrid(){
+  const grid=document.getElementById('swatchGrid');
+  FLAME_LETTERS.forEach(letter=>{
+    const sw=document.createElement('div');
+    sw.className='swatch';
+    sw.innerHTML=`<img src="image/Event-M_${letter}.svg" alt="">`;
+    sw.addEventListener('click',()=>chooseFlame(letter));
+    grid.appendChild(sw);
+  });
+}
+
+function openSheet(slotId){
+  activeSlot=slotId;
+  document.getElementById('sheet').classList.add('active');
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('active');
+  activeSlot=null;
+}
+function chooseFlame(letter){
+  if(!activeSlot) return;
+  placeFlame(activeSlot, letter);
+  closeSheet();
+}
+
+function placeFlame(slotId, letter){
+  chosen[slotId]=letter;
+  saveState();
+  renderAll(slotId);
+}
+
+function buildPalette(){
+  const row=document.getElementById('paletteRow');
+  FLAME_LETTERS.forEach(letter=>{
+    const item=document.createElement('div');
+    item.className='palette-item';
+    item.innerHTML='<img src="image/Event-M_'+letter+'.svg" alt="">';
+    attachDrag(item, letter);
+    row.appendChild(item);
+  });
+}
+
+function findSlotAt(x,y){
+  const btns=document.querySelectorAll('#board1 .slot-btn');
+  for(const btn of btns){
+    const r=btn.getBoundingClientRect();
+    if(x>=r.left && x<=r.right && y>=r.top && y<=r.bottom) return btn;
+  }
+  return null;
+}
+
+function attachDrag(item, letter){
+  const THRESH=8;
+  let pid=null, startX=0, startY=0, dragging=false, ghost=null, hoverSlot=null;
+
+  function onDown(e){
+    if(e.button && e.button!==0) return;
+    pid=e.pointerId; startX=e.clientX; startY=e.clientY; dragging=false;
+    try{ item.setPointerCapture(pid); }catch(err){}
+  }
+  function onMove(e){
+    if(pid===null || e.pointerId!==pid) return;
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if(!dragging){
+      if(Math.hypot(dx,dy)<THRESH) return;
+      dragging=true;
+      item.classList.add('dragging-source');
+      ghost=document.createElement('div');
+      ghost.className='drag-ghost';
+      ghost.innerHTML='<img src="image/Event-M_'+letter+'.svg" alt="">';
+      document.body.appendChild(ghost);
+    }
+    ghost.style.left=(e.clientX-32)+'px';
+    ghost.style.top=(e.clientY-32)+'px';
+    const target=findSlotAt(e.clientX,e.clientY);
+    if(target!==hoverSlot){
+      if(hoverSlot) hoverSlot.classList.remove('drop-hover');
+      hoverSlot=target;
+      if(hoverSlot) hoverSlot.classList.add('drop-hover');
+      ghost.classList.toggle('over', !!hoverSlot);
+    }
+  }
+  function onUp(e){
+    if(pid===null || e.pointerId!==pid) return;
+    if(dragging){
+      if(hoverSlot){
+        placeFlame(hoverSlot.dataset.slotId, letter);
+        hoverSlot.classList.remove('drop-hover');
+      }
+      if(ghost){ ghost.remove(); ghost=null; }
+      item.classList.remove('dragging-source');
+    }
+    pid=null; dragging=false; hoverSlot=null;
+  }
+  item.addEventListener('pointerdown',onDown);
+  item.addEventListener('pointermove',onMove);
+  item.addEventListener('pointerup',onUp);
+  item.addEventListener('pointercancel',onUp);
+}
+
+function submitCard(){
+  if(Object.keys(chosen).length<5) return;
+  localStorage.setItem(SUBMIT_KEY,'1');
+  showDone();
+}
+function showDone(){
+  document.getElementById('missionView').style.display='none';
+  document.getElementById('doneView').classList.add('active');
+}
+function redo(){
+  localStorage.removeItem(SUBMIT_KEY);
+  document.getElementById('doneView').classList.remove('active');
+  document.getElementById('missionView').style.display='';
+}
+
+buildBoard(document.getElementById('board1'));
+buildBoard(document.getElementById('board2'));
+buildSheetGrid();
+buildPalette();
+loadState();
+renderAll();
+document.getElementById('submitBtn').addEventListener('click',submitCard);
+if(localStorage.getItem(SUBMIT_KEY)==='1' && Object.keys(chosen).length>=5){
+  showDone();
+}
+applyLang();
+</script>
+</body>
+</html>

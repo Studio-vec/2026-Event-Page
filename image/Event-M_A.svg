@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_인쇄" data-name="인쇄" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 49.04 68.09">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#_무제_그라디언트_351-3);
+      }
+
+      .cls-2 {
+        fill: url(#_무제_그라디언트_351);
+      }
+
+      .cls-3 {
+        fill: url(#_무제_그라디언트_351-4);
+      }
+
+      .cls-4 {
+        fill: url(#_무제_그라디언트_351-5);
+      }
+
+      .cls-5 {
+        fill: url(#_무제_그라디언트_351-2);
+      }
+
+      .cls-6 {
+        fill: url(#_무제_그라디언트_351-7);
+      }
+
+      .cls-7 {
+        fill: url(#_무제_그라디언트_351-6);
+      }
+    </style>
+    <linearGradient id="_무제_그라디언트_351" data-name="무제 그라디언트 351" x1="3.51" y1="62.56" x2="3.51" y2="36.27" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f6afce"/>
+      <stop offset=".08" stop-color="#f2bab1"/>
+      <stop offset=".21" stop-color="#ecca89"/>
+      <stop offset=".33" stop-color="#e8d56c"/>
+      <stop offset=".43" stop-color="#e5dc5a"/>
+      <stop offset=".5" stop-color="#e5df54"/>
+      <stop offset=".57" stop-color="#e1de53"/>
+      <stop offset=".64" stop-color="#d6db53"/>
+      <stop offset=".71" stop-color="#c3d752"/>
+      <stop offset=".77" stop-color="#a9d252"/>
+      <stop offset=".83" stop-color="#87ca51"/>
+      <stop offset=".89" stop-color="#5dc24f"/>
+      <stop offset=".95" stop-color="#2db74e"/>
+      <stop offset="1" stop-color="#00ae4d"/>
+    </linearGradient>
+    <linearGradient id="_무제_그라디언트_351-2" data-name="무제 그라디언트 351" x1="10.53" y1="68.09" x2="10.53" y2="18.79" xlink:href="#_무제_그라디언트_351"/>
+    <linearGradient id="_무제_그라디언트_351-3" data-name="무제 그라디언트 351" x1="17.56" y1="53.44" x2="17.56" y2="15.22" xlink:href="#_무제_그라디언트_351"/>
+    <linearGradient id="_무제_그라디언트_351-4" data-name="무제 그라디언트 351" x1="24.58" y1="57.27" x2="24.58" y2="2.63" xlink:href="#_무제_그라디언트_351"/>
+    <linearGradient id="_무제_그라디언트_351-5" data-name="무제 그라디언트 351" x1="31.54" y1="61.97" x2="31.54" y2="0" xlink:href="#_무제_그라디언트_351"/>
+    <linearGradient id="_무제_그라디언트_351-6" data-name="무제 그라디언트 351" x1="38.57" y1="67.1" x2="38.57" y2="23.79" xlink:href="#_무제_그라디언트_351"/>
+    <linearGradient id="_무제_그라디언트_351-7" data-name="무제 그라디언트 351" x1="45.53" y1="56.03" x2="45.53" y2="34.87" xlink:href="#_무제_그라디언트_351"/>
+  </defs>
+  <rect class="cls-2" y="36.27" width="7.02" height="26.29"/>
+  <rect class="cls-5" x="7.02" y="18.79" width="7.02" height="49.29"/>
+  <rect class="cls-1" x="14.04" y="15.22" width="7.02" height="38.22"/>
+  <rect class="cls-3" x="21.07" y="2.63" width="7.02" height="54.64"/>
+  <rect class="cls-4" x="28.03" width="7.02" height="61.97"/>
+  <rect class="cls-7" x="35.05" y="23.79" width="7.02" height="43.31"/>
+  <rect class="cls-6" x="42.02" y="34.87" width="7.02" height="21.16"/>
+</svg>
